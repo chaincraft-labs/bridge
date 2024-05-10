@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /*
  * @todo: 
- * - Add Ownable
+ * - Add Ownable & Burnable
  * - batchMint and burn ? (to have a better gas usage for minting and burning)
  * - Add a way to pause the contract
  * - Add a way to change the admin (admin should be the bridge contract address)

@@ -9,5 +9,5 @@ import "./BridgedToken.sol";
  * DAI token on Eth tesnet
  */
 contract MockedDai is ERC20 {
-    constructor() BridgedToken("DAI Token", "DAI") {}
+    constructor() ERC20("DAI Token", "DAI") {}
 }

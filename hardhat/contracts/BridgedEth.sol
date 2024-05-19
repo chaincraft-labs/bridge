@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.20;
 
-import "./TokenBase.sol";
+import "./BridgedToken.sol";
 
 /**
- * DAI token on Eth tesnet
+ * ETH token on Aft tesnet
  */
-contract Dai is TokenBase {
-    constructor() TokenBase("DAI Token", "DAI") {}
+contract BridgedEth is BridgedToken {
+    constructor() BridgedToken("ETH token", "aETH") {}
 }

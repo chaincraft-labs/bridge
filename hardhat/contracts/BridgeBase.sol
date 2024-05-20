@@ -303,6 +303,10 @@ contract BridgeBase is Utils {
     // NOT LOGIC to ask user or dapp to know tokenADD for destination
     // reduce params of signed msg
     // as we have a mapping of tokens => destination will get the eq token
+
+    // ATTNETION  tokenFrom => TO !!! check when to change it
+    // function bridge(address tokenAddress, uint256 amount, uint256 chainId, bytes calldata signature) external payable {
+
     /**
      * @notice Entry point to deposit tokens to the bridge
      *
@@ -313,22 +317,34 @@ contract BridgeBase is Utils {
      * @dev payable for native token
      * @dev ERC20 token: approve the contract to transfer the token
      *
-     * @param tokenAddress token address
      * @param amount token amount
-     * @param chainId chain id
      */
-    function bridge(address tokenAddress, uint256 amount, uint256 chainId, bytes calldata signature) external payable {
+    function bridge(
+        address from,
+        address to,
+        uint256 chainIdFrom,
+        uint256 chainIdTo,
+        address tokenFrom,
+        address tokenTo,
+        uint256 amount,
+        uint256 _nonce,
+        bytes calldata signature
+    ) external payable {
+        require(_nonce == ++nonce, "BridgeBase: wrong nonce");
+        // require(!isPausedBridge, "BridgeBase: bridge is paused");
+        // require(!isPausedFinalize, "BridgeBase: finalize is paused");
+        // require(!isPausedAll, "BridgeBase: all is paused"
         // if (!authorizedTokens[tokenAddress]) {
-        if (!Storage(s_storage).getAuthorizedToken(tokenAddress)) {
+        if (!Storage(s_storage).getAuthorizedToken(tokenFrom)) {
             revert BridgeBase__DepositFailed("unauthorized token");
         }
         // if (!authorizedChains[chainId]) {
-        if (!Storage(s_storage).getAuthorizedChain(chainId)) {
+        if (!Storage(s_storage).getAuthorizedChain(chainIdTo)) {
             revert BridgeBase__DepositFailed("invalid chainId");
         }
         address vault = Storage(s_storage).getOperator("vault");
 
-        if (tokenAddress == address(0)) {
+        if (tokenFrom == address(0)) {
             // native token
             if (msg.value == 0) {
                 revert BridgeBase__DepositFailed("Native needs non zero value");
@@ -343,38 +359,38 @@ contract BridgeBase is Utils {
             if (msg.value > 0) {
                 revert BridgeBase__DepositFailed("Token needs zero value");
             }
-            if (ERC20(tokenAddress).balanceOf(msg.sender) < amount) {
+            if (ERC20(tokenFrom).balanceOf(msg.sender) < amount) {
                 revert BridgeBase__DepositFailed("Insufficient balance");
             }
             // ask allowance
-            bool res = ERC20(tokenAddress).approve(vault, amount);
+            bool res = ERC20(tokenFrom).approve(vault, amount);
             if (!res) {
                 revert BridgeBase__DepositFailed("Initial allowance failed");
             }
 
-            if (!Storage(s_storage).getBridgedToken(tokenAddress)) {
+            if (!Storage(s_storage).getBridgedToken(tokenFrom)) {
                 // if (!bridgedTokens[tokenAddress]) {
                 // _lockToken(tokenAddress, msg.sender, amount, chainId);
-                Vault(vault).depositToken(msg.sender, tokenAddress, amount);
+                Vault(vault).depositToken(msg.sender, tokenFrom, amount);
             } else {
                 // bridge token
                 // burn the bridge token
                 // SHOULD BE SENT to the vault and burn ONLY when FINALIZED
                 // To let user reedem if op is CANCELED
                 // _burn(tokenAddress, msg.sender, amount, chainId);
-                Vault(vault).burn(tokenAddress, msg.sender, amount);
+                Vault(vault).burn(tokenFrom, msg.sender, amount);
             }
         }
 
         // @todo when setAuthorizedToken => set the mapping to otherchains!!!
         // fetch token and the other chain
         // address tokenTo = getTokenByChain(tokenAddress, chainId);
-        address tokenTo = Storage(s_storage).getTokenOnChainId(tokenAddress, chainId);
+        address tokenTo = Storage(s_storage).getTokenOnChainId(tokenFrom, chainIdTo);
         // NONCE CHOOSE WHO MANAGE!!!!
         // uint256 _nonce = actualNonce[msg.sender]++;
         address relayer = Storage(s_storage).getOperator("relayer");
-        RelayerBase(relayer).createNewOperation(
-            msg.sender, msg.sender, tokenAddress, tokenTo, amount, chainId, ++nonce, signature
+        RelayerBase(relayer).createOperation(
+            msg.sender, msg.sender, chainIdFrom, chainIdTo, tokenFrom, tokenTo, amount, ++nonce, signature
         );
     }
 
@@ -469,7 +485,7 @@ contract BridgeBase is Utils {
         // SHOULD NOT OCCUR !!! => (manage this case)
         // when calling the relayer ?? to approve and transfert fees the oher side.
         // ?? check if we have the liquidity ?? and send the result with the approve confirmation
-        if (!Storage(s_storage).getAuthorizedTokens[tokenTo]) {
+        if (!Storage(s_storage).getAuthorizedToken(tokenTo)) {
             revert BridgeBase__FinalizationFailed("unauthorized token");
         }
         // Already checked in relayer
@@ -488,7 +504,7 @@ contract BridgeBase is Utils {
             // native token
             vault.unlockNative(to, amount);
         } else {
-            if (!Storage(s_storage).getBridgedTokens[tokenTo]) {
+            if (!Storage(s_storage).getBridgedToken(tokenTo)) {
                 // bridge token
                 vault.unlockToken(to, tokenFrom, amount);
             } else {

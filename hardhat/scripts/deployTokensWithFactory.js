@@ -42,24 +42,24 @@ async function main() {
 
   // Create the bridged tokens
   const promises = [
-    await callCreateToken(factory, "BridgedAft", "Aft"),
-    await callCreateToken(factory, "BridgedDai", "Dai"),
-    await callCreateToken(factory, "BridgedEth", "Eth"),
+    await callCreateToken(factory, "BridgedTokenAft", "Aft"),
+    await callCreateToken(factory, "BridgedTokenDai", "Dai"),
+    await callCreateToken(factory, "BridgedTokenEth", "Eth"),
   ];
 
   const tokens = await Promise.all(promises);
 
   // Deploy the MockedDai contract
-  const mockedDai = await hre.ethers.deployContract("MockedDai");
+  const mockedDai = await hre.ethers.deployContract("MockedTokenDai");
   await mockedDai.waitForDeployment();
-  console.log("mocked Dai deployed to:", mockedDai.target);
+  console.log("mocked Token Dai deployed to:", mockedDai.target);
 
   // Write the deployed addresses to deployedAddresses.json
   writeDeployedAddress(network, "TokenFactory", factory.target);
   tokens.forEach((token) => {
     writeDeployedAddress(network, "BridgedToken", token.address, token.name);
   });
-  writeDeployedAddress(network, "MockedDai", mockedDai.target);
+  writeDeployedAddress(network, "MockedTokenDai", mockedDai.target);
 
   // unsubscribe from the event
   //   factory.removeAllListeners();

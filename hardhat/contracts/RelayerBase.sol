@@ -4,6 +4,9 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./BridgeBase.sol";
+import "./Storage.sol";
+import "./Vault.sol";
+import "./Utils.sol";
 
 /* errors */
 
@@ -42,29 +45,37 @@ import "./BridgeBase.sol";
  * @dev confirm is called to confirm a tx when called by the oracle/server (to forward fees event)
  * @dev when these 2 conditions are met the bridge event is emitted
  */
-contract RelayerBase {
+contract RelayerBase is Utils {
     /* errors */
-
+    enum FeesType {
+        PROTOCOL,
+        OPERATION
+    }
     /* types declarations */
     enum OperationStatus {
         NONE,
-        INITIATED,
-        // READY,
-        PROCESSING,
-        CONFIRMED,
-        FINALIZED,
-        CANCELLED
+        INITIALIZED, // user deposited
+        CONFIRMED, // fees locked
+        PROCESSING, // relayer send the event // taken
+        RECEIVED, // other chain relayer received the event
+        FINALIZED, // origin chain relayer received the event all funds are transfered
+        CLOSED, // block confirmation is passed (origin plus destination chain)
+        CANCELLED // at every step an operator can cancel the operation (failure..)
+
     }
 
     // @todo refactor params
     struct OperationParams {
         address from;
         address to;
-        uint256 chainId;
-        address token;
+        uint256 chainIdFrom;
+        uint256 chainIdTo;
+        address tokenFrom;
+        address tokenTo;
         uint256 amount;
         // uint256 fee;
         uint256 nonce;
+        bytes signature;
     }
 
     struct Confirmation {
@@ -79,57 +90,93 @@ contract RelayerBase {
         bytes signature;
     }
 
-    struct Operation {
-        // address token;
-        // address from;
-        // address to;
-        // uint256 amount;
-        // uint256 fee;
-        // uint256 nonce;
-        // bytes signature; // vrs ?
+    //RENAME
+
+    struct BlockStep {
+        uint256 initBlock;
+        uint256 confirmationBlock;
+        uint256 processingBlock;
+        uint256 receivedBlock;
+        uint256 finalizedBlock;
+        uint256 closedBlock;
+    }
+
+    struct OriginOperation {
         OperationParams params;
-        Confirmation confirmation;
         OperationStatus status;
-        uint256 OperationHash;
-        uint256 initTimestamp;
+        BlockStep blockStep;
+    }
+
+    struct DestinationOperation {
+        OperationParams params;
+        OperationStatus status;
+        BlockStep blockStep;
     }
     /* state variables */
+    //op as origin
 
-    mapping(uint256 operationHash => Operation) public s_operations;
+    mapping(bytes32 operationHash => OriginOperation) public s_originOperations;
+    // op as destination
+    mapping(bytes32 operationHash => DestinationOperation) public s_destinationOperations;
+    OriginOperation[] public s_originOperationsList;
+    DestinationOperation[] public s_destinationOperationsList;
 
-    address public s_bridgeAddress;
-    address public s_oracleAddress;
-    address public s_admin;
+    address public s_storage;
+
     /* events */
 
     event BridgeEvent(
         address indexed from, address indexed to, uint256 chainId, address token, uint256 amount, uint256 nonce
     );
 
-    event StatusChanged(uint256 operationHash, OperationStatus oldStatus, OperationStatus newStatus);
-
+    // event StatusChanged(uint256 operationHash, OperationStatus oldStatus, OperationStatus newStatus);
+    event OperationCreated(bytes32 operationHash, OperationParams params, uint256 blockNumber);
+    event OperationConfirmed(bytes32 operationHash, OperationStatus status, uint256 blockNumber);
+    event OperationTriggered(bytes32 operationHash, OperationParams params, uint256 initBlock, uint256 blockNumber);
+    event OperationReceived(bytes32 operationHash, OperationParams params, uint256 blockNumber);
+    event OperationFinalized(bytes32 operationHash, OperationParams params, uint256 blockNumber);
     /* modifiers */
+
     modifier onlyBridge() {
-        require(msg.sender == s_bridgeAddress, "only bridge");
+        if (!Storage(s_storage).isBridge(msg.sender)) {
+            revert("only bridge");
+        }
         _;
     }
 
     modifier onlyOracle() {
-        require(msg.sender == s_oracleAddress, "only oracle");
+        if (!Storage(s_storage).isOracle(msg.sender)) {
+            revert("only oracle");
+        }
         _;
     }
 
     /* constructor */
-    constructor(address _oracleAddress) {
-        // s_bridgeAddress = _bridgeAddress;
-        s_oracleAddress = _oracleAddress;
-        s_admin = msg.sender;
+    constructor(address storageAddress) {
+        // first deployed is storage so admin of storage should be the admin of the factory and msg.sender
+        // store the storage address
+        // check is isAdmin(msg.sender) in the storage
+        s_storage = storageAddress;
+        if (!Storage(s_storage).isAdmin(msg.sender)) {
+            revert("TokenFactory: caller is not the admin");
+        }
     }
 
-    function updateBridgeAddress(address _bridgeAddress) external {
-        require(msg.sender == s_admin, "only admin");
-        s_bridgeAddress = _bridgeAddress;
+    // hash functions
+    function computeOperationHash(
+        address from,
+        address to,
+        uint256 chainIdFrom,
+        uint256 chainIdTo,
+        address tokenFrom,
+        address tokenTo,
+        uint256 amount,
+        // uint256 fee;
+        uint256 nonce
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(from, to, chainIdFrom, chainIdTo, tokenFrom, tokenTo, amount, nonce));
     }
+
     /* receive / fallback */
 
     /* external functions */
@@ -143,37 +190,126 @@ contract RelayerBase {
     //
     //**********************************************************************
 
+    // event ReadyToBridge(
+    //     address from,
+    //     address to,
+    //     uint256 chainIdFrom,
+    //     uint256 chainIdTo,
+    //     address tokenFrom,
+    //     address tokenTo,
+    //     uint256 amount,
+    //     uint256 nonce,
+    //     bytes signature
+    // );
     // the bridge contract will call this function // or prepareCrossMsg
-    function register(
+
+    function createOperation(
         address from,
         address to,
+        uint256 chainIdFrom,
+        uint256 chainIdTo,
         address tokenFrom,
         address tokenTo,
         uint256 amount,
-        uint256 chainId,
         uint256 nonce,
         bytes calldata signature
     ) external onlyBridge {
         // uint256 operationHash = 123; //_hashOperation();
 
         //create hash from params
-        uint256 operationHash =
-            uint256(keccak256(abi.encodePacked(from, to, tokenFrom, tokenTo, amount, chainId, nonce)));
-        OperationParams memory params = OperationParams(from, to, chainId, tokenFrom, amount, nonce);
+        bytes32 operationHash =
+            computeOperationHash(from, to, chainIdFrom, chainIdTo, tokenFrom, tokenTo, amount, nonce);
+        // uint256(keccak256(abi.encodePacked(from, to, tokenFrom, tokenTo, amount, chainId, nonce)));
+        require(
+            s_originOperations[operationHash].status == OperationStatus.NONE, "RelayerBase: operation already exists"
+        );
 
-        Operation memory operation;
+        OperationParams memory params;
+        params.from = from;
+        params.to = to;
+        params.chainIdFrom = chainIdFrom;
+        params.chainIdTo = chainIdTo;
+        params.tokenFrom = tokenFrom;
+        params.tokenTo = tokenTo;
+        params.amount = amount;
+        params.nonce = nonce;
+        params.signature = signature;
+
+        OriginOperation memory operation;
         operation.params = params;
-        operation.OperationHash = operationHash;
+        operation.status = OperationStatus.INITIALIZED;
+        operation.blockStep.initBlock = block.number;
 
-        _checkConditions(operationHash);
+        s_originOperations[operationHash] = operation;
+
+        // rename to NewBridgeOperation
+        // emit ReadyToBridge(from, to, chainIdFrom, chainIdTo, tokenFrom, tokenTo, amount, nonce, signature);
+
+        // emit OperationCreated(from, to, chainIdFrom, chainIdTo, tokenFrom, tokenTo, amount, nonce, signature);
+        emit OperationCreated(operationHash, params, block.number);
     }
 
-    // the server call this function forwarding the fees event
-    function confirm() external onlyOracle {
-        uint256 operationHash = 123; //_hashOperation();
-        _checkConditions(operationHash);
+    // the server call this function forwarding the fees event confirFeesLocked
+    function confirmOperation(
+        bytes32 operationHash,
+        OperationStatus status,
+        address userFrom,
+        uint256 nonce,
+        address operator,
+        bytes calldata signature
+    ) external onlyOracle {
+        // check signature
+        OriginOperation storage operation = s_originOperations[operationHash];
+        require(operation.status == OperationStatus.INITIALIZED, "RelayerBase: invalid status");
+        require(
+            status == OperationStatus.CONFIRMED || status == OperationStatus.CANCELLED, "RelayerBase: invalid status"
+        );
+
+        bytes32 message = prefixed(keccak256(abi.encodePacked(operationHash, status, userFrom, nonce)));
+        require(recoverSigner(message, signature) == operator, "RelayerBase: invalid signature");
+        require(nonce == operation.params.nonce, "RelayerBase: invalid nonce");
+
+        operation.status = status;
+        // CONFUSION confirmation : block ? deposit ? fees // not clear it's the fees=> operation=> RENAME
+        operation.blockStep.confirmationBlock = block.number;
+
+        // emit OperationConfirmed(from, to, chainIdFrom, chainIdTo, tokenFrom, tokenTo, amount, nonce, signature);
+        emit OperationConfirmed(operationHash, status, block.number);
+
+        // HERE readyToBridge is emitted !!! cause we have 2 conditions met
     }
 
+    function triggerOperation(bytes32 operationHash) external {
+        bytes32 key = Storage(s_storage).getKey("blockToWait", block.chainid);
+        uint256 blockToWait = Storage(s_storage).getUint(key);
+        OriginOperation storage operation = s_originOperations[operationHash];
+
+        require(block.number >= operation.blockStep.initBlock + blockToWait, "RelayerBase: block not reached");
+        require(operation.status == OperationStatus.CONFIRMED, "RelayerBase: invalid status");
+
+        operation.status = OperationStatus.PROCESSING;
+        operation.blockStep.processingBlock = block.number;
+
+        // Server has to call a getter to get params or we emit the event here :
+        // So this event the one that the oracle will listen to
+        emit OperationTriggered(operationHash, operation.params, operation.blockStep.initBlock, block.number);
+    }
+
+    // MAKE CONSTANT FOR VARIABLE NAME AND TAG !!!
+    // ADD MARGIN TO THE FEES in case of volatility !!
+
+    // to get fees estimation // from a base precompute compute fees with tx.gasprice
+    function simulateOperation() public view returns (uint256) {
+        return Storage(s_storage).getUint(Storage(s_storage).getKey("opFees", block.chainid));
+    }
+
+    function computeFees() public view returns (uint256) {
+        uint256 simulatedOpFees = simulateOperation();
+        // uint256 protocolPercentFees = Storage(s_storage).getUint(Storage(s_storage).getKey("protocolPercentFees", block.chainid));
+        // uint256 protocolFees =
+        // @todo calcul of protFees // server incentive at destination chain
+        return simulatedOpFees;
+    }
     //********************************************************************** */
     //
     //     Function: fees management and liquidity check (destination chain)
@@ -182,7 +318,53 @@ contract RelayerBase {
 
     // We should simulate operation to get the needed fees
     // these op will be server calling
-    function lockOperationalFees() external {
+
+    //In Later versions THIS WILL create a vote (or at the beginning on origin chain)
+    // operator will act like bot for a vote
+    // triggering status changes
+    // some status trigger operation such as feesLock...
+    // signature checks.. are done in the contract.
+    // final vote are to vote for but against to cancelled a bad tx
+    // threshold reach trigger the fianl execution
+
+    // USER HAS TO APPROVE THE RELAYER TO SPEND HIS TOKENS
+    // first call to destination creating a new DestinationOperation
+    function lockDestinationFees(
+        bytes32 operationHash,
+        OperationParams calldata operationParams,
+        uint256 initBlock,
+        uint256 confirmationBlock
+    ) external payable onlyOracle {
+        require(
+            confirmationBlock - initBlock
+                > Storage(s_storage).getUint(Storage(s_storage).getKey("blockToWait", operationParams.chainIdTo)),
+            "RelayerBase: block not reached"
+        );
+        uint256 fees = computeFees();
+        require(msg.value == fees, "RelayerBase: invalid fees");
+
+        // check params validity and signature
+        bytes32 message = prefixed(
+            keccak256(
+                abi.encodePacked(
+                    operationParams.from,
+                    operationParams.to,
+                    operationParams.chainIdFrom,
+                    operationParams.chainIdTo,
+                    operationParams.tokenFrom,
+                    operationParams.tokenTo,
+                    operationParams.amount,
+                    operationParams.nonce
+                )
+            )
+        );
+        require(
+            recoverSigner(message, operationParams.signature) == operationParams.from, "RelayerBase: invalid signature"
+        );
+
+        _createDestinationOperation(operationHash, operationParams, initBlock, confirmationBlock);
+        Vault vault = Vault(Storage(s_storage).getOperator("vault"));
+        vault.depositFees{value: msg.value}(operationParams.tokenFrom, fees, uint8(FeesType.OPERATION));
         // @todo
 
         // we should check liquidity asked if native token is the output token and :
@@ -199,34 +381,60 @@ contract RelayerBase {
         // SO EMIT THE EVENT
     }
 
+    function finalizeOperation(bytes32 operationHash) external onlyOracle {
+        // check block (signature checked at creation)
+        // check status not CANCELED
+
+        DestinationOperation storage operation = s_destinationOperations[operationHash];
+        require(operation.status == OperationStatus.RECEIVED, "RelayerBase: invalid status");
+
+        operation.status = OperationStatus.FINALIZED;
+        operation.blockStep.finalizedBlock = block.number;
+
+        BridgeBase bridge = BridgeBase(Storage(s_storage).getOperator("bridge"));
+        bridge.finalize(
+            operation.params.from,
+            operation.params.to,
+            operation.params.chainIdFrom,
+            operation.params.chainIdTo,
+            operation.params.tokenFrom,
+            operation.params.tokenTo,
+            operation.params.amount,
+            operation.params.nonce,
+            operation.params.signature
+        );
+
+        // emit OperationFinalized(operationHash, operation.params, block.number);
+        emit OperationFinalized(operationHash, operation.params, block.number);
+    }
+
+    function _createDestinationOperation(
+        bytes32 operationHash,
+        OperationParams calldata operationParams,
+        uint256 initBlock,
+        uint256 confirmationBlock
+    ) internal {
+        require(
+            s_destinationOperations[operationHash].status == OperationStatus.NONE,
+            "RelayerBase: operation already exists"
+        );
+        DestinationOperation memory operation;
+        operation.params = operationParams;
+        operation.status = OperationStatus.INITIALIZED;
+        operation.blockStep.initBlock = block.number;
+
+        s_destinationOperations[operationHash] = operation;
+        s_destinationOperationsList.push(operation);
+
+        // oracle listen to this then run a counter to trigger the feesLock confirmation
+        // CHANGE THE STATUS
+
+        emit OperationReceived(operationHash, operationParams, block.number);
+    }
+
     /* public functions */
 
     /* internal functions */
-
-    // rename updateStatus
-    // check fot a opHash if we init a new op and if we received the associated feesLock event from the other chain
-    function _checkConditions(uint256 operationHash) internal {
-        OperationStatus status = s_operations[operationHash].status;
-        OperationStatus oldStatus = status;
-
-        if (status == OperationStatus.NONE) {
-            status = OperationStatus.INITIATED;
-        } else if (status == OperationStatus.INITIATED) {
-            emit BridgeEvent(
-                s_operations[operationHash].params.from,
-                s_operations[operationHash].params.to,
-                s_operations[operationHash].params.chainId,
-                s_operations[operationHash].params.token,
-                s_operations[operationHash].params.amount,
-                s_operations[operationHash].params.nonce
-            );
-            status = OperationStatus.PROCESSING;
-        }
-        emit StatusChanged(operationHash, oldStatus, status);
-        s_operations[operationHash].status = status;
-    }
-
-    /* private functions */
 
     /* pure functions */
 

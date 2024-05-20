@@ -77,6 +77,7 @@ import "./RelayerBase.sol";
 import "./TokenFactory.sol";
 import "./Vault.sol";
 import "./Storage.sol";
+import "./Utils.sol";
 
 // error BridgeBase__DepositNativeWithZeroValue();
 // error BridgeBase__DepositTokenWithNonZeroValue();
@@ -86,66 +87,77 @@ error BridgeBase__DepositFailed(string message);
 error BridgeBase__FinalizationFailed(string message);
 error BridgeBase__UnlockFailed(string message);
 
-contract BridgeBase {
-    address public s_relayer;
-    address public s_admin;
-    address public s_oracle; //s_serverWallet;
-    address public s_factory;
+contract BridgeBase is Utils {
     address public s_storage;
     // @dev deposited tokens
     // @dev user => chainId => tokenAddress => amount
-    mapping(address => mapping(uint256 => mapping(address => uint256))) public deposited;
-    // @dev authorized tokens (add(0) for native token)
-    mapping(address => bool) public authorizedTokens;
-    mapping(uint256 => bool) public authorizedChains;
-    mapping(uint256 => address) public s_chainId; // remove
+    // mapping(address => mapping(uint256 => mapping(address => uint256))) public deposited;
+    // // @dev authorized tokens (add(0) for native token)
+    // mapping(address => bool) public authorizedTokens;
+    // mapping(uint256 => bool) public authorizedChains;
+    // mapping(uint256 => address) public s_chainId; // remove
     //or
     // mapping(address token => mapping(uint256 chainId => bool)) public authorizedTokens;
     // @dev bridged tokens (minted on deposit and burned on withdraw)
-    mapping(address => bool) public bridgedTokens;
-    address[] public bridgedTokensList;
-    // nonce management
-    // mapping(address user => uint256 nonce) public nonces;
-    //or
-    mapping(address user => mapping(uint256 => bool) nonce) public nonces; // destination side
+    // mapping(address => bool) public bridgedTokens;
+    // address[] public bridgedTokensList;
     //or by chain also
     // mapping(address user => mapping(uint256 => mapping(uint256 => bool)) nonce) public nonces;
     // or with hash (user, chainId) and bitset of nonce ?
     // tempo actual nonce to process
-    mapping(address user => uint256) public actualNonce; // origin side
+    // nonce management
+    // mapping(address user => uint256 nonce) public nonces;
+    //or
+    // MORE REFLEXION ABOUT NONCE !!
+    mapping(address user => mapping(uint256 => bool) nonce) public nonces; // destination side
 
-    mapping(address tokenHere => mapping(uint256 chainId => address tokenThere)) public tokenMapping;
-    address[] public tokensList;
-    uint256[] public chainIdsList;
+    mapping(address user => uint256) public actualNonce; // origin side
+    uint256 public nonce; // (pb if we want to pack)
+
+    // mapping(address tokenHere => mapping(uint256 chainId => address tokenThere)) public tokenMapping;
+    // address[] public tokensList;
+    // uint256[] public chainIdsList;
 
     // MAke Access control instead
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "only admin");
+    modifier onlyAdmin(address _admin) {
+        if (!Storage(s_storage).isAdmin(_admin)) {
+            revert("BridgeBase: caller is not the admin");
+        }
         _;
     }
 
     modifier onlyAuthorizedToken(address tokenAddress) {
-        require(authorizedTokens[tokenAddress], "unauthorized token");
+        if (!Storage(s_storage).getAuthorizedToken(tokenAddress)) {
+            revert("BridgeBase: unauthorized token");
+        }
         _;
     }
 
     modifier onlyAuthorizedChain(uint256 chainId) {
-        require(authorizedChains[chainId], "unauthorized chain");
+        if (!Storage(s_storage).getAuthorizedChain(chainId)) {
+            revert("BridgeBase: unauthorized chain");
+        }
         _;
     }
 
     modifier onlyOracle() {
-        require(msg.sender == s_oracle, "only oracle");
+        if (!Storage(s_storage).isOracle(msg.sender)) {
+            revert("BridgeBase: caller is not the oracle");
+        }
         _;
     }
 
     modifier onlyRelayer() {
-        require(msg.sender == s_relayer, "only relayer");
+        if (!Storage(s_storage).isRelayer(msg.sender)) {
+            revert("BridgeBase: caller is not the relayer");
+        }
         _;
     }
 
     modifier onlyAdminOrBridge() {
-        require(msg.sender == s_admin || msg.sender == s_relayer, "only admin or bridge");
+        if (!Storage(s_storage).isAdmin(msg.sender) && !Storage(s_storage).isBridge(msg.sender)) {
+            revert("BridgeBase: caller is not the admin or the bridge");
+        }
         _;
     }
 
@@ -288,6 +300,9 @@ contract BridgeBase {
     // max value of uint8 = 255
     // which uint type to contain : 1155511 => uint32 wich is 4294967295
 
+    // NOT LOGIC to ask user or dapp to know tokenADD for destination
+    // reduce params of signed msg
+    // as we have a mapping of tokens => destination will get the eq token
     /**
      * @notice Entry point to deposit tokens to the bridge
      *
@@ -322,7 +337,7 @@ contract BridgeBase {
                 revert BridgeBase__DepositFailed("Insufficient balance");
             }
             // _lockNative(msg.sender, chainId);
-            Vault(vault).depositNative(msg.sender);
+            Vault(vault).depositNative{value: msg.value}(msg.sender);
         } else {
             // erc20 token
             if (msg.value > 0) {
@@ -356,11 +371,29 @@ contract BridgeBase {
         // address tokenTo = getTokenByChain(tokenAddress, chainId);
         address tokenTo = Storage(s_storage).getTokenOnChainId(tokenAddress, chainId);
         // NONCE CHOOSE WHO MANAGE!!!!
-        uint256 nonce = actualNonce[msg.sender]++;
-        RelayerBase(s_relayer).register(
-            msg.sender, msg.sender, tokenAddress, tokenTo, amount, chainId, nonce, signature
+        // uint256 _nonce = actualNonce[msg.sender]++;
+        address relayer = Storage(s_storage).getOperator("relayer");
+        RelayerBase(relayer).createNewOperation(
+            msg.sender, msg.sender, tokenAddress, tokenTo, amount, chainId, ++nonce, signature
         );
     }
+
+    /// receiving fees from the oracle for operational fees
+    // later implement mapping to trace operator => fees to redeem and user => fees to refund
+    // function depositOpFees() external payable {
+    //     // check if the caller is the oracle
+    //     // check if the amount is > 0
+    //     // check if the amount is < the balance
+    //     // transfer the amount to the vault
+    //     // update the balance
+    //     if (msg.sender != Storage(s_storage).getOperator("oracle")) {
+    //         revert("BridgeBase: caller is not the oracle");
+    //     }
+    //     if (msg.value == 0) {
+    //         revert("BridgeBase: amount is 0");
+    //     }
+
+    // }
 
     // /*
     //  * These function should not be called directly !! checks are done into the bridge function
@@ -417,11 +450,12 @@ contract BridgeBase {
     function finalize(
         address from,
         address to,
+        uint256 chainIdFrom,
+        uint256 chainIdTo,
         address tokenFrom,
         address tokenTo,
         uint256 amount,
-        uint256 chainId,
-        uint256 nonce,
+        uint256 _nonce,
         bytes calldata signature
     )
         // ) external onlyOracle {
@@ -435,11 +469,12 @@ contract BridgeBase {
         // SHOULD NOT OCCUR !!! => (manage this case)
         // when calling the relayer ?? to approve and transfert fees the oher side.
         // ?? check if we have the liquidity ?? and send the result with the approve confirmation
-        if (!authorizedTokens[tokenTo]) {
+        if (!Storage(s_storage).getAuthorizedTokens[tokenTo]) {
             revert BridgeBase__FinalizationFailed("unauthorized token");
         }
-
-        bytes32 message = prefixed(keccak256(abi.encodePacked(from, to, tokenFrom, tokenTo, amount, chainId, nonce)));
+        // Already checked in relayer
+        bytes32 message =
+            prefixed(keccak256(abi.encodePacked(from, to, tokenFrom, tokenTo, amount, chainIdFrom, chainIdTo, _nonce)));
         if (recoverSigner(message, signature) != from) {
             revert BridgeBase__FinalizationFailed("wrong signature");
         }
@@ -447,175 +482,75 @@ contract BridgeBase {
             revert BridgeBase__FinalizationFailed("transfer already processed");
         }
         nonces[from][nonce] = true;
+        Vault vault = Vault(Storage(s_storage).getOperator("vault"));
 
         if (tokenTo == address(0)) {
             // native token
-            _unlockNative(from, to, tokenFrom, tokenTo, amount, chainId, nonce, signature);
+            vault.unlockNative(to, amount);
         } else {
-            if (!bridgedTokens[tokenTo]) {
+            if (!Storage(s_storage).getBridgedTokens[tokenTo]) {
                 // bridge token
-                _unlockToken(from, to, tokenFrom, tokenTo, amount, chainId, nonce, signature);
+                vault.unlockToken(to, tokenFrom, amount);
             } else {
                 // erc20 token
-                _mint(from, to, tokenFrom, tokenTo, amount, chainId, nonce, signature);
+                vault.mint(to, tokenTo, amount);
             }
         }
         // _mint(from, to, tokenFrom, tokenTo, amount, nonce, signature);
     }
 
-    /*
-     * These function should not be called directly !! checks are done into the finalize function
-     */
-    function _unlockNative(
-        address from,
-        address to,
-        address tokenFrom,
-        address tokenTo,
-        uint256 amount,
-        uint256 chainId,
-        uint256 nonce,
-        bytes calldata signature
-    ) internal {
-        // bytes32 message = prefixed(keccak256(abi.encodePacked(from, to, amount, nonce)));
-        // require(recoverSigner(message, signature) == from, "wrong signature");
-        // require(nonces[from][nonce] == false, "transfer already processed");
-        // nonces[from][nonce] = true;
-        // payable(to).transfer(amount);
-        // transfer via call
-        if (address(this).balance < amount) {
-            revert BridgeBase__UnlockFailed("Insufficient balance");
-        }
-        (bool res,) = to.call{value: amount}("");
-        if (!res) {
-            revert BridgeBase__UnlockFailed("Final transfer failed");
-        }
-        emit Finalized(from, to, tokenFrom, tokenTo, amount, chainId, nonce, signature, block.timestamp);
-    }
+    // // @dev pause the bridge function
+    // function pauseBridge() external {
+    //     isPausedBridge = true;
+    // }
 
-    function _unlockToken(
-        address from,
-        address to,
-        address tokenFrom,
-        address tokenTo,
-        uint256 amount,
-        uint256 chainId,
-        uint256 nonce,
-        bytes calldata signature
-    ) internal {
-        // bytes32 message = prefixed(keccak256(abi.encodePacked(from, to, amount, nonce)));
-        // require(recoverSigner(message, signature) == from, "wrong signature");
-        // require(nonces[from][nonce] == false, "transfer already processed");
-        // nonces[from][nonce] = true;
-        bool res = ERC20(tokenTo).transfer(to, amount);
-        if (!res) {
-            revert BridgeBase__UnlockFailed("Final transfer failed");
-        }
-        emit Finalized(from, to, tokenFrom, tokenTo, amount, chainId, nonce, signature, block.timestamp);
-    }
+    // function unpauseBridge() external {
+    //     isPausedBridge = false;
+    // }
 
-    function _mint(
-        address from,
-        address to,
-        address tokenFrom,
-        address tokenTo,
-        uint256 amount,
-        uint256 chainId,
-        uint256 nonce,
-        bytes calldata signature
-    ) internal {
-        // bytes32 message = prefixed(keccak256(abi.encodePacked(from, to, amount, nonce)));
-        // require(recoverSigner(message, signature) == from, "wrong signature");
-        // require(nonces[from][nonce] == false, "transfer already processed");
-        // nonces[from][nonce] = true;
-        BridgedToken(tokenTo).mint(to, amount);
-        emit Finalized(from, to, tokenFrom, tokenTo, amount, chainId, nonce, signature, block.timestamp);
-    }
+    // function pauseFinalize() external {
+    //     isPausedFinalize = true;
+    // }
 
-    function prefixed(bytes32 hash) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
-    }
+    // function unpauseFinalize() external {
+    //     isPausedFinalize = false;
+    // }
 
-    function recoverSigner(bytes32 message, bytes memory sig) internal pure returns (address) {
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
-        (v, r, s) = splitSignature(sig);
-        return ecrecover(message, v, r, s);
-    }
+    // function pauseAll() external {
+    //     isPausedBridge = true;
+    //     isPausedFinalize = true;
+    // }
 
-    function splitSignature(bytes memory sig) internal pure returns (uint8, bytes32, bytes32) {
-        require(sig.length == 65);
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-        assembly {
-            // first 32 bytes, after the length prefix
-            r := mload(add(sig, 32))
-            // second 32 bytes
-            s := mload(add(sig, 64))
-            // final byte (first byte of the next 32 bytes)
-            v := byte(0, mload(add(sig, 96)))
-        }
-        return (v, r, s);
-    }
+    // function unpauseAll() external {
+    //     isPausedBridge = false;
+    //     isPausedFinalize = false;
+    // }
 
-    bool public isPausedBridge = false;
-    bool public isPausedFinalize = false;
-    address public admin;
-    // admin functions (urgence pause, change admin, add authorized token, add bridge token, whithdraw token/native)
+    // // @dev change the admin address
+    // function changeAdmin(address newAdmin) external {
+    //     require(msg.sender == admin, "only admin");
+    //     admin = newAdmin;
+    // }
 
-    // @dev pause the bridge function
-    function pauseBridge() external {
-        isPausedBridge = true;
-    }
+    // // DISSOCIATE FEES AND VAULT LIQUIDITY !!
 
-    function unpauseBridge() external {
-        isPausedBridge = false;
-    }
+    // // @dev withdraw native token
+    // function withdrawNative(uint256 amount) external {
+    //     require(msg.sender == admin, "only admin");
+    //     payable(admin).transfer(amount);
+    // }
 
-    function pauseFinalize() external {
-        isPausedFinalize = true;
-    }
+    // // @dev withdraw erc20 token
+    // function withdrawToken(address tokenAddress, uint256 amount) external {
+    //     require(msg.sender == admin, "only admin");
+    //     ERC20(tokenAddress).transfer(admin, amount);
+    // }
 
-    function unpauseFinalize() external {
-        isPausedFinalize = false;
-    }
-
-    function pauseAll() external {
-        isPausedBridge = true;
-        isPausedFinalize = true;
-    }
-
-    function unpauseAll() external {
-        isPausedBridge = false;
-        isPausedFinalize = false;
-    }
-
-    // @dev change the admin address
-    function changeAdmin(address newAdmin) external {
-        require(msg.sender == admin, "only admin");
-        admin = newAdmin;
-    }
-
-    // DISSOCIATE FEES AND VAULT LIQUIDITY !!
-
-    // @dev withdraw native token
-    function withdrawNative(uint256 amount) external {
-        require(msg.sender == admin, "only admin");
-        payable(admin).transfer(amount);
-    }
-
-    // @dev withdraw erc20 token
-    function withdrawToken(address tokenAddress, uint256 amount) external {
-        require(msg.sender == admin, "only admin");
-        ERC20(tokenAddress).transfer(admin, amount);
-    }
-
-    // when getting the corresponding token and the destination
-    // must chek if tokenFrom is authorized
-    // if not risk is to have address(0) as tokenTo, wrong value if token From is not AFT (by example)
-    function getTokenByChain(address tokenFrom, uint256 chainId) public view returns (address) {
-        require(authorizedTokens[tokenFrom], "unauthorized token");
-        return tokenMapping[tokenFrom][chainId];
-    }
+    // // when getting the corresponding token and the destination
+    // // must chek if tokenFrom is authorized
+    // // if not risk is to have address(0) as tokenTo, wrong value if token From is not AFT (by example)
+    // function getTokenByChain(address tokenFrom, uint256 chainId) public view returns (address) {
+    //     require(authorizedTokens[tokenFrom], "unauthorized token");
+    //     return tokenMapping[tokenFrom][chainId];
+    // }
 }

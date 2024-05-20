@@ -1,4 +1,4 @@
-// SPDX-License-Identifier MIT
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.20;
 
@@ -35,18 +35,41 @@ contract Storage {
     // address[] public tokensList;
     // uint256[] public chainIdsList;
 
+    // @todo IMPORTANT
+    // make nonreeentrant var for all the system via transient storage
+
+    // chainId eth == 1(0x1), sepolia == 11155111 (0xaa36a7), allfeat  441
+    // TEMPORARY (define real value) blockToWait : blockId eth : 6 , allfeat : 2
+    function setInitialValues() public {
+        // blockToWait for confirmation on chainId
+        setUint(getKey("blockToWait", 1), 6); // eth
+        setUint(getKey("blockToWait", 11155111), 6); // sepolia
+        setUint(getKey("blockToWait", 441), 2); // allfeat
+        // operational fees on chainId
+        uint256 opFees = 0.001 ether;
+        setUint(getKey("opFees", 1), opFees); // eth
+        setUint(getKey("opFees", 11155111), opFees); // sepolia
+        setUint(getKey("opFees", 441), opFees); // allfeat
+
+        // protocol fees
+        uint256 protocolPercentFees = 1000; // 0.1%
+        setUint(getKey("protocolPercentFees", 1), protocolPercentFees); // eth
+        setUint(getKey("protocolPercentFees", 11155111), protocolPercentFees); // sepolia
+        setUint(getKey("protocolPercentFees", 441), protocolPercentFees); // allfeat
+    }
+
     // key management functions
-    function getKey(string memory key) internal pure returns (bytes32) {
+    function getKey(string memory key) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(key));
     }
     // get key by name and address
 
-    function getKey(string memory key, address addr) internal pure returns (bytes32) {
+    function getKey(string memory key, address addr) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(key, addr));
     }
     // get key by name and uint
 
-    function getKey(string memory key, uint256 number) internal pure returns (bytes32) {
+    function getKey(string memory key, uint256 number) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(key, number));
     }
 

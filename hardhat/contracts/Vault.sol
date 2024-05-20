@@ -1,4 +1,4 @@
-// SPDX-License-Identifier MIT
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.20;
 
@@ -162,7 +162,8 @@ contract Vault {
         OPERATION
     }
 
-    function depositFees(address token, uint256 amount, FeesType feesType) external payable {
+    function depositFees(address token, uint256 amount, uint8 u8FeesType) external payable {
+        FeesType feesType = FeesType(u8FeesType);
         if (token == address(0)) {
             if (msg.value == 0) {
                 revert("Vault: msg.value is 0");

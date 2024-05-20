@@ -10,7 +10,8 @@ const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "";
 module.exports = {
   // const config = {
   solidity: "0.8.20",
-  defaultNetwork: "localhost",
+  // defaultNetwork: "localhost",
+  defaultNetwork: "hardhat",
   namedAccounts: {
     deployer: {
       // By default, it will take the first Hardhat account as the deployer

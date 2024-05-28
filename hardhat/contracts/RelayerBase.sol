@@ -264,6 +264,20 @@ contract RelayerBase is Utils {
         );
     }
 
+    function receivedFinalizedOperation(bytes32 operationHash) external onlyOracle {
+        OriginOperation storage operation = s_originOperations[operationHash];
+        require(operation.status == OperationStatus.ORG_OP_READY, "RelayerBase: invalid status");
+
+        operation.status = OperationStatus.ORG_OP_CLOSED;
+        operation.blockStep.closingBlock = uint64(block.number);
+
+        address tokenFrom =
+            Storage(s_storage).getTokenOnChainId(operation.params.tokenName, operation.params.chainIdFrom);
+        BridgeBase bridge = BridgeBase(Storage(s_storage).getOperator("bridge"));
+        bridge.finalizeBridgeDeposit(operation.params.from, tokenFrom, operation.params.amount);
+        emit OperationClosed(operationHash, block.number);
+    }
+
     // MAKE CONSTANT FOR VARIABLE NAME AND TAG !!!
     // ADD MARGIN TO THE FEES in case of volatility !!
 
@@ -372,8 +386,10 @@ contract RelayerBase is Utils {
 
         operation.status = OperationStatus.ORG_OP_CANCELED;
         operation.blockStep.closingBlock = uint64(block.number);
-
+        address tokenFrom = Storage(s_storage).getTokenOnChainId(operation.params.tokenName, operation.params.chainIdTo);
         // BRDIGE => VAULT => free the user balance
+        BridgeBase bridge = BridgeBase(Storage(s_storage).getOperator("bridge"));
+        bridge.cancelBridgeDeposit(operation.params.from, tokenFrom, operation.params.amount);
 
         emit ReceveidOperationCanceled(operationHash, chainIdFrom, block.number);
     }

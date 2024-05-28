@@ -401,15 +401,30 @@ contract BridgeBase is Utils {
             !RelayerBase(relayer).isDestinationOperationExist(operationHash), "RelayerBase: operation already exists"
         );
 
-        address tokenTOADD = address(0);
+        // address tokenTOADD = address(0);
         uint256 fees = computeFees();
         require(msg.value == fees, "RelayerBase: invalid fees");
 
         Vault vault = Vault(Storage(s_storage).getOperator("vault"));
-        try vault.depositFees{value: msg.value}(tokenTOADD, fees, uint8(FeesType.OPERATION)) {
+        try vault.depositOperationFee{value: msg.value}() {
             RelayerBase(relayer).lockDestinationFees(operationHash, chainIdFrom);
         } catch {
             RelayerBase(relayer).emitCancelOperation(operationHash, chainIdFrom);
         }
     }
+
+    function cancelBridgeDeposit(address user, address tokenFrom, uint256 amount) external onlyAdminOrBridge {
+        Vault vault = Vault(Storage(s_storage).getOperator("vault"));
+        vault.cancelDeposit(user, tokenFrom, amount);
+    }
+
+    function finalizeBridgeDeposit(address user, address tokenFrom, uint256 amount) external onlyAdminOrBridge {
+        Vault vault = Vault(Storage(s_storage).getOperator("vault"));
+        vault.finalizeDeposit(user, tokenFrom, amount);
+    }
+
+    // function redeemUserDeposit(bytes32 hash, address tokenFrom, address user, uint256 amount) external  {
+    //     Vault vault = Vault(Storage(s_storage).getOperator("vault"));
+    //     vault.redeemUserDeposit(tokenFrom, user, amount);
+    // }
 }

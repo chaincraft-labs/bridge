@@ -182,14 +182,14 @@ contract BridgeBase is Utils {
     // max val for bytes4 = 2^32 - 1 = 4294967295
     // max val for bytes8 = 2^64 - 1 = 18446744073709551615
 
-    constructor(address storageAddress, address relayer) {
-        if (!Storage(s_storage).isAdmin(msg.sender)) {
-            revert("TokenFactory: caller is not the admin");
-        }
-        s_storage = storageAddress;
-        s_relayer = relayer;
-    }
-
+    // constructor(address storageAddress, address relayer) {
+    //     if (!Storage(s_storage).isAdmin(msg.sender)) {
+    //         revert("TokenFactory: caller is not the admin");
+    //     }
+    //     s_storage = storageAddress;
+    //     s_relayer = relayer;
+    // }
+    constructor(address storageAddress, address relayer) {}
     //****************************************************************** */
     //
     //              DEPOSIT SIDE (init bridge operation)

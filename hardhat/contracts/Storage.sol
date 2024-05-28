@@ -98,6 +98,8 @@ contract Storage {
     constructor() {
         // set initial values
         setInitialValues();
+        // set admin role as msg.sender
+        updateOperator("admin", msg.sender);
     }
     // @todo IMPORTANT
     // make nonreeentrant var for all the system via transient storage
@@ -273,21 +275,21 @@ contract Storage {
         s_addressArrayStorage[key] = value;
     }
 
-    function setBytesArray(bytes32 key, bytes[] memory value) public {
-        s_bytesArrayStorage[key] = value;
-    }
+    // function setBytesArray(bytes32 key, bytes[] memory value) public {
+    //     s_bytesArrayStorage[key] = value;
+    // }
 
-    function setStringArray(bytes32 key, string[] memory value) public {
-        s_stringArrayStorage[key] = value;
-    }
+    // function setStringArray(bytes32 key, string[] memory value) public {
+    //     s_stringArrayStorage[key] = value;
+    // }
 
-    function setBytes32Array(bytes32 key, bytes32[] memory value) public {
-        s_bytes32ArrayStorage[key] = value;
-    }
+    // function setBytes32Array(bytes32 key, bytes32[] memory value) public {
+    //     s_bytes32ArrayStorage[key] = value;
+    // }
 
-    function setIntArray(bytes32 key, int256[] memory value) public {
-        s_intArrayStorage[key] = value;
-    }
+    // function setIntArray(bytes32 key, int256[] memory value) public {
+    //     s_intArrayStorage[key] = value;
+    // }
 
     // delete functions for all types of storage
     function deleteUint(bytes32 key) public {
@@ -318,17 +320,17 @@ contract Storage {
         delete s_bytes32Storage[key];
     }
 
-    function deleteUintArray(bytes32 key) public {
-        delete s_uintArrayStorage[key];
-    }
+    // function deleteUintArray(bytes32 key) public {
+    //     delete s_uintArrayStorage[key];
+    // }
 
-    function deleteAddressArray(bytes32 key) public {
-        delete s_addressArrayStorage[key];
-    }
+    // function deleteAddressArray(bytes32 key) public {
+    //     delete s_addressArrayStorage[key];
+    // }
 
-    function deleteBytesArray(bytes32 key) public {
-        delete s_bytesArrayStorage[key];
-    }
+    // function deleteBytesArray(bytes32 key) public {
+    //     delete s_bytesArrayStorage[key];
+    // }
     // ... to continue ... Attention to deletion of complex types
 
     //         mapping(address => bool) public authorizedTokens;//bool storage
@@ -508,12 +510,12 @@ contract Storage {
             "Storage: batchSetTokenOnChainId: chainIds and tokenAddressOnChainIds length mismatch"
         );
         require(
-            tokenNames.length * 3 == tokenAddressOnChainIds.length,
+            tokenNames.length * 2 == tokenAddressOnChainIds.length,
             "Storage: batchSetTokenOnChainId: tokenNames and tokenAddressOnChainIds length mismatch"
         );
         for (uint256 i = 0; i < tokenNames.length; i++) {
-            for (uint256 j = 0; j < 3; j++) {
-                setTokenOnChainId(tokenNames[i], chainIds[i * 3 + j], tokenAddressOnChainIds[i * 3 + j]);
+            for (uint256 j = 0; j < 2; j++) {
+                setTokenOnChainId(tokenNames[i], chainIds[i * 2 + j], tokenAddressOnChainIds[i * 2 + j]);
             }
         }
     }

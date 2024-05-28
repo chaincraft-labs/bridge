@@ -11,18 +11,61 @@ contract Utils {
     //     return uint256(x);
     // }
 
+    // BlockStep bitmap
+    // uint256 = 8 uint32
+
+    // Function to set a block step
+    // function setBlockStep(uint8 index, uint32 value) public {
+    //     require(index < 4, "Index out of bounds");
+    //     uint256 shiftedValue = uint256(value) << (index * 32);
+    //     uint256 mask = uint256(0xFFFFFFFF) << (index * 32);
+    //     blockStep = (blockStep & ~mask) | shiftedValue;
+    // }
+
+    // // Function to get a block step
+    // function getBlockStep(uint8 index) public view returns (uint32) {
+    //     require(index < 4, "Index out of bounds");
+    //     return uint32((blockStep >> (index * 32)) & 0xFFFFFFFF);
+    // }
+
+    function isContract(address _add) internal view returns (bool) {
+        uint32 size;
+        assembly {
+            size := extcodesize(_add)
+        }
+        return size > 0;
+    }
+
+    // hash functions
+    function computeOperationHash(
+        address from,
+        address to,
+        uint256 chainIdFrom,
+        uint256 chainIdTo,
+        // address tokenFrom,
+        // address tokenTo,
+        string memory tokenName,
+        uint256 amount,
+        // uint256 fee;
+        uint256 nonce
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce));
+    }
+    //replace in brdige to let internal other function and make library
     // Nonce should be actual + 1 as for op creation
+
     function getMessageToSign(
         address sender,
         address receiver,
         uint256 chainIdFrom,
         uint256 chainIdTo,
-        address tokenFrom,
-        address tokenTo,
+        // address tokenFrom,
+        // address tokenTo,
+        string memory tokenName,
         uint256 amount,
         uint256 nonce
     ) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(sender, receiver, chainIdFrom, chainIdTo, tokenFrom, tokenTo, amount, nonce));
+        return keccak256(abi.encodePacked(sender, receiver, chainIdFrom, chainIdTo, tokenName, amount, nonce));
     }
 
     function prefixed(bytes32 hash) internal pure returns (bytes32) {

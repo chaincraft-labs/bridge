@@ -65,7 +65,7 @@ contract TokenFactory {
         Storage(s_storageAddress).setBridgedTokenToChainId(address(token), originChainId);
         Storage(s_storageAddress).setAuthorizedToken(address(token), true);
         // RENAME setTokenOnChainId !!! the global mapping of token equivalence
-        Storage(s_storageAddress).setTokenOnChainId(address(token), originChainId, originAddress);
+        Storage(s_storageAddress).setTokenOnChainId(symbol, originChainId, originAddress);
 
         // transfert ownership to Vault
         address vault = Storage(s_storageAddress).getOperator("vault");

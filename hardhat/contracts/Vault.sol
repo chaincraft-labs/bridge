@@ -26,6 +26,8 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract Vault {
     address public s_storageAddress;
     mapping(address => uint256) public s_vaultBalance;
+    // should be add by admin with storage setting authorized tokens
+    address[] public s_tokensInVault;
     // balance should be given to vault WHEN op is finalized
     // userBalance is redeemable if op is CANCELED
     // Mapping of user/operator => token => balance
@@ -33,6 +35,7 @@ contract Vault {
 
     // Mapping of the fees for each token (only one relayer, orcale... but later
     // should be adjust to manage list of oracles... and amount due to each)
+    // later struct totXTokenFees and mapping operator amountToReddem
     mapping(address token => uint256) public s_feesBalance;
     // opFees are meant for the tx fees of the operators reumbursment
     mapping(address token => uint256) public s_opFeesBalance;

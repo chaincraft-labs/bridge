@@ -31,10 +31,74 @@ contract Storage {
     // modif : // mapping(address => uint) public bridgedTokensToOriginChainId;
     // uint is the origin chainId (0 = not bridged, not created)
     // address[] public bridgedTokensList;
-    mapping(address tokenAddress => mapping(uint256 chainId => address tokenAddressOnChainId)) public tokensMapping;
+    mapping(string tokenSymbol => mapping(uint256 chainId => address tokenAddressOnChainId)) public tokensMapping;
     // address[] public tokensList;
     // uint256[] public chainIdsList;
 
+    enum StorageType {
+        UINT,
+        ADDRESS,
+        BOOL,
+        BYTES,
+        STRING,
+        INT,
+        BYTES32,
+        UINT_ARRAY,
+        ADDRESS_ARRAY,
+        BYTES_ARRAY,
+        STRING_ARRAY,
+        BYTES32_ARRAY,
+        INT_ARRAY
+    }
+
+    struct Key {
+        bool exists;
+        string field;
+        address optionalAddress;
+        uint256 optionalUint;
+        // bytes32 id;
+        StorageType storageType;
+    }
+
+    mapping(bytes32 => Key) public existingKeys;
+    bytes32[] public existingKeysList;
+
+    // only admin access setters!!
+
+    function addNewKey(bytes32 key, string memory field, StorageType storageType) public {
+        existingKeys[key] = Key(true, field, address(0), 0, storageType);
+        existingKeysList.push(key);
+    }
+
+    function addNewKey(bytes32 key, string memory field, address optionalAddress, StorageType storageType) public {
+        existingKeys[key] = Key(true, field, optionalAddress, 0, storageType);
+        existingKeysList.push(key);
+    }
+
+    function addNewKey(bytes32 key, string memory field, uint256 optionalUint, StorageType storageType) public {
+        existingKeys[key] = Key(true, field, address(0), optionalUint, storageType);
+        existingKeysList.push(key);
+    }
+
+    function removeKey(bytes32 key) public {
+        delete existingKeys[key];
+        for (uint256 i = 0; i < existingKeysList.length; i++) {
+            if (existingKeysList[i] == key) {
+                existingKeysList[i] = existingKeysList[existingKeysList.length - 1];
+                existingKeysList.pop();
+                break;
+            }
+        }
+    }
+
+    function isValidKey(bytes32 key) public view returns (bool) {
+        return existingKeys[key].exists;
+    }
+
+    constructor() {
+        // set initial values
+        setInitialValues();
+    }
     // @todo IMPORTANT
     // make nonreeentrant var for all the system via transient storage
 
@@ -56,6 +120,52 @@ contract Storage {
         setUint(getKey("protocolPercentFees", 1), protocolPercentFees); // eth
         setUint(getKey("protocolPercentFees", 11155111), protocolPercentFees); // sepolia
         setUint(getKey("protocolPercentFees", 441), protocolPercentFees); // allfeat
+    }
+    // for mock and tesing
+
+    function setTestValues(address mockedDai, address bridgedEth, address bridgedAft, address bridgedDai) public {
+        // blockToWait for confirmation on chainId
+        // change case of native
+        setAuthorizedToken(address(0), true);
+        setAuthorizedToken(mockedDai, true);
+
+        addTokenList(address(0));
+        addTokenList(mockedDai);
+
+        addChainIdsList(1);
+        addChainIdsList(11155111);
+        addChainIdsList(441);
+        setBridgedTokenToChainId(bridgedEth, 441);
+        setBridgedTokenToChainId(bridgedAft, 441);
+        setBridgedTokenToChainId(bridgedDai, 441);
+
+        setTokenOnChainId("ETH", 1, address(0));
+        setTokenOnChainId("ETH", 11155111, address(0));
+        setTokenOnChainId("ETH", 441, bridgedEth);
+        setTokenOnChainId("AFT", 1, bridgedAft);
+        setTokenOnChainId("AFT", 11155111, bridgedAft);
+        setTokenOnChainId("AFT", 441, address(0));
+        setTokenOnChainId("DAI", 1, mockedDai);
+        setTokenOnChainId("DAI", 11155111, mockedDai);
+        setTokenOnChainId("DAI", 441, bridgedDai);
+
+        // MOFµDIFY strcut
+    }
+
+    function setTestOperator(
+        address admin,
+        address relayer,
+        address oracle,
+        address bridge,
+        address factory,
+        address vault
+    ) public {
+        updateOperator("admin", admin);
+        updateOperator("relayer", relayer);
+        updateOperator("oracle", oracle);
+        updateOperator("bridge", bridge);
+        updateOperator("factory", factory);
+        updateOperator("vault", vault);
     }
 
     // key management functions
@@ -260,6 +370,10 @@ contract Storage {
         return getBool(getKey("bridgedTokens", token));
     }
 
+    function isBridgedToken(address token) public view returns (bool) {
+        return getBool(getKey("bridgedTokens", token));
+    }
+
     function setBridgedToken(address token, bool value) public {
         setBool(getKey("bridgedTokens", token), value);
     }
@@ -368,12 +482,40 @@ contract Storage {
 
     // getter / setter of tokensMapping using address storage and key getter
     // RENAME!!
-    function getTokenOnChainId(address tokenAddress, uint256 chainId) public view returns (address) {
-        return tokensMapping[tokenAddress][chainId];
+    function getTokenOnChainId(string memory tokenName, uint256 chainId) public view returns (address) {
+        return tokensMapping[tokenName][chainId];
     }
 
-    function setTokenOnChainId(address tokenAddress, uint256 chainId, address tokenAddressOnChainId) public {
-        tokensMapping[tokenAddress][chainId] = tokenAddressOnChainId;
+    function getTokensFromChains(string memory tokenName, uint256 chainIdFrom, uint256 chainIdTo)
+        public
+        view
+        returns (address, address)
+    {
+        return (tokensMapping[tokenName][chainIdFrom], tokensMapping[tokenName][chainIdTo]);
+    }
+
+    function setTokenOnChainId(string memory tokenName, uint256 chainId, address tokenAddressOnChainId) public {
+        tokensMapping[tokenName][chainId] = tokenAddressOnChainId;
+    }
+
+    function batchSetTokenOnChainId(
+        string[] memory tokenNames,
+        uint256[] memory chainIds,
+        address[] memory tokenAddressOnChainIds
+    ) public {
+        require(
+            chainIds.length == tokenAddressOnChainIds.length,
+            "Storage: batchSetTokenOnChainId: chainIds and tokenAddressOnChainIds length mismatch"
+        );
+        require(
+            tokenNames.length * 3 == tokenAddressOnChainIds.length,
+            "Storage: batchSetTokenOnChainId: tokenNames and tokenAddressOnChainIds length mismatch"
+        );
+        for (uint256 i = 0; i < tokenNames.length; i++) {
+            for (uint256 j = 0; j < 3; j++) {
+                setTokenOnChainId(tokenNames[i], chainIds[i * 3 + j], tokenAddressOnChainIds[i * 3 + j]);
+            }
+        }
     }
 
     // @todo
@@ -394,6 +536,14 @@ contract Storage {
 
     function getOperator(string memory role) public view returns (address) {
         return getAddress(getKey(role));
+    }
+
+    function getOperators(string[] memory roles) public view returns (address[] memory) {
+        address[] memory operators = new address[](roles.length);
+        for (uint256 i = 0; i < roles.length; i++) {
+            operators[i] = getOperator(roles[i]);
+        }
+        return operators;
     }
     // function getAdmin() public view returns (address) {
     //     return getAddress(getKey("admin"));
@@ -423,5 +573,15 @@ contract Storage {
 
     function isVault(address addr) public view returns (bool) {
         return getOperator("vault") == addr;
+    }
+
+    function checkOperators(string[] memory roles, address[] memory operators) public view returns (bool) {
+        require(roles.length == operators.length, "Storage: checkOperators: roles and operators length mismatch");
+        for (uint256 i = 0; i < roles.length; i++) {
+            if (getOperator(roles[i]) != operators[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 }

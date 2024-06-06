@@ -31,7 +31,7 @@ contract RelayerBase is Utils {
         ORG_FEES_LOCKED, //......Step 4 org received the fees event from dst
         ORG_OP_READY, //.........Step 5 fees locked & confirmed and deposit confirmed (finalized) (=processing)
         DST_OP_RECEIVED, //......Step 6 dst received operation order with params
-        DST_OP_FINALIZED, //.....Step 7 dst tx is finalized
+        // mkdir, //.....Step 7 dst tx is finalized
         ORG_OP_CLOSED, //........Step 8 org tx is closed after dst tx is finalized
         ORG_OP_CANCELED //.......Step x org tx is canceled
 

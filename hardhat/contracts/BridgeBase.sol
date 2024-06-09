@@ -242,9 +242,12 @@ contract BridgeBase is Utils {
             string[] memory roles;
             roles[0] = "vault";
             roles[1] = "relayer";
-            address[] memory operators = Storage(s_storage).getOperators(roles);
-            vault = operators[0];
-            relayer = operators[1];
+            // address[] memory operators = Storage(s_storage).getOperators(roles);
+            // vault = operators[0];
+            // relayer = operators[1];
+            // address[] memory operators = Storage(s_storage).getOperators(roles);
+            vault = Storage(s_storage).getOperator("vault");
+            relayer = Storage(s_storage).getOperator("relayer");
         }
 
         // Vault vault = Vault(operators[0]);
@@ -427,4 +430,8 @@ contract BridgeBase is Utils {
     //     Vault vault = Vault(Storage(s_storage).getOperator("vault"));
     //     vault.redeemUserDeposit(tokenFrom, user, amount);
     // }
+
+    function getNewUserNonce(address user) external view returns (uint256) {
+        return nextUserNonce[user];
+    }
 }

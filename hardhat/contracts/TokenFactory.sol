@@ -12,7 +12,11 @@ import "./Storage.sol";
 contract TokenFactory {
     address public s_storageAddress;
 
+    //TESTING
+    address owner;
+
     mapping(address => bool) public IsBridgedToken;
+    mapping(string => address) public symbolToToken;
     address[] public BridgedTokens;
 
     modifier onlyAdmin() {
@@ -23,6 +27,8 @@ contract TokenFactory {
     event BridgeTokenCreated(address indexed token, string name, string symbol, address owner);
 
     constructor(address storageAddress) {
+        //TESTING
+        owner = msg.sender;
         // first deployed is storage so admin of storage should be the admin of the factory and msg.sender
         // store the storage address
         // check is isAdmin(msg.sender) in the storage
@@ -30,6 +36,11 @@ contract TokenFactory {
         if (!Storage(s_storageAddress).isAdmin(msg.sender)) {
             revert("TokenFactory: caller is not the admin");
         }
+    }
+
+    //TESTING
+    function getOwner() public view returns (address) {
+        return owner;
     }
 
     // function updateAdmin(address newAdmin) external onlyAdmin {
@@ -52,6 +63,14 @@ contract TokenFactory {
         }
         // check name and symbol are not empty
 
+        if (bytes(name).length == 0 || bytes(symbol).length == 0) {
+            revert("TokenFactory: name or symbol is empty");
+        }
+
+        if (symbolToToken[symbol] != address(0)) {
+            revert("TokenFactory: token name already exists");
+        }
+
         BridgedToken token = new BridgedToken(name, symbol);
 
         // transfer ownership to the bridge
@@ -71,8 +90,21 @@ contract TokenFactory {
         address vault = Storage(s_storageAddress).getOperator("vault");
         BridgedToken(token).updateAdmin(vault);
 
+        // add the token to the list of tokens and set boolean
+        BridgedTokens.push(address(token));
+        IsBridgedToken[address(token)] = true;
+        symbolToToken[symbol] = address(token);
+
         emit BridgeTokenCreated(address(token), name, symbol, vault);
         return address(token);
+    }
+
+    function getTokenAddress(string memory symbol) external view returns (address) {
+        return symbolToToken[symbol];
+    }
+
+    function getTokenList() external view returns (address[] memory) {
+        return BridgedTokens;
     }
 
     //updtat list... storage

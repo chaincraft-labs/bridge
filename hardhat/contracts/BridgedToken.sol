@@ -14,26 +14,34 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * - remove CustomTransfer event
  */
 contract BridgedToken is ERC20 {
-    address public admin; // bridge contract address
+    address public owner; // bridge contract address
 
     event CustomTransfer(address indexed from, address indexed to, uint256 amount);
+    event OwnerUpdated(string tokenName, address newAdmin);
 
     constructor(string memory name, string memory symbol) ERC20(name, symbol) {
-        admin = msg.sender;
+        owner = msg.sender;
     }
 
     function updateAdmin(address newAdmin) external {
-        require(msg.sender == admin, "only admin");
-        admin = newAdmin;
+        require(msg.sender == owner, "only admin owner");
+        owner = newAdmin;
+        // name of token
+        string memory tokenName = name();
+        emit OwnerUpdated(tokenName, newAdmin);
+    }
+
+    function getOwner() external view returns (address) {
+        return owner;
     }
 
     function mint(address to, uint256 amount) external {
-        require(msg.sender == admin, "only admin");
+        require(msg.sender == owner, "only admin owner");
         _mint(to, amount);
     }
 
-    function burn(address owner, uint256 amount) external {
-        require(msg.sender == admin, "only admin");
-        _burn(owner, amount);
+    function burn(address tokenOwner, uint256 amount) external {
+        require(msg.sender == owner, "only admin owner");
+        _burn(tokenOwner, amount);
     }
 }

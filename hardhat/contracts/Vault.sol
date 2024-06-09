@@ -311,4 +311,9 @@ contract Vault {
         s_vaultBalance[token] += amount;
         s_usersDeposits[user][token] -= amount;
     }
+
+    // getters
+    function getTokenUserBalance(address user, address token) external view returns (uint256) {
+        return s_usersDeposits[user][token];
+    }
 }

@@ -15,15 +15,15 @@ contract Storage {
     mapping(bytes32 => bool) internal s_boolStorage;
     mapping(bytes32 => bytes) internal s_bytesStorage;
     mapping(bytes32 => string) internal s_stringStorage;
-    mapping(bytes32 => int256) internal s_intStorage;
     mapping(bytes32 => bytes32) internal s_bytes32Storage;
     mapping(bytes32 => uint256[]) internal s_uintArrayStorage;
     mapping(bytes32 => address[]) internal s_addressArrayStorage;
     mapping(bytes32 => bytes[]) internal s_bytesArrayStorage;
     mapping(bytes32 => string[]) internal s_stringArrayStorage;
     mapping(bytes32 => bytes32[]) internal s_bytes32ArrayStorage;
-    mapping(bytes32 => int256[]) internal s_intArrayStorage;
 
+    //TESTING
+    address owner;
     // optimization : bitmap for auth and bridged tokens OR only ussing tokenHere
     // mapping(address => bool) public authorizedTokens; //bool storage
     // mapping(uint256 => bool) public authorizedChains; // bool storage
@@ -41,14 +41,12 @@ contract Storage {
         BOOL,
         BYTES,
         STRING,
-        INT,
         BYTES32,
         UINT_ARRAY,
         ADDRESS_ARRAY,
         BYTES_ARRAY,
         STRING_ARRAY,
         BYTES32_ARRAY,
-        INT_ARRAY
     }
 
     struct Key {
@@ -96,10 +94,18 @@ contract Storage {
     }
 
     constructor() {
+        //TESTING
+        owner = msg.sender;
+
         // set initial values
         setInitialValues();
         // set admin role as msg.sender
         updateOperator("admin", msg.sender);
+    }
+
+    //TESTSING
+    function getOwner() public view returns (address) {
+        return owner;
     }
     // @todo IMPORTANT
     // make nonreeentrant var for all the system via transient storage
@@ -137,6 +143,8 @@ contract Storage {
         addChainIdsList(1);
         addChainIdsList(11155111);
         addChainIdsList(441);
+        //hardhat node
+        addChainIdsList(31337);
         setBridgedTokenToChainId(bridgedEth, 441);
         setBridgedTokenToChainId(bridgedAft, 441);
         setBridgedTokenToChainId(bridgedDai, 441);
@@ -144,12 +152,19 @@ contract Storage {
         setTokenOnChainId("ETH", 1, address(0));
         setTokenOnChainId("ETH", 11155111, address(0));
         setTokenOnChainId("ETH", 441, bridgedEth);
+        setTokenOnChainId("ETH", 31337, address(0));
         setTokenOnChainId("AFT", 1, bridgedAft);
         setTokenOnChainId("AFT", 11155111, bridgedAft);
         setTokenOnChainId("AFT", 441, address(0));
+        //hardhat node
+
+        setTokenOnChainId("AFT", 31337, address(1));
         setTokenOnChainId("DAI", 1, mockedDai);
         setTokenOnChainId("DAI", 11155111, mockedDai);
         setTokenOnChainId("DAI", 441, bridgedDai);
+        //hardhat node
+
+        setTokenOnChainId("DAI", 31337, address(2));
 
         // MOFµDIFY strcut
     }

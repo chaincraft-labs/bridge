@@ -12,7 +12,7 @@ describe("TokenFactory", function () {
   // deployment fixture :
   async function deployOtherContractsFixture() {
     const [owner, otherAccount] = await ethers.getSigners();
-    const storage = await hre.ethers.deployContract("Storage");
+    const storage = await hre.ethers.deployContract("Storage", ["ETH"]);
     await storage.waitForDeployment();
     console.log("Storage deployed to:", storage.target);
 
@@ -117,6 +117,8 @@ describe("TokenFactory", function () {
       // const chainIdBN = BigInt.from(chainId);
       // get add(0)
       const zeroAddress = ethers.ZeroAddress;
+      const tx0 = await storage.addTokenSymbolToList("bETH");
+      await tx0.wait();
       const tx = await factory.createToken(
         "ETH BridgedToken",
         "bETH",
@@ -140,10 +142,14 @@ describe("TokenFactory", function () {
       const chainId = hre.network.config.chainId;
       const zeroAddress = ethers.ZeroAddress;
 
+      let tx0 = await storage.addTokenSymbolToList("bETH");
+      await tx0.wait();
+      tx0 = await storage.addChainIdToList(11155111);
+      await tx0.wait();
       const tx = await factory.createToken(
         "ETH BridgedToken",
         "bETH",
-        chainId,
+        11155111,
         zeroAddress
       );
       await tx.wait();
@@ -157,10 +163,14 @@ describe("TokenFactory", function () {
       await loadFixture(deployTokenFactoryFixture);
     const { mockedDai } = await loadFixture(deployMockedDaiFixture);
     const chainId = hre.network.config.chainId;
+    let tx0 = await storage.addTokenSymbolToList("bDai");
+    await tx0.wait();
+    tx0 = await storage.addChainIdToList(11155111);
+    await tx0.wait();
     const tx = await factory.createToken(
       "MockedDai BridgedToken",
       "bDai",
-      chainId,
+      11155111,
       mockedDai.target
     );
     await tx.wait();
@@ -177,6 +187,8 @@ describe("TokenFactory", function () {
       await loadFixture(deployTokenFactoryFixture);
     const chainId = hre.network.config.chainId;
     const zeroAddress = ethers.ZeroAddress;
+    const tx0 = await storage.addTokenSymbolToList("bETH");
+    await tx0.wait();
     const tx = await factory.createToken(
       "ETH BridgedToken",
       "bETH",
@@ -184,12 +196,37 @@ describe("TokenFactory", function () {
       zeroAddress
     );
     await tx.wait();
-    const tokenList = await storage.getTokenList();
+    const tokenList = await storage.getTokenSymbolsList();
     console.log("tokenList", tokenList);
-    expect(tokenList.length).to.equal(1);
-    const bEthAddress = tokenList[0];
+    expect(tokenList.length).to.equal(2); // ETH native first
+    expect(tokenList[1]).to.equal("bETH");
+    const bEthAddress = await storage.getTokenAddressByChainId("bETH", chainId);
     const tokenAddress = await factory.getTokenAddress("bETH");
     console.log("tokenAddress", tokenAddress);
     expect(tokenAddress).to.equal(bEthAddress);
+  });
+  it("Should add bETH to authorized tokens in storage", async function () {
+    const { storage, factory, vault, owner, otherAccount, bridgedToken } =
+      await loadFixture(deployTokenFactoryFixture);
+    const chainId = hre.network.config.chainId;
+    const zeroAddress = ethers.ZeroAddress;
+    const tx0 = await storage.addTokenSymbolToList("bETH");
+    await tx0.wait();
+    const tx = await factory.createToken(
+      "ETH BridgedToken",
+      "bETH",
+      chainId,
+      zeroAddress
+    );
+    await tx.wait();
+    const tokenAddress = await factory.getTokenAddress("bETH");
+    const bEthAddress = await storage.getTokenAddressByChainId("bETH", chainId);
+
+    const isAuthorized = await storage.isAuthorizedTokenByChainId(
+      "bETH",
+      chainId
+    );
+    console.log("authorizedTokens", isAuthorized);
+    expect(isAuthorized).to.equal(true);
   });
 });

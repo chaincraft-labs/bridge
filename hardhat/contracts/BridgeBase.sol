@@ -117,19 +117,21 @@ contract BridgeBase is Utils {
         _;
     }
 
-    modifier onlyAuthorizedToken(address tokenAddress) {
-        if (!Storage(s_storage).getAuthorizedToken(tokenAddress)) {
-            revert("BridgeBase: unauthorized token");
-        }
-        _;
-    }
+    // MODIFY modifier according to storage changes => check symbol, chain and tokenADD on chainId
 
-    modifier onlyAuthorizedChain(uint256 chainId) {
-        if (!Storage(s_storage).getAuthorizedChain(chainId)) {
-            revert("BridgeBase: unauthorized chain");
-        }
-        _;
-    }
+    // modifier onlyAuthorizedToken(address tokenAddress) {
+    //     if (!Storage(s_storage).getAuthorizedToken(tokenAddress)) {
+    //         revert("BridgeBase: unauthorized token");
+    //     }
+    //     _;
+    // }
+
+    // modifier onlyAuthorizedChain(uint256 chainId) {
+    //     if (!Storage(s_storage).getAuthorizedChain(chainId)) {
+    //         revert("BridgeBase: unauthorized chain");
+    //     }
+    //     _;
+    // }
 
     modifier onlyOracle() {
         if (!Storage(s_storage).isOracle(msg.sender)) {
@@ -231,9 +233,11 @@ contract BridgeBase is Utils {
         uint256 newNonce = nextUserNonce[from];
         require(nonce == newNonce, "BridgeBase: wrong nonce");
 
-        (address tokenFrom, address tokenTo) = Storage(s_storage).getTokensFromChains(tokenName, chainIdFrom, chainIdTo);
+        (address tokenFrom, address tokenTo) =
+            Storage(s_storage).getTokenAddressesBychainIds(tokenName, chainIdFrom, chainIdTo);
         address vault;
         address relayer;
+        // address factory;
 
         // too avoid stack too deep
         {
@@ -248,18 +252,21 @@ contract BridgeBase is Utils {
             // address[] memory operators = Storage(s_storage).getOperators(roles);
             vault = Storage(s_storage).getOperator("vault");
             relayer = Storage(s_storage).getOperator("relayer");
+            // factory = Storage(s_storage).getOperator("factory");
         }
 
         // Vault vault = Vault(operators[0]);
         // RelayerBase relayer = RelayerBase(operators[1]);
         // merge storage function to have less call
-        if (!Storage(s_storage).getAuthorizedToken(tokenFrom)) {
+        if (!Storage(s_storage).isAuthorizedTokenByChainId(tokenName, chainIdFrom)) {
             revert BridgeBase__DepositFailed("unauthorized token");
         }
         // if (!authorizedChains[chainId]) {
-        if (!Storage(s_storage).getAuthorizedChain(chainIdTo)) {
-            revert BridgeBase__DepositFailed("invalid chainId");
-        }
+
+        // CHANGE DUE TO SROTAGE CHANGE
+        // if (!Storage(s_storage).getAuthorizedChain(chainIdTo)) {
+        //     revert BridgeBase__DepositFailed("invalid chainId");
+        // }
 
         if (tokenFrom == address(0)) {
             // native token
@@ -331,13 +338,16 @@ contract BridgeBase is Utils {
         external
         onlyRelayer
     {
+        // TO CHANGE nonce set on creation , there check status
         if (destinationNonces[from][chainIdTo][nonce]) {
             revert BridgeBase__FinalizationFailed("transfer already processed");
         }
         Vault vault;
-        RelayerBase relayer;
+        // RelayerBase relayer;
+        TokenFactory factory;
         // merge with authorization getter to have less call
-        (address tokenFrom, address tokenTo) = Storage(s_storage).getTokensFromChains(tokenName, chainIdFrom, chainIdTo);
+        (address tokenFrom, address tokenTo) =
+            Storage(s_storage).getTokenAddressesBychainIds(tokenName, chainIdFrom, chainIdTo);
         // (tokenName, chainIdFrom, chainIdTo);
         // too avoid stack too deep
         {
@@ -348,14 +358,18 @@ contract BridgeBase is Utils {
             roles[1] = "relayer";
             address[] memory operators = Storage(s_storage).getOperators(roles);
             vault = Vault(operators[0]);
-            relayer = RelayerBase(operators[1]);
+            // relayer = RelayerBase(operators[1]);
+            factory = TokenFactory(Storage(s_storage).getOperator("factory"));
         }
 
         // SHOULD NOT OCCUR !!! => (manage this case)
         // when calling the relayer ?? to approve and transfert fees the oher side.
         // ?? check if we have the liquidity ?? and send the result with the approve confirmation
-        if (!Storage(s_storage).getAuthorizedToken(tokenTo)) {
-            revert BridgeBase__FinalizationFailed("unauthorized token");
+        // if (!Storage(s_storage).getAuthorizedToken(tokenTo)) {
+        //     revert BridgeBase__FinalizationFailed("unauthorized token");
+        // }
+        if (!Storage(s_storage).isAuthorizedTokenByChainId(tokenName, chainIdTo)) {
+            revert BridgeBase__DepositFailed("unauthorized token");
         }
 
         // bytes32 message =
@@ -370,7 +384,7 @@ contract BridgeBase is Utils {
             // native token
             vault.unlockNative(to, amount);
         } else {
-            if (!Storage(s_storage).isBridgedToken(tokenTo)) {
+            if (!TokenFactory(factory).isBridgedToken(tokenTo)) {
                 // bridge token
                 vault.unlockToken(to, tokenFrom, amount);
             } else {

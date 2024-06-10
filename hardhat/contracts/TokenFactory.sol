@@ -15,7 +15,7 @@ contract TokenFactory {
     //TESTING
     address owner;
 
-    mapping(address => bool) public IsBridgedToken;
+    mapping(address => bool) public s_isBridgedToken;
     mapping(string => address) public symbolToToken;
     address[] public BridgedTokens;
 
@@ -51,6 +51,12 @@ contract TokenFactory {
     //     bridge = newBridge;
     // }
 
+    // SHOULD set origin cahin & address AND current chain & new address
+    // SHOULD check if orign chain & address is not already set
+    // in case of upgrade of token admin should remove from storage first (2* action to prevent error)
+    //@todo :
+    // rethink storage mapping and token ref => name instead of symbol
+    // cause name is unique, but symbol can be different on different chain (bridged token)
     // Factory is the owner of the token
     function createToken(string memory name, string memory symbol, uint256 originChainId, address originAddress)
         external
@@ -78,13 +84,17 @@ contract TokenFactory {
         // IsBridgedToken[address(token)] = true;
         // BridgedTokens.push(address(token));
         // updtae in storage (REMOVE UNUSED FUNCTIONS !!)
-        Storage(s_storageAddress).addBridgedTokenList(address(token));
-        Storage(s_storageAddress).setBridgedToken(address(token), true);
-        Storage(s_storageAddress).addTokenList(address(token));
-        Storage(s_storageAddress).setBridgedTokenToChainId(address(token), originChainId);
-        Storage(s_storageAddress).setAuthorizedToken(address(token), true);
+        // Storage(s_storageAddress).addBridgedTokenList(address(token));
+        // Storage(s_storageAddress).setBridgedToken(address(token), true);
+        // Storage(s_storageAddress).addTokenList(address(token));
+        // Storage(s_storageAddress).setBridgedTokenToChainId(address(token), originChainId);
+        // Storage(s_storageAddress).setAuthorizedToken(address(token), true);
         // RENAME setTokenOnChainId !!! the global mapping of token equivalence
-        Storage(s_storageAddress).setTokenOnChainId(symbol, originChainId, originAddress);
+
+        // ADMIN SHOULD HAVE ADDED THE SYMBOL & CHAIN TO LISTS
+        //@todo change REF TO TOKEN BY NAME not SYMBOL (and add origin / destiantion symbol)
+        Storage(s_storageAddress).addNewTokenAddressByChainId(symbol, originChainId, originAddress);
+        Storage(s_storageAddress).addNewTokenAddressByChainId(symbol, block.chainid, address(token));
 
         // transfert ownership to Vault
         address vault = Storage(s_storageAddress).getOperator("vault");
@@ -92,7 +102,7 @@ contract TokenFactory {
 
         // add the token to the list of tokens and set boolean
         BridgedTokens.push(address(token));
-        IsBridgedToken[address(token)] = true;
+        s_isBridgedToken[address(token)] = true;
         symbolToToken[symbol] = address(token);
 
         emit BridgeTokenCreated(address(token), name, symbol, vault);
@@ -107,6 +117,9 @@ contract TokenFactory {
         return BridgedTokens;
     }
 
+    function isBridgedToken(address token) external view returns (bool) {
+        return s_isBridgedToken[token];
+    }
     //updtat list... storage
 
     // function mint(address token, address to, uint256 amount) external onlyBridge {

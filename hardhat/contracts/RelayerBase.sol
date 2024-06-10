@@ -272,7 +272,7 @@ contract RelayerBase is Utils {
         operation.blockStep.closingBlock = uint64(block.number);
 
         address tokenFrom =
-            Storage(s_storage).getTokenOnChainId(operation.params.tokenName, operation.params.chainIdFrom);
+            Storage(s_storage).getTokenAddressByChainId(operation.params.tokenName, operation.params.chainIdFrom);
         BridgeBase bridge = BridgeBase(Storage(s_storage).getOperator("bridge"));
         bridge.finalizeBridgeDeposit(operation.params.from, tokenFrom, operation.params.amount);
         emit OperationClosed(operationHash, block.number);
@@ -386,7 +386,8 @@ contract RelayerBase is Utils {
 
         operation.status = OperationStatus.ORG_OP_CANCELED;
         operation.blockStep.closingBlock = uint64(block.number);
-        address tokenFrom = Storage(s_storage).getTokenOnChainId(operation.params.tokenName, operation.params.chainIdTo);
+        address tokenFrom =
+            Storage(s_storage).getTokenAddressByChainId(operation.params.tokenName, operation.params.chainIdTo);
         // BRDIGE => VAULT => free the user balance
         BridgeBase bridge = BridgeBase(Storage(s_storage).getOperator("bridge"));
         bridge.cancelBridgeDeposit(operation.params.from, tokenFrom, operation.params.amount);

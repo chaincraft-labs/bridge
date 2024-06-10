@@ -15,9 +15,17 @@ describe("BridgedToken", function () {
   // deployment fixture :
   async function deployOtherContractsFixture() {
     const [owner, otherAccount] = await ethers.getSigners();
-    const storage = await hre.ethers.deployContract("Storage");
+    const storage = await hre.ethers.deployContract("Storage", ["ETH"]);
     await storage.waitForDeployment();
     console.log("Storage deployed to:", storage.target);
+
+    // owner address:
+    console.log("owner address:", owner.address);
+    // get admin address in storage:
+    console.log(
+      "admin address in storage:",
+      await storage.getOperator("admin")
+    );
 
     const factory = await hre.ethers.deployContract("TokenFactory", [
       storage.target,
@@ -57,6 +65,7 @@ describe("BridgedToken", function () {
     it("Should have BridgedToken as name and BTK as symbol", async function () {
       const { storage, factory, vault, owner, otherAccount, bridgedToken } =
         await loadFixture(deployBridgedTokenFixture);
+      console.log("bridgedToken", bridgedToken);
 
       expect(await bridgedToken.name()).to.equal("BridgedToken");
       expect(await bridgedToken.symbol()).to.equal("BTK");

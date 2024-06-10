@@ -25,7 +25,7 @@ describe("EndToEnd behavior", function () {
     // set addresses in bridge
 
     // 1. deploy storage
-    const storage = await hre.ethers.deployContract("Storage");
+    const storage = await hre.ethers.deployContract("Storage", ["ETH"]);
     await storage.waitForDeployment();
 
     console.log("Storage deployed to:", storage.target);
@@ -74,53 +74,76 @@ describe("EndToEnd behavior", function () {
     // address 0 = 0x
     const zeroAddress = "0x" + "0".repeat(40);
     // deploy BridgeTokenAft via factory and set vault as owner
-    const bridgedTokenAftTx = await factory.createToken(
-      "BridgedTokenAft",
-      "Aft",
-      441,
-      zeroAddress
-    );
-    const bridgedTokenAftReceipt = await bridgedTokenAftTx.wait();
-    const bridgedTokenAftAddress = bridgedTokenAftReceipt.logs[0].args[0];
-    console.log(`BridgedTokenAft deployed to: ${bridgedTokenAftAddress}`);
+    let tx0 = await storage.addChainIdToList(31337);
+    await tx0.wait();
+    const chainIdBN = 441;
+    tx0 = await storage.addChainIdToList(chainIdBN);
+    await tx0.wait();
+    tx0 = await storage.addTokenSymbolToList("bAFT");
+    await tx0.wait();
+    tx0 = await storage.addTokenSymbolToList("AFT");
+    await tx0.wait();
 
+    // test event BridgeTokenCreated
+    expect(
+      await factory.createToken("BridgedTokenAft", "AFT", 441, zeroAddress)
+    ).to.emit(factory, "BridgeTokenCreated");
+    // const bridgedTokenAftTx = await factory.createToken(
+    //   "BridgedTokenAft",
+    //   "AFT",
+    //   441,
+    //   zeroAddress
+    // );
+    // const bridgedTokenAftReceipt = await bridgedTokenAftTx.wait();
+    // // const bridgedTokenAftAddress = bridgedTokenAftReceipt.args[0];
+    // console.log(`BridgedTokenAft deployed to: ${bridgedTokenAftReceipt}`);
+    // console.log(bridgedTokenAftReceipt);
     // achtual chain id to bignnumber
     const chainId = await hre.ethers.provider.getNetwork();
     // convert in bignumber
-    const chainIdBN = BigInt(chainId.chainId);
+    // const chainIdBN = BigInt(chainId.chainId);
+
+    tx0 = await storage.addTokenSymbolToList("bETH");
+    await tx0.wait();
     // deploy bridgedEth
     const bridgedEthTx = await factory.createToken(
       "BridgedEth",
-      "ETH",
+      "bETH",
       chainIdBN,
       zeroAddress
     );
-    const bridgedEthReceipt = await bridgedEthTx.wait();
-    const bridgedEthAddress = bridgedEthReceipt.logs[0].args[0];
+    // const bridgedEthReceipt = await bridgedEthTx.wait();
+    // const bridgedEthAddress = bridgedEthReceipt.logs[0].args[0];
 
-    // set addresses in storage cahinid allfeat: 441
-    tokenName = ["AFT"];
-    chainIds = [441, 1];
-    tokenAddresses = [zeroAddress, bridgedTokenAftAddress];
-    tx = await storage.batchSetTokenOnChainId(
-      tokenName,
-      chainIds,
-      tokenAddresses
-    );
-    await tx.wait();
-    console.log("AFT token addresses set in storage");
+    // // set addresses in storage cahinid allfeat: 441
+    // tx0 = await storage.addChainIdToList(31337);
+    // await tx0.wait();
+    // tx0 = await storage.addTokenSymbolToList("bAFT");
+    // await tx0.wait();
+    // tx0 = await storage.addTokenSymbolToList("AFT");
+    // await tx0.wait();
+    // tokenName = ["AFT", "bAFT"];
+    // chainIds = [441, 31337];
+    // tokenAddresses = [zeroAddress, bridgedTokenAftAddress];
+    // tx = await storage.batchSetTokenOnChainId(
+    //   tokenName,
+    //   chainIds,
+    //   tokenAddresses
+    // );
+    // await tx.wait();
+    // console.log("AFT token addresses set in storage");
 
     // set addresses in storage ETH
-    tokenName = ["ETH"];
-    chainIds = [chainIdBN, 1];
-    tokenAddresses = [zeroAddress, bridgedEthAddress];
-    tx = await storage.batchSetTokenOnChainId(
-      tokenName,
-      chainIds,
-      tokenAddresses
-    );
-    await tx.wait();
-    console.log("ETH token addresses set in storage");
+    // tokenName = ["ETH"];
+    // chainIds = [chainIdBN, 1];
+    // tokenAddresses = [zeroAddress, bridgedEthAddress];
+    // tx = await storage.batchSetTokenOnChainId(
+    //   tokenName,
+    //   chainIds,
+    //   tokenAddresses
+    // );
+    // await tx.wait();
+    // console.log("ETH token addresses set in storage");
 
     return {
       network,
@@ -129,8 +152,8 @@ describe("EndToEnd behavior", function () {
       vault,
       bridge,
       relayer,
-      bridgedTokenAftAddress,
-      bridgedEthAddress,
+      // bridgedTokenAftAddress,
+      // bridgedEthAddress,
     };
   }
 

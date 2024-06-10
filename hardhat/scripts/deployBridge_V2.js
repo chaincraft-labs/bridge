@@ -74,7 +74,7 @@ async function main() {
   const bridgedTokenAftTx = await factory.createToken(
     "BridgedTokenAft",
     "Aft",
-    441,
+    "AFT",
     zeroAddress
   );
   const bridgedTokenAftReceipt = await bridgedTokenAftTx.wait();

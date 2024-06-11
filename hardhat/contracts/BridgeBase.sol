@@ -194,7 +194,10 @@ contract BridgeBase is Utils {
     //     s_storage = storageAddress;
     //     s_relayer = relayer;
     // }
-    constructor(address storageAddress, address relayer) {}
+    constructor(address storageAddress, address relayer) {
+        s_storage = storageAddress;
+        s_relayer = relayer;
+    }
     //****************************************************************** */
     //
     //              DEPOSIT SIDE (init bridge operation)
@@ -324,6 +327,11 @@ contract BridgeBase is Utils {
         RelayerBase(relayer).createOperation(
             msg.sender, msg.sender, chainIdFrom, chainIdTo, tokenName, amount, nonce, signature
         );
+    }
+
+    function mintOnlyTEST(address to, address token, uint256 amount) external {
+        Vault vault = Vault(Storage(s_storage).getOperator("vault"));
+        vault.mint(token, to, amount);
     }
 
     //****************************************************************** */

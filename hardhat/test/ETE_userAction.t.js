@@ -212,25 +212,39 @@ describe("EndToEnd behavior", function () {
       const nonce = await bridge.getNewUserNonce(user);
 
       await storage.addChainIdToList(31337);
-      await storage.addChainIdToList(11155111);
+      // await storage.addChainIdToList(11155111);
 
       await storage.addChainIdToList(441);
       await storage.addTokenNameToList("BridgedEth2");
       // await storage.addTokenSymbolToList("bETH2");
       // const zeroAddress2 = "0x" + "0".repeat(40);
-      await storage.setTokenAddressByChainId(
-        "BridgedEth2",
-        11155111,
-        maxAddress
-      );
+      // await storage.setTokenAddressByChainId(
+      //   "BridgedEth2",
+      //   11155111,
+      //   maxAddress
+      // );
+      await storage.setTokenAddressByChainId("BridgedEth2", 441, maxAddress);
       await factory.createToken("BridgedEth2", "bETH2");
       const tokenAddres = await factory.getTokenAddress("bETH2");
       console.log("tokenAddres: ", tokenAddres);
-      const tokenInstance = await hre.ethers.getContractAt(
-        "BridgedToken",
-        tokenAddres
-      );
+      // const tokenInstance = await hre.ethers.getContractAt(
+      //   "BridgedToken",
+      //   tokenAddres
+      // );
+      // console.log("tokenInstance: ", tokenInstance);
+      // // TESTING
+      // await tokenInstance.TESTmint(user, theamount + theamount);
 
+      const tokenContract = await hre.ethers.getContractFactory("BridgedToken");
+      const tokenInstance = await tokenContract.attach(tokenAddres);
+      console.log("tokenInstance: ", tokenInstance);
+      // TESTING
+      const testowner = await tokenInstance.getOwner();
+      console.log("testowner: ", testowner);
+      console.log("user: ", user);
+      console.log("theamount: ", theamount);
+      await tokenInstance.minttest(user, theamount + theamount);
+      await bridge.mintOnlyTEST(user, tokenAddres, theamount + theamount);
       // await storage.batchAddNewTokenAddressByChainId(
       //   ["ETH2", "bETH2"],
       //   [31337, 441],
@@ -285,6 +299,11 @@ describe("EndToEnd behavior", function () {
       const chainId = await hre.ethers.provider.getNetwork();
       // convert in bignumber
       const chainIdBN = BigInt(chainId.chainId);
+
+      // allowance
+      // await tokenInstance
+      //   .connect(otherAccount)
+      //   .approve(bridge.address, theamount);
       await bridge.connect(otherAccount).createBridgeOperation(
         user,
         user,
@@ -295,14 +314,15 @@ describe("EndToEnd behavior", function () {
         "BridgedEth2",
         theamount,
         nonce,
-        signature,
-        { value: theamount }
+        signature
+        // { value: theamount }
       );
       // convert 0 to address(0)
       // const zeroAddress = "0x" + "0".repeat(40);
       //check vault user balance
-      const userEthBalance = vault.getTokenUserBalance(user, zeroAddress); // no question of AFT now
-
+      const userEthBalance = await vault.getTokenUserBalance(user, tokenAddres); // no question of AFT now
+      console.log("userEthBalance: ", userEthBalance);
+      console.log("theamount: ", theamount);
       expect(userEthBalance).to.equal(theamount);
     });
     // it("Should set the right owner", async function () {

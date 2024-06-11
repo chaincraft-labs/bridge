@@ -44,4 +44,9 @@ contract BridgedToken is ERC20 {
         require(msg.sender == owner, "only admin owner");
         _burn(tokenOwner, amount);
     }
+    // TESTING: to give supply to an address
+
+    function minttest(address to, uint256 amount) public {
+        _mint(to, amount);
+    }
 }

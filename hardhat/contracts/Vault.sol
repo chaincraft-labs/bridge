@@ -111,14 +111,14 @@ contract Vault {
     // SEE bridge : Vault is the owner
     function mint(address token, address to, uint256 amount) external onlyBridge {
         s_mintedBalance[token] += amount;
-
+        s_usersDeposits[to][token] += amount;
         BridgedToken(token).mint(to, amount);
     }
 
     function burn(address token, address owner, uint256 amount) external onlyBridge {
         // ERC20burnable check if the caller is the owner and the amount is not greater than the balance
         s_mintedBalance[token] -= amount;
-
+        s_usersDeposits[owner][token] -= amount;
         BridgedToken(token).burn(owner, amount);
     }
 

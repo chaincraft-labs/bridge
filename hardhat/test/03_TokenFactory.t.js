@@ -117,20 +117,20 @@ describe("TokenFactory", function () {
       // const chainIdBN = BigInt.from(chainId);
       // get add(0)
       const zeroAddress = ethers.ZeroAddress;
-      const tx0 = await storage.addTokenSymbolToList("bETH");
+      const tx0 = await storage.addTokenNameToList("ETH BridgedToken");
       await tx0.wait();
       const tx = await factory.createToken(
         "ETH BridgedToken",
-        "bETH",
-        chainId,
-        zeroAddress
+        "bETH"
+        // chainId,
+        // zeroAddress
       );
       await tx.wait();
       // console.log("tx", tx);
       // const bEthAddress = tx.events[0].args[0];
       const tokenList = await factory.getTokenList();
       console.log("tokenList", tokenList);
-      const bEthAddress = tokenList[0];
+      const bEthAddress = await factory.getTokenAddress(tokenList[0]);
       console.log("bEthAddress", bEthAddress);
       const tokenAddress = await factory.getTokenAddress("bETH");
       console.log("tokenAddress", tokenAddress);
@@ -142,20 +142,20 @@ describe("TokenFactory", function () {
       const chainId = hre.network.config.chainId;
       const zeroAddress = ethers.ZeroAddress;
 
-      let tx0 = await storage.addTokenSymbolToList("bETH");
+      let tx0 = await storage.addTokenNameToList("ETH BridgedToken");
       await tx0.wait();
       tx0 = await storage.addChainIdToList(11155111);
       await tx0.wait();
       const tx = await factory.createToken(
         "ETH BridgedToken",
-        "bETH",
-        11155111,
-        zeroAddress
+        "bETH"
+        // 11155111,
+        // zeroAddress
       );
       await tx.wait();
       await expect(
-        factory.createToken("ETH BridgedToken", "bETH", chainId, zeroAddress)
-      ).to.be.revertedWith("TokenFactory: token name already exists");
+        factory.createToken("ETH BridgedToken", "bETH")
+      ).to.be.revertedWith("TokenFactory: token symbol already exists");
     });
   });
   it("Should create MockedDai BridgedToken", async function () {
@@ -163,44 +163,56 @@ describe("TokenFactory", function () {
       await loadFixture(deployTokenFactoryFixture);
     const { mockedDai } = await loadFixture(deployMockedDaiFixture);
     const chainId = hre.network.config.chainId;
-    let tx0 = await storage.addTokenSymbolToList("bDai");
+    let tx0 = await storage.addTokenNameToList("MockedDai BridgedToken");
     await tx0.wait();
     tx0 = await storage.addChainIdToList(11155111);
     await tx0.wait();
     const tx = await factory.createToken(
       "MockedDai BridgedToken",
-      "bDai",
-      11155111,
-      mockedDai.target
+      "bDai"
+      // 11155111,
+      // mockedDai.target
     );
+
     await tx.wait();
     const tokenList = await factory.getTokenList();
     console.log("tokenList", tokenList);
-    const bDaiAddress = tokenList[0];
+    const bDaiAddress = await factory.getTokenAddress(tokenList[0]);
     console.log("bDaiAddress", bDaiAddress);
     const tokenAddress = await factory.getTokenAddress("bDai");
     console.log("tokenAddress", tokenAddress);
     expect(tokenAddress).to.equal(bDaiAddress);
+
+    // from storage
+    const bDaiAddress2 = await storage.getTokenAddressByChainId(
+      "MockedDai BridgedToken",
+      chainId
+    );
+    console.log("bDaiAddress2", bDaiAddress2);
+    expect(bDaiAddress2).to.equal(bDaiAddress);
   });
   it("Should add token to tokenlist in storage", async function () {
     const { storage, factory, vault, owner, otherAccount, bridgedToken } =
       await loadFixture(deployTokenFactoryFixture);
     const chainId = hre.network.config.chainId;
     const zeroAddress = ethers.ZeroAddress;
-    const tx0 = await storage.addTokenSymbolToList("bETH");
+    const tx0 = await storage.addTokenNameToList("ETH BridgedToken");
     await tx0.wait();
     const tx = await factory.createToken(
       "ETH BridgedToken",
-      "bETH",
-      chainId,
-      zeroAddress
+      "bETH"
+      // chainId,
+      // zeroAddress
     );
     await tx.wait();
-    const tokenList = await storage.getTokenSymbolsList();
+    const tokenList = await storage.getTokenNamesList();
     console.log("tokenList", tokenList);
     expect(tokenList.length).to.equal(2); // ETH native first
-    expect(tokenList[1]).to.equal("bETH");
-    const bEthAddress = await storage.getTokenAddressByChainId("bETH", chainId);
+    expect(tokenList[1]).to.equal("ETH BridgedToken");
+    const bEthAddress = await storage.getTokenAddressByChainId(
+      "ETH BridgedToken",
+      chainId
+    );
     const tokenAddress = await factory.getTokenAddress("bETH");
     console.log("tokenAddress", tokenAddress);
     expect(tokenAddress).to.equal(bEthAddress);
@@ -210,20 +222,23 @@ describe("TokenFactory", function () {
       await loadFixture(deployTokenFactoryFixture);
     const chainId = hre.network.config.chainId;
     const zeroAddress = ethers.ZeroAddress;
-    const tx0 = await storage.addTokenSymbolToList("bETH");
+    const tx0 = await storage.addTokenNameToList("ETH BridgedToken");
     await tx0.wait();
     const tx = await factory.createToken(
       "ETH BridgedToken",
-      "bETH",
-      chainId,
-      zeroAddress
+      "bETH"
+      // chainId,
+      // zeroAddress
     );
     await tx.wait();
     const tokenAddress = await factory.getTokenAddress("bETH");
-    const bEthAddress = await storage.getTokenAddressByChainId("bETH", chainId);
+    const bEthAddress = await storage.getTokenAddressByChainId(
+      "ETH BridgedToken",
+      chainId
+    );
 
     const isAuthorized = await storage.isAuthorizedTokenByChainId(
-      "bETH",
+      "ETH BridgedToken",
       chainId
     );
     console.log("authorizedTokens", isAuthorized);

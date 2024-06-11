@@ -28,6 +28,8 @@ contract Vault {
     //     uint256 tokenDepositBalance;
 
     // }
+    address constant maxAddress = address(type(uint160).max); // 0xffffFFFfFFffffffffffffffffffffFfFFFfffFFFfF
+
     address public s_storageAddress;
     mapping(address => uint256) public s_vaultBalance;
     // should be add by admin with storage setting authorized tokens (not remove if unauthorized !!)
@@ -89,7 +91,7 @@ contract Vault {
     // deposit token or native token
     function depositNative(address from) external payable onlyBridge {
         // add to the depositors balance
-        s_usersDeposits[from][address(0)] += msg.value;
+        s_usersDeposits[from][maxAddress] += msg.value;
     }
 
     function depositToken(address from, address token, uint256 amount) external onlyBridge {
@@ -123,10 +125,10 @@ contract Vault {
     function unlockNative(address to, uint256 amount) external onlyBridge {
         // check if the amount is not greater than the balance
         // transfer the amount to the user
-        if (amount > s_vaultBalance[address(0)]) {
+        if (amount > s_vaultBalance[maxAddress]) {
             revert("Vault: amount is greater than the balance");
         }
-        s_vaultBalance[address(0)] -= amount;
+        s_vaultBalance[maxAddress] -= amount;
 
         payable(to).transfer(amount);
     }
@@ -148,7 +150,7 @@ contract Vault {
     function cancelDeposit(address from, address token, uint256 amount) external onlyBridge {
         // check if the amount is not greater than the balance
         // transfer the amount to the user
-        if (amount > s_usersDeposits[from][address(0)]) {
+        if (amount > s_usersDeposits[from][token]) {
             revert("Vault: amount is greater than the balance");
         }
         s_usersDeposits[from][token] -= amount;
@@ -158,7 +160,7 @@ contract Vault {
     function finalizeDeposit(address from, address token, uint256 amount) external onlyBridge {
         // check if the amount is not greater than the balance
         // transfer the amount to the user
-        if (amount > s_usersDeposits[from][address(0)]) {
+        if (amount > s_usersDeposits[from][token]) {
             revert("Vault: amount is greater than the balance");
         }
         s_usersDeposits[from][token] -= amount;
@@ -213,7 +215,7 @@ contract Vault {
         if (msg.value == 0) {
             revert("Vault: msg.value is 0");
         }
-        s_opFeesBalance[address(0)] += msg.value;
+        s_opFeesBalance[maxAddress] += msg.value;
     }
 
     function depositProtocolFee(address token, uint256 amount) external {
@@ -230,7 +232,7 @@ contract Vault {
 
     // Admin withdrawal (urgence // add check pause status... later), admin can withdraw all
     function adminUrgenceWithdrawal(address token, uint256 amount) external onlyAdmin {
-        if (token == address(0)) {
+        if (token == maxAddress) {
             if (amount > address(this).balance) {
                 revert("Vault: amount is greater than the balance");
             }
@@ -253,7 +255,7 @@ contract Vault {
         if (amount > s_feesBalance[token]) {
             revert("Vault: amount is greater than the balance");
         }
-        if (token == address(0)) {
+        if (token == maxAddress) {
             payable(msg.sender).transfer(amount);
         } else {
             bool res = ERC20(token).transfer(msg.sender, amount);
@@ -273,7 +275,7 @@ contract Vault {
         if (amount > s_opFeesBalance[token]) {
             revert("Vault: amount is greater than the balance");
         }
-        if (token == address(0)) {
+        if (token == maxAddress) {
             payable(msg.sender).transfer(amount);
         } else {
             bool res = ERC20(token).transfer(msg.sender, amount);
@@ -293,7 +295,7 @@ contract Vault {
             revert("Vault: amount is greater than the balance");
         }
         s_usersAmountToRedeem[msg.sender][token] -= amount;
-        if (token == address(0)) {
+        if (token == maxAddress) {
             payable(msg.sender).transfer(amount);
         } else {
             bool res = ERC20(token).transfer(msg.sender, amount);

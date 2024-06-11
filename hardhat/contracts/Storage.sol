@@ -7,10 +7,10 @@ import {TokenFactory} from "./TokenFactory.sol";
 // ERRORS
 
 error storage_not_admin();
-error storage_token_not_in_list(string symbol);
+error storage_token_not_in_list(string tokenName);
 error storage_chainid_not_in_list(uint256 chainId);
-error storage_token_already_set(string symbol, uint256 chainId);
-error storage_token_not_set(string symbol, uint256 chainId);
+error storage_token_already_set(string tokenName, uint256 chainId);
+error storage_token_not_set(string tokenName, uint256 chainId);
 
 // @todo
 // refactor and add events
@@ -39,14 +39,14 @@ contract Storage {
     //TESTING
     address owner;
     // move into addressStorage key == H(symbol, chainId)
-    // mapping(string tokenSymbol => mapping(uint256 chainId => address tokenAddressOnChainId)) public tokensMapping;
+    // mapping(string tokenTokenName => mapping(uint256 chainId => address tokenAddressOnChainId)) public tokensMapping;
 
     // EVENTS
-    event Storage_TokenSymbolAdded(string symbol);
+    event Storage_TokenNameAdded(string tokenName);
     event Storage_ChainIdAdded(uint256 chainId);
-    event Storage_AuthorizedSymbolAdded(string symbol, uint256 chainId);
-    event Storage_AuthorizedSymbolRemoved(string symbol, uint256 chainId);
-    event Storage_TokenAddressSet(string symbol, uint256 chainId, address tokenAddress);
+    event Storage_AuthorizedTokenNameAdded(string tokenName, uint256 chainId);
+    event Storage_AuthorizedTokenNameRemoved(string tokenName, uint256 chainId);
+    event Storage_TokenAddressSet(string tokenName, uint256 chainId, address tokenAddress);
 
     // THINK about key label validation
     // not for all complete key cause it can be huge and not needed
@@ -103,7 +103,7 @@ contract Storage {
 
     // RENAME ALL LABEL USING A SPECIAL FORMAT : opertator_role ... to reduce collision risk / with maj/min
     // USE constant if possible for essential values
-    constructor(string memory nativeSymbol) {
+    constructor(string memory nativeTokenName) {
         //TESTING
         owner = msg.sender;
         uint256 nativeChainId = block.chainid; // on hardhat == 31337
@@ -114,9 +114,9 @@ contract Storage {
         s_addressStorage[getKey("admin")] = msg.sender;
 
         setUint(getKey("nativeChainId"), nativeChainId);
-        setString(getKey("nativeSymbol"), nativeSymbol);
+        setString(getKey("nativeTokenName"), nativeTokenName);
         addChainIdToList(nativeChainId);
-        addTokenSymbolToList(nativeSymbol);
+        addTokenNameToList(nativeTokenName);
 
         // set initial values
         setInitialValues();
@@ -166,15 +166,15 @@ contract Storage {
         addChainIdToList(11155111);
         addChainIdToList(441);
         addChainIdToList(31337);
-        // add token symbols to list
-        addTokenSymbolToList("ETH");
-        addTokenSymbolToList("AFT");
-        addTokenSymbolToList("DAI");
+        // add token tokenNames to list
+        addTokenNameToList("ETH");
+        addTokenNameToList("AFT");
+        addTokenNameToList("DAI");
 
-        // add authorized symbols to chainId
-        addToAuthorizedSymbolsListByChainId("ETH", 441);
-        addToAuthorizedSymbolsListByChainId("AFT", 441);
-        addToAuthorizedSymbolsListByChainId("DAI", 441);
+        // add authorized tokenNames to chainId
+        addToAuthorizedTokenNamesListByChainId("ETH", 441);
+        addToAuthorizedTokenNamesListByChainId("AFT", 441);
+        addToAuthorizedTokenNamesListByChainId("DAI", 441);
 
         // add native token to chainId
         addNativeTokenByChainId("ETH", 11155111);
@@ -492,28 +492,31 @@ contract Storage {
     //
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    // tokenSymbolsList == token symbol added to the bridge (we can not remove them - if we need recover old token)
+    // tokenNamesList == token symbol added to the bridge (we can not remove them - if we need recover old token)
     // authorizedTokensListByChainId == token authorized to be bridged (we can remove authorization)
 
-    function addTokenSymbolToList(string memory symbol) public {
+    //@todo
+    // CAHNGE SYMBOL TO NAME cause name is unique not symbol (ETH != bETH)
+    // Later pack data ( symbol - address) and a utilities to extract it
+    function addTokenNameToList(string memory tokenName) public {
         if (!isAdmin()) {
             revert storage_not_admin();
         }
-        string[] storage list = s_stringArrayStorage[getKey("tokenSymbolsList")];
-        list.push(symbol);
+        string[] storage list = s_stringArrayStorage[getKey("tokenNamesList")];
+        list.push(tokenName);
 
-        emit Storage_TokenSymbolAdded(symbol);
+        emit Storage_TokenNameAdded(tokenName);
     }
 
-    function getTokenSymbolsList() public view returns (string[] memory) {
-        return getStringArray(getKey("tokenSymbolsList"));
+    function getTokenNamesList() public view returns (string[] memory) {
+        return getStringArray(getKey("tokenNamesList"));
     }
 
     // BAD HAVE a mapping in //  (in case of large list)
-    function isTokenSymbolInList(string memory symbol) public view returns (bool) {
-        string[] memory list = getStringArray(getKey("tokenSymbolsList"));
+    function isTokenNameInList(string memory tokenName) public view returns (bool) {
+        string[] memory list = getStringArray(getKey("tokenNamesList"));
         for (uint256 i = 0; i < list.length; i++) {
-            if (keccak256(abi.encodePacked(list[i])) == keccak256(abi.encodePacked(symbol))) {
+            if (keccak256(abi.encodePacked(list[i])) == keccak256(abi.encodePacked(tokenName))) {
                 return true;
             }
         }
@@ -545,42 +548,42 @@ contract Storage {
     }
 
     // @todo
-    // for front add token symbol by chain lists AND/? chain by token symbol
+    // for front add token tokenName by chain lists AND/? chain by token tokenName
     // It will have to checke authorization
-    function addToAuthorizedSymbolsListByChainId(string memory symbol, uint256 chainId) public {
+    function addToAuthorizedTokenNamesListByChainId(string memory tokenName, uint256 chainId) public {
         if (!isAdmin() && !isFactory()) {
             revert storage_not_admin();
         }
-        string[] storage list = s_stringArrayStorage[getKey("authorizedSymbolsListByChainId", chainId)];
-        list.push(symbol);
+        string[] storage list = s_stringArrayStorage[getKey("authorizedTokenNamesListByChainId", chainId)];
+        list.push(tokenName);
 
-        emit Storage_AuthorizedSymbolAdded(symbol, chainId);
+        emit Storage_AuthorizedTokenNameAdded(tokenName, chainId);
     }
 
-    function removeFromAuthorizedSymbolsListByChainId(string memory symbol, uint256 chainId) public {
+    function removeFromAuthorizedTokenNamesListByChainId(string memory tokenName, uint256 chainId) public {
         if (!isAdmin()) {
             revert storage_not_admin();
         }
-        string[] storage list = s_stringArrayStorage[getKey("authorizedSymbolsListByChainId", chainId)];
+        string[] storage list = s_stringArrayStorage[getKey("authorizedTokenNamesListByChainId", chainId)];
         for (uint256 i = 0; i < list.length; i++) {
-            if (keccak256(abi.encodePacked(list[i])) == keccak256(abi.encodePacked(symbol))) {
+            if (keccak256(abi.encodePacked(list[i])) == keccak256(abi.encodePacked(tokenName))) {
                 list[i] = list[list.length - 1];
                 list.pop();
                 break;
             }
         }
 
-        emit Storage_AuthorizedSymbolRemoved(symbol, chainId);
+        emit Storage_AuthorizedTokenNameRemoved(tokenName, chainId);
     }
 
-    function getAuthorizedSymbolsListByChainId(uint256 chainId) public view returns (string[] memory) {
-        return getStringArray(getKey("authorizedSymbolsListByChainId", chainId));
+    function getAuthorizedTokenNamesListByChainId(uint256 chainId) public view returns (string[] memory) {
+        return getStringArray(getKey("authorizedTokenNamesListByChainId", chainId));
     }
 
-    function isSymbolAuthorizedByChainId(string memory symbol, uint256 chainId) public view returns (bool) {
-        string[] memory list = getStringArray(getKey("authorizedSymbolsListByChainId", chainId));
+    function isTokenNameAuthorizedByChainId(string memory tokenName, uint256 chainId) public view returns (bool) {
+        string[] memory list = getStringArray(getKey("authorizedTokenNamesListByChainId", chainId));
         for (uint256 i = 0; i < list.length; i++) {
-            if (keccak256(abi.encodePacked(list[i])) == keccak256(abi.encodePacked(symbol))) {
+            if (keccak256(abi.encodePacked(list[i])) == keccak256(abi.encodePacked(tokenName))) {
                 return true;
             }
         }
@@ -601,91 +604,95 @@ contract Storage {
     //
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    // SECURITY admin should add first symbol to tokenList and chainId to chainIdsList
+    // SECURITY admin should add first tokenName to tokenList and chainId to chainIdsList
 
-    // token mapping : eq : mapping(string memory symbol => mapping(uint256 chainId => address tokenAddress))
+    // token mapping : eq : mapping(string memory tokenName => mapping(uint256 chainId => address tokenAddress))
     // used to add address and remove by resetting it to address(0)
     // address(0) = unauthorized token
     // address.max = native token
 
     // ?? instead of address ?? => bytes32 status-address => status : up, down, paused ??
     // in this case function extract address or status from data stored with bit shifting
-    function setTokenAddressByChainId(string memory symbol, uint256 chainId, address tokenAddress) public {
-        if (!isTokenSymbolInList(symbol)) {
-            revert storage_token_not_in_list(symbol);
+
+    // manage case of new version of token => ?? arrays of address, last is valid ??
+    function setTokenAddressByChainId(string memory tokenName, uint256 chainId, address tokenAddress) public {
+        if (!isTokenNameInList(tokenName)) {
+            revert storage_token_not_in_list(tokenName);
         }
         if (!isChainIdInList(chainId)) {
             revert storage_chainid_not_in_list(chainId);
         }
-        setAddress(getKey(symbol, chainId), tokenAddress);
+        setAddress(getKey(tokenName, chainId), tokenAddress);
 
-        emit Storage_TokenAddressSet(symbol, chainId, tokenAddress);
+        emit Storage_TokenAddressSet(tokenName, chainId, tokenAddress);
     }
 
-    function getTokenAddressByChainId(string memory symbol, uint256 chainId) public view returns (address) {
-        return getAddress(getKey(symbol, chainId));
+    function getTokenAddressByChainId(string memory tokenName, uint256 chainId) public view returns (address) {
+        return getAddress(getKey(tokenName, chainId));
     }
 
     // explicit func to avoid errors
-    function addNewTokenAddressByChainId(string memory symbol, uint256 chainId, address tokenAddress) public {
-        if (getTokenAddressByChainId(symbol, chainId) != address(0)) {
-            revert storage_token_already_set(symbol, chainId);
+    function addNewTokenAddressByChainId(string memory tokenName, uint256 chainId, address tokenAddress) public {
+        if (getTokenAddressByChainId(tokenName, chainId) != address(0)) {
+            revert storage_token_already_set(tokenName, chainId);
         }
-        setTokenAddressByChainId(symbol, chainId, tokenAddress);
+        setTokenAddressByChainId(tokenName, chainId, tokenAddress);
 
-        addToAuthorizedSymbolsListByChainId(symbol, chainId);
+        addToAuthorizedTokenNamesListByChainId(tokenName, chainId);
     }
 
-    function removeTokenAddressByChainId(string memory symbol, uint256 chainId) public {
-        if (getTokenAddressByChainId(symbol, chainId) == address(0)) {
-            revert storage_token_not_set(symbol, chainId);
+    function removeTokenAddressByChainId(string memory tokenName, uint256 chainId) public {
+        if (getTokenAddressByChainId(tokenName, chainId) == address(0)) {
+            revert storage_token_not_set(tokenName, chainId);
         }
-        setTokenAddressByChainId(symbol, chainId, address(0));
+        setTokenAddressByChainId(tokenName, chainId, address(0));
 
-        removeFromAuthorizedSymbolsListByChainId(symbol, chainId);
+        removeFromAuthorizedTokenNamesListByChainId(tokenName, chainId);
     }
 
-    function updateTokenAddressByChainId(string memory symbol, uint256 chainId, address tokenAddress) public {
-        if (getTokenAddressByChainId(symbol, chainId) == address(0)) {
-            revert storage_token_not_set(symbol, chainId);
+    function updateTokenAddressByChainId(string memory tokenName, uint256 chainId, address tokenAddress) public {
+        if (getTokenAddressByChainId(tokenName, chainId) == address(0)) {
+            revert storage_token_not_set(tokenName, chainId);
         }
-        setTokenAddressByChainId(symbol, chainId, tokenAddress);
+        setTokenAddressByChainId(tokenName, chainId, tokenAddress);
     }
 
-    function addNativeTokenByChainId(string memory symbol, uint256 chainId) public {
-        setTokenAddressByChainId(getString(getKey("nativeSymbol")), chainId, maxAddress);
+    function addNativeTokenByChainId(string memory tokenName, uint256 chainId) public {
+        setTokenAddressByChainId(getString(getKey("nativeTokenName")), chainId, maxAddress);
 
-        addToAuthorizedSymbolsListByChainId(symbol, chainId);
+        addToAuthorizedTokenNamesListByChainId(tokenName, chainId);
     }
 
     function batchAddNewTokenAddressByChainId(
-        string[] memory symbols,
+        string[] memory tokenNames,
         uint256[] memory chainIds,
         address[] memory tokenAddresses
     ) public {
         require(
-            symbols.length == chainIds.length,
-            "Storage: batchUpdateTokenAddressByChainId: symbols and chainIds length mismatch"
+            tokenNames.length == chainIds.length,
+            "Storage: batchUpdateTokenAddressByChainId: tokenNames and chainIds length mismatch"
         );
         require(
             chainIds.length == tokenAddresses.length,
             "Storage: batchUpdateTokenAddressByChainId: chainIds and tokenAddresses length mismatch"
         );
-        for (uint256 i = 0; i < symbols.length; i++) {
-            addNewTokenAddressByChainId(symbols[i], chainIds[i], tokenAddresses[i]);
+        for (uint256 i = 0; i < tokenNames.length; i++) {
+            addNewTokenAddressByChainId(tokenNames[i], chainIds[i], tokenAddresses[i]);
         }
     }
 
-    function getTokenAddressesBychainIds(string memory symbol, uint256 originChainId, uint256 destinationChainId)
+    function getTokenAddressesBychainIds(string memory tokenName, uint256 originChainId, uint256 destinationChainId)
         public
         view
         returns (address, address)
     {
-        return (getTokenAddressByChainId(symbol, originChainId), getTokenAddressByChainId(symbol, destinationChainId));
+        return (
+            getTokenAddressByChainId(tokenName, originChainId), getTokenAddressByChainId(tokenName, destinationChainId)
+        );
     }
 
-    function isAuthorizedTokenByChainId(string memory symbol, uint256 chainId) public view returns (bool) {
-        return getTokenAddressByChainId(symbol, chainId) != address(0);
+    function isAuthorizedTokenByChainId(string memory tokenName, uint256 chainId) public view returns (bool) {
+        return getTokenAddressByChainId(tokenName, chainId) != address(0);
     }
 
     // CHEAT to avoid stack too deep in bridge => to change later
@@ -694,13 +701,13 @@ contract Storage {
         return tf.isBridgedToken(tokenAddress);
     }
 
-    // test packing symbol and address
+    // test packing tokenName and address
     // string of 5 char is 40 bits, btween 0x0 and 0xffffffffff convert in string :
     // "abd" => 0x616263
     // "a" => 0x61
     // "ZZZZZZ" => 0x5a5a5a5a5a5a
     // ?? => 0x 112233 SSSSSSSSS add(20bytes)
-    // 1-3 status/pause state... SSSS symbol in hex
+    // 1-3 status/pause state... SSSS tokenName in hex
 
     // // @todo
     // // ATTENTION add(0) => native token here

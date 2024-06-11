@@ -8,6 +8,12 @@ const hre = require("hardhat");
 const { ethers } = hre;
 
 describe("EndToEnd behavior", function () {
+  const zeroAddress = "0x" + "0".repeat(40);
+  const toChecksum = (address) => {
+    return ethers.getAddress(address);
+  };
+  const maxAddress20bytes = "0x" + "f".repeat(40);
+  const maxAddress = toChecksum(maxAddress20bytes);
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
@@ -72,22 +78,23 @@ describe("EndToEnd behavior", function () {
     console.log("relayer address set in storage");
 
     // address 0 = 0x
-    const zeroAddress = "0x" + "0".repeat(40);
+    // const zeroAddress = "0x" + "0".repeat(40);
     // deploy BridgeTokenAft via factory and set vault as owner
     let tx0 = await storage.addChainIdToList(31337);
     await tx0.wait();
     const chainIdBN = 441;
     tx0 = await storage.addChainIdToList(chainIdBN);
     await tx0.wait();
-    tx0 = await storage.addTokenSymbolToList("bAFT");
+    tx0 = await storage.addTokenNameToList("allfeat token");
     await tx0.wait();
-    tx0 = await storage.addTokenSymbolToList("AFT");
+    tx0 = await storage.addTokenNameToList("allfeat token");
     await tx0.wait();
 
     // test event BridgeTokenCreated
-    expect(
-      await factory.createToken("BridgedTokenAft", "AFT", 441, zeroAddress)
-    ).to.emit(factory, "BridgeTokenCreated");
+    expect(await factory.createToken("allfeat token", "AFT")).to.emit(
+      factory,
+      "BridgeTokenCreated"
+    );
     // const bridgedTokenAftTx = await factory.createToken(
     //   "BridgedTokenAft",
     //   "AFT",
@@ -103,14 +110,14 @@ describe("EndToEnd behavior", function () {
     // convert in bignumber
     // const chainIdBN = BigInt(chainId.chainId);
 
-    tx0 = await storage.addTokenSymbolToList("bETH");
+    tx0 = await storage.addTokenNameToList("BridgedEth");
     await tx0.wait();
     // deploy bridgedEth
     const bridgedEthTx = await factory.createToken(
       "BridgedEth",
-      "bETH",
-      chainIdBN,
-      zeroAddress
+      "bETH"
+      // chainIdBN,
+      // zeroAddress
     );
     // const bridgedEthReceipt = await bridgedEthTx.wait();
     // const bridgedEthAddress = bridgedEthReceipt.logs[0].args[0];
@@ -203,13 +210,39 @@ describe("EndToEnd behavior", function () {
       const theamount = 10_000_000_000_000_000_000n;
       // const theamount = ethers.utils.parseEther("10");
       const nonce = await bridge.getNewUserNonce(user);
-      // messgae hash
+
+      await storage.addChainIdToList(31337);
+      await storage.addChainIdToList(11155111);
+
+      await storage.addChainIdToList(441);
+      await storage.addTokenNameToList("BridgedEth2");
+      // await storage.addTokenSymbolToList("bETH2");
+      // const zeroAddress2 = "0x" + "0".repeat(40);
+      await storage.setTokenAddressByChainId(
+        "BridgedEth2",
+        11155111,
+        maxAddress
+      );
+      await factory.createToken("BridgedEth2", "bETH2");
+      const tokenAddres = await factory.getTokenAddress("bETH2");
+      console.log("tokenAddres: ", tokenAddres);
+      const tokenInstance = await hre.ethers.getContractAt(
+        "BridgedToken",
+        tokenAddres
+      );
+
+      // await storage.batchAddNewTokenAddressByChainId(
+      //   ["ETH2", "bETH2"],
+      //   [31337, 441],
+      //   [zeroAddress2, tokenAddres]
+      // );
+      // // messgae hash
       const messageHash = await bridge.getMessageToSign(
         user,
         user,
         31337,
-        31337,
-        "ETH",
+        441,
+        "BridgedEth2",
         theamount,
         nonce
       );
@@ -228,8 +261,8 @@ describe("EndToEnd behavior", function () {
         user,
         user,
         31337,
-        31337,
-        "ETH",
+        441,
+        "BridgedEth2",
         theamount,
         nonce
       );
@@ -257,16 +290,16 @@ describe("EndToEnd behavior", function () {
         user,
         //   31337,
         //   31337,
-        chainIdBN,
-        chainIdBN,
-        "ETH",
+        31337,
+        441,
+        "BridgedEth2",
         theamount,
         nonce,
         signature,
         { value: theamount }
       );
       // convert 0 to address(0)
-      const zeroAddress = "0x" + "0".repeat(40);
+      // const zeroAddress = "0x" + "0".repeat(40);
       //check vault user balance
       const userEthBalance = vault.getTokenUserBalance(user, zeroAddress); // no question of AFT now
 

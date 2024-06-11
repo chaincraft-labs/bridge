@@ -2,6 +2,7 @@
 
 pragma solidity ^0.8.20;
 
+import "hardhat/console.sol";
 /*
  * @note: 
  * - fees:
@@ -92,6 +93,8 @@ contract BridgeBase is Utils {
         PROTOCOL,
         OPERATION
     }
+
+    address constant maxAddress = address(type(uint160).max); // 0xffffFFFfFFffffffffffffffffffffFfFFFfffFFFfF
 
     address public s_storage;
     address public s_relayer;
@@ -208,6 +211,17 @@ contract BridgeBase is Utils {
     // ATTNETION  tokenFrom => TO !!! check when to change it
     // function bridge(address tokenAddress, uint256 amount, uint256 chainId, bytes calldata signature) external payable {
 
+    //helper testing
+    function getTokenAddresses(string memory tokenName, uint256 chainIdFrom, uint256 chainIdTo)
+        public
+        view
+        returns (address, address)
+    {
+        (address a1, address a2) = Storage(s_storage).getTokenAddressesBychainIds(tokenName, chainIdFrom, chainIdTo);
+        console.log("a1: %s", a1);
+        console.log("a2: %s", a2);
+        return (a1, a2);
+    }
     /**
      * @notice Entry point to deposit tokens to the bridge
      *
@@ -220,6 +234,7 @@ contract BridgeBase is Utils {
      *
      * @param amount token amount
      */
+
     function createBridgeOperation(
         address from,
         address to,
@@ -232,9 +247,14 @@ contract BridgeBase is Utils {
     ) external payable {
         uint256 newNonce = nextUserNonce[from];
         require(nonce == newNonce, "BridgeBase: wrong nonce");
+        // address tokenFrom;
+        // address tokenTo;
+        // (tokenFrom, tokenTo) = Storage(s_storage).getTokenAddressesBychainIds(tokenName, chainIdFrom, chainIdTo);
 
-        (address tokenFrom, address tokenTo) =
-            Storage(s_storage).getTokenAddressesBychainIds(tokenName, chainIdFrom, chainIdTo);
+        // (address tokenFrom, address tokenTo) =
+        //     Storage(s_storage).getTokenAddressesBychainIds(tokenName, chainIdFrom, chainIdTo);
+        address tokenFrom = Storage(s_storage).getTokenAddressByChainId(tokenName, chainIdFrom);
+        address tokenTo = Storage(s_storage).getTokenAddressByChainId(tokenName, chainIdTo);
         address vault;
         address relayer;
         // address factory;
@@ -243,9 +263,9 @@ contract BridgeBase is Utils {
         {
             nextUserNonce[from]++;
 
-            string[] memory roles;
-            roles[0] = "vault";
-            roles[1] = "relayer";
+            // string[] memory roles;
+            // roles[0] = "vault";
+            // roles[1] = "relayer";
             // address[] memory operators = Storage(s_storage).getOperators(roles);
             // vault = operators[0];
             // relayer = operators[1];
@@ -268,7 +288,7 @@ contract BridgeBase is Utils {
         //     revert BridgeBase__DepositFailed("invalid chainId");
         // }
 
-        if (tokenFrom == address(0)) {
+        if (tokenFrom == maxAddress) {
             // native token
             if (msg.value == 0) {
                 revert BridgeBase__DepositFailed("Native needs non zero value");
@@ -380,7 +400,7 @@ contract BridgeBase is Utils {
             revert BridgeBase__FinalizationFailed("wrong signature");
         }
 
-        if (tokenTo == address(0)) {
+        if (tokenTo == maxAddress) {
             // native token
             vault.unlockNative(to, amount);
         } else {

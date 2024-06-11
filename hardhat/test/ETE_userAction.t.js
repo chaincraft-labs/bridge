@@ -164,6 +164,174 @@ describe("EndToEnd behavior", function () {
     };
   }
 
+  // fixture : deploy contracts and create operation
+  const deployContractAndCreateOperation = async () => {
+    const [owner, otherAccount] = await hre.ethers.getSigners();
+    const {
+      storage,
+      factory,
+      vault,
+      bridge,
+      relayer,
+      bridgedTokenAftAddress,
+      bridgedEthAddress,
+    } = await loadFixture(deployAllContracts);
+    console.log("owner: ", owner.address);
+    console.log("otherAccount: ", otherAccount.address);
+    const user = otherAccount.address;
+    const userBalance = await hre.ethers.provider.getBalance(user);
+    console.log("userBalance: ", userBalance.toString());
+    // for the test give user somme AFT
+    // non he deposit ether to bridge !!
+    //get current nonce
+    const etherAmount = 10;
+    // convert in wei with bignumber
+    // const amount = ethers.utils.parseEther(etherAmount.toString());
+    //   const amount = 10 * 10 ** 18n;
+    const theamount = 10_000_000_000_000_000_000n;
+    // const theamount = ethers.utils.parseEther("10");
+    const nonce = await bridge.getNewUserNonce(user);
+
+    await storage.addChainIdToList(31337);
+    // await storage.addChainIdToList(11155111);
+
+    await storage.addChainIdToList(441);
+    await storage.addTokenNameToList("BridgedEth2");
+    // await storage.addTokenSymbolToList("bETH2");
+    // const zeroAddress2 = "0x" + "0".repeat(40);
+    // await storage.setTokenAddressByChainId(
+    //   "BridgedEth2",
+    //   11155111,
+    //   maxAddress
+    // );
+
+    await storage.setTokenAddressByChainId("BridgedEth2", 441, maxAddress);
+    await factory.createToken("BridgedEth2", "bETH2");
+    const tokenAddres = await factory.getTokenAddress("bETH2");
+    console.log("tokenAddres: ", tokenAddres);
+    // const tokenInstance = await hre.ethers.getContractAt(
+    //   "BridgedToken",
+    //   tokenAddres
+    // );
+    // console.log("tokenInstance: ", tokenInstance);
+    // // TESTING
+    // await tokenInstance.TESTmint(user, theamount + theamount);
+
+    const tokenContract = await hre.ethers.getContractFactory("BridgedToken");
+    const tokenInstance = await tokenContract.attach(tokenAddres);
+    console.log("tokenInstance: ", tokenInstance);
+    // TESTING
+    const testowner = await tokenInstance.getOwner();
+    console.log("testowner: ", testowner);
+    console.log("user: ", user);
+    console.log("theamount: ", theamount);
+    await tokenInstance.minttest(user, theamount + theamount);
+    await bridge.mintOnlyTEST(user, tokenAddres, theamount + theamount);
+    // await storage.batchAddNewTokenAddressByChainId(
+    //   ["ETH2", "bETH2"],
+    //   [31337, 441],
+    //   [zeroAddress2, tokenAddres]
+    // );
+    // // messgae hash
+    const messageHash = await bridge.getMessageToSign(
+      user,
+      user,
+      31337,
+      441,
+      "BridgedEth2",
+      theamount,
+      nonce
+    );
+    // sign the message
+    //   const signature = await owner.signMessage(messageHash);
+    //   console.log("signature: ", signature);
+    //   console.log("messageHash: ", messageHash);
+    //     const typeOfSignature = typeof signature;
+    //   const arraymsg = hre.ethers.utils.arrayify(messageHash);
+    //   console.log("arraymsg: ", arraymsg);
+    //   const sig0 = await owner.signMessage(arraymsg);
+    //   console.log("signature: ", sig0);
+    //   console.log("typeOfSignature: ", typeof sig0);
+
+    const hash = await bridge.getMessageToSign(
+      user,
+      user,
+      31337,
+      441,
+      "BridgedEth2",
+      theamount,
+      nonce
+    );
+    console.log("hash: ", hash);
+    console.log("typeOfHash: ", typeof hash);
+
+    // need to sign the message and type cast from string to bytes
+
+    //   const signature = await otherAccount.signMessage(
+    //     hre.ethers.arrayify(hash)
+    //   );
+    const signature = await otherAccount.signMessage(hre.ethers.getBytes(hash));
+    console.log("hash: ", hash);
+    console.log("signature: ", signature);
+    console.log("typeOfSignature: ", typeof signature);
+
+    // id of the connected network
+    const chainId = await hre.ethers.provider.getNetwork();
+    // convert in bignumber
+    const chainIdBN = BigInt(chainId.chainId);
+
+    // allowance
+    // await tokenInstance
+
+    //   .connect(otherAccount)
+    //   .approve(bridge.address, theamount);
+    await bridge.connect(otherAccount).createBridgeOperation(
+      user,
+      user,
+      //   31337,
+      //   31337,
+      31337,
+      441,
+      "BridgedEth2",
+      theamount,
+      nonce,
+      signature
+      // { value: theamount }
+    );
+    // convert 0 to address(0)
+    // const zeroAddress = "0x" + "0".repeat(40);
+    //check vault user balance
+    const userEthBalance = await vault.getTokenUserBalance(user, tokenAddres); // no question of AFT now
+    console.log("userEthBalance: ", userEthBalance);
+    console.log("theamount: ", theamount);
+    // expect(userEthBalance).to.equal(theamount);
+
+    // check operation is created realyer side
+
+    const detailedOp = await relayer.getDetailedOriginOperation(hash);
+    console.log("detailedOp: ", detailedOp);
+    const opParams = detailedOp[0];
+    const opStatus = detailedOp[1];
+    const opBlock = detailedOp[2];
+    const opUser = opParams[0];
+    const opTokenName = opParams[4];
+    const opSignature = opParams[7];
+    // expect(opUser).to.equal(user);
+    // expect(opTokenName).to.equal("BridgedEth2");
+    // expect(opSignature).to.equal(signature);
+    return {
+      storage,
+      factory,
+      vault,
+      bridge,
+      relayer,
+      bridgedTokenAftAddress,
+      bridgedEthAddress,
+      hash,
+      detailedOp,
+    };
+  };
+
   describe("Deployment", function () {
     it("Should deploy contracts", async function () {
       const [owner, otherAccount] = await hre.ethers.getSigners();
@@ -192,6 +360,7 @@ describe("EndToEnd behavior", function () {
         factory,
         vault,
         bridge,
+        relayer,
         bridgedTokenAftAddress,
         bridgedEthAddress,
       } = await loadFixture(deployAllContracts);
@@ -324,96 +493,304 @@ describe("EndToEnd behavior", function () {
       console.log("userEthBalance: ", userEthBalance);
       console.log("theamount: ", theamount);
       expect(userEthBalance).to.equal(theamount);
+
+      // check operation is created realyer side
+
+      const detailedOp = await relayer.getDetailedOriginOperation(hash);
+      console.log("detailedOp: ", detailedOp);
+      const opParams = detailedOp[0];
+      const opStatus = detailedOp[1];
+      const opBlock = detailedOp[2];
+      const opUser = opParams[0];
+      const opTokenName = opParams[4];
+      const opSignature = opParams[7];
+      expect(opUser).to.equal(user);
+      expect(opTokenName).to.equal("BridgedEth2");
+      expect(opSignature).to.equal(signature);
     });
-    // it("Should set the right owner", async function () {
-    //   const { lock, owner } = await loadFixture(deployOneYearLockFixture);
-
-    //   expect(await lock.owner()).to.equal(owner.address);
-    // });
-
-    // it("Should receive and store the funds to lock", async function () {
-    //   const { lock, lockedAmount } = await loadFixture(
-    //     deployOneYearLockFixture
-    //   );
-
-    //   expect(await ethers.provider.getBalance(lock.target)).to.equal(
-    //     lockedAmount
-    //   );
-    // });
-
-    // it("Should fail if the unlockTime is not in the future", async function () {
-    //   // We don't use the fixture here because we want a different deployment
-    //   const latestTime = await time.latest();
-    //   const Lock = await ethers.getContractFactory("Lock");
-    //   await expect(Lock.deploy(latestTime, { value: 1 })).to.be.revertedWith(
-    //     "Unlock time should be in the future"
-    //   );
-    // });
   });
 
-  //   describe("Withdrawals", function () {
-  //     describe("Validations", function () {
-  //       it("Should revert with the right error if called too soon", async function () {
-  //         const { lock } = await loadFixture(deployOneYearLockFixture);
+  it("Should let user deposit to bridge and emit event from relayer", async function () {
+    // set user eth balance
+    const [owner, otherAccount] = await hre.ethers.getSigners();
+    const {
+      storage,
+      factory,
+      vault,
+      bridge,
+      relayer,
+      bridgedTokenAftAddress,
+      bridgedEthAddress,
+    } = await loadFixture(deployAllContracts);
+    console.log("owner: ", owner.address);
+    console.log("otherAccount: ", otherAccount.address);
+    const user = otherAccount.address;
+    const userBalance = await hre.ethers.provider.getBalance(user);
+    console.log("userBalance: ", userBalance.toString());
+    // for the test give user somme AFT
+    // non he deposit ether to bridge !!
+    //get current nonce
+    const etherAmount = 10;
+    // convert in wei with bignumber
+    // const amount = ethers.utils.parseEther(etherAmount.toString());
+    //   const amount = 10 * 10 ** 18n;
+    const theamount = 10_000_000_000_000_000_000n;
+    // const theamount = ethers.utils.parseEther("10");
+    const nonce = await bridge.getNewUserNonce(user);
 
-  //         await expect(lock.withdraw()).to.be.revertedWith(
-  //           "You can't withdraw yet"
-  //         );
-  //       });
+    await storage.addChainIdToList(31337);
+    // await storage.addChainIdToList(11155111);
 
-  //       it("Should revert with the right error if called from another account", async function () {
-  //         const { lock, unlockTime, otherAccount } = await loadFixture(
-  //           deployOneYearLockFixture
-  //         );
+    await storage.addChainIdToList(441);
+    await storage.addTokenNameToList("BridgedEth2");
+    // await storage.addTokenSymbolToList("bETH2");
+    // const zeroAddress2 = "0x" + "0".repeat(40);
+    // await storage.setTokenAddressByChainId(
+    //   "BridgedEth2",
+    //   11155111,
+    //   maxAddress
+    // );
+    await storage.setTokenAddressByChainId("BridgedEth2", 441, maxAddress);
+    await factory.createToken("BridgedEth2", "bETH2");
+    const tokenAddres = await factory.getTokenAddress("bETH2");
+    console.log("tokenAddres: ", tokenAddres);
+    // const tokenInstance = await hre.ethers.getContractAt(
+    //   "BridgedToken",
+    //   tokenAddres
+    // );
+    // console.log("tokenInstance: ", tokenInstance);
+    // // TESTING
+    // await tokenInstance.TESTmint(user, theamount + theamount);
 
-  //         // We can increase the time in Hardhat Network
-  //         await time.increaseTo(unlockTime);
+    const tokenContract = await hre.ethers.getContractFactory("BridgedToken");
+    const tokenInstance = await tokenContract.attach(tokenAddres);
+    console.log("tokenInstance: ", tokenInstance);
+    // TESTING
+    const testowner = await tokenInstance.getOwner();
+    console.log("testowner: ", testowner);
+    console.log("user: ", user);
+    console.log("theamount: ", theamount);
+    await tokenInstance.minttest(user, theamount + theamount);
+    await bridge.mintOnlyTEST(user, tokenAddres, theamount + theamount);
+    // await storage.batchAddNewTokenAddressByChainId(
+    //   ["ETH2", "bETH2"],
+    //   [31337, 441],
+    //   [zeroAddress2, tokenAddres]
+    // );
+    // // messgae hash
+    const messageHash = await bridge.getMessageToSign(
+      user,
+      user,
+      31337,
+      441,
+      "BridgedEth2",
+      theamount,
+      nonce
+    );
+    // sign the message
+    //   const signature = await owner.signMessage(messageHash);
+    //   console.log("signature: ", signature);
+    //   console.log("messageHash: ", messageHash);
+    //     const typeOfSignature = typeof signature;
+    //   const arraymsg = hre.ethers.utils.arrayify(messageHash);
+    //   console.log("arraymsg: ", arraymsg);
+    //   const sig0 = await owner.signMessage(arraymsg);
+    //   console.log("signature: ", sig0);
+    //   console.log("typeOfSignature: ", typeof sig0);
 
-  //         // We use lock.connect() to send a transaction from another account
-  //         await expect(lock.connect(otherAccount).withdraw()).to.be.revertedWith(
-  //           "You aren't the owner"
-  //         );
-  //       });
+    const hash = await bridge.getMessageToSign(
+      user,
+      user,
+      31337,
+      441,
+      "BridgedEth2",
+      theamount,
+      nonce
+    );
+    console.log("hash: ", hash);
+    console.log("typeOfHash: ", typeof hash);
 
-  //       it("Shouldn't fail if the unlockTime has arrived and the owner calls it", async function () {
-  //         const { lock, unlockTime } = await loadFixture(
-  //           deployOneYearLockFixture
-  //         );
+    // need to sign the message and type cast from string to bytes
 
-  //         // Transactions are sent using the first signer by default
-  //         await time.increaseTo(unlockTime);
+    //   const signature = await otherAccount.signMessage(
+    //     hre.ethers.arrayify(hash)
+    //   );
+    const signature = await otherAccount.signMessage(hre.ethers.getBytes(hash));
+    console.log("hash: ", hash);
+    console.log("signature: ", signature);
+    console.log("typeOfSignature: ", typeof signature);
 
-  //         await expect(lock.withdraw()).not.to.be.reverted;
-  //       });
-  //     });
+    // id of the connected network
+    const chainId = await hre.ethers.provider.getNetwork();
+    // convert in bignumber
+    const chainIdBN = BigInt(chainId.chainId);
 
-  //     describe("Events", function () {
-  //       it("Should emit an event on withdrawals", async function () {
-  //         const { lock, unlockTime, lockedAmount } = await loadFixture(
-  //           deployOneYearLockFixture
-  //         );
+    // allowance
+    // await tokenInstance
+    //   .connect(otherAccount)
+    //   .approve(bridge.address, theamount);
+    // await bridge.connect(otherAccount).createBridgeOperation(
+    //   user,
+    //   user,
+    //   //   31337,
+    //   //   31337,
+    //   31337,
+    //   441,
+    //   "BridgedEth2",
+    //   theamount,
+    //   nonce,
+    //   signature
+    //   // { value: theamount }
+    // );
+    const prepParams = [
+      user,
+      user,
+      31337,
+      441,
+      "BridgedEth2",
+      theamount,
+      nonce,
+    ];
+    const currentblock = await ethers.provider.getBlockNumber();
+    // expect realyer emit event when bridge create operation
+    expect(
+      await bridge
+        .connect(otherAccount)
+        .createBridgeOperation(
+          user,
+          user,
+          31337,
+          441,
+          "BridgedEth2",
+          theamount,
+          nonce,
+          signature
+        )
+    )
+      .to.emit(relayer, "OperationCreated")
+      .withArgs(hash, prepParams, currentblock);
 
-  //         await time.increaseTo(unlockTime);
+    const display = `Event OperationCreated emitted by realyer with args: \n hash: ${hash} \n params: ${prepParams} \n block: ${currentblock} `;
 
-  //         await expect(lock.withdraw())
-  //           .to.emit(lock, "Withdrawal")
-  //           .withArgs(lockedAmount, anyValue); // We accept any value as `when` arg
-  //       });
-  //     });
+    console.log(display);
+    // convert 0 to address(0)
+    // const zeroAddress = "0x" + "0".repeat(40);
+    //check vault user balance
+    const userEthBalance = await vault.getTokenUserBalance(user, tokenAddres); // no question of AFT now
+    console.log("userEthBalance: ", userEthBalance);
+    console.log("theamount: ", theamount);
+    expect(userEthBalance).to.equal(theamount);
 
-  //     describe("Transfers", function () {
-  //       it("Should transfer the funds to the owner", async function () {
-  //         const { lock, unlockTime, lockedAmount, owner } = await loadFixture(
-  //           deployOneYearLockFixture
-  //         );
+    // check operation is created realyer side
 
-  //         await time.increaseTo(unlockTime);
+    const detailedOp = await relayer.getDetailedOriginOperation(hash);
+    console.log("detailedOp: ", detailedOp);
+    const opParams = detailedOp[0];
+    const opStatus = detailedOp[1];
+    const opBlock = detailedOp[2];
+    const opUser = opParams[0];
+    const opTokenName = opParams[4];
+    const opSignature = opParams[7];
+    expect(opUser).to.equal(user);
+    expect(opTokenName).to.equal("BridgedEth2");
+    expect(opSignature).to.equal(signature);
+  });
 
-  //         await expect(lock.withdraw()).to.changeEtherBalances(
-  //           [owner, lock],
-  //           [lockedAmount, -lockedAmount]
-  //         );
-  //       });
-  //     });
-  //   });
+  it("Should let user deposit to bridge and emit event from relayer with fixture", async function () {
+    const { bridge, relayer, hash, detailedOp } = await loadFixture(
+      deployContractAndCreateOperation
+    );
+    const storedOp = await relayer.getDetailedOriginOperation(hash);
+    console.log("storedOp: ", storedOp);
+    // get hash from op details
+    const opParams = storedOp[0];
+    const recHash = await bridge.getMessageToSign(
+      opParams[0],
+      opParams[1],
+      opParams[2],
+      opParams[3],
+      opParams[4],
+      opParams[5],
+      opParams[6]
+    );
+    console.log("recHash: ", recHash);
+    expect(recHash).to.equal(hash);
+  });
+
+  // DEPOSIT OF FEES ON DESTINATION
+  it("Should deposit FEES", async function () {
+    // set user eth balance
+    const [owner, otherAccount] = await hre.ethers.getSigners();
+    // Op is created on origin Chain, we're on destination but use
+    // same token duplicated by convenience for harhdat test
+    const {
+      storage,
+      factory,
+      vault,
+      bridge,
+      relayer,
+      bridgedTokenAftAddress,
+      bridgedEthAddress,
+      hash,
+      detailedOp,
+    } = await loadFixture(deployContractAndCreateOperation);
+    const user = otherAccount.address;
+    // uint256 opFees = 0.001 ether;
+    const opFees = ethers.parseEther("0.001");
+
+    //  get eth balance of vault contract before deposit fees
+    const vaultBalanceBefore = await hre.ethers.provider.getBalance(
+      vault.target
+    );
+    await bridge.depositFees(hash, 31337, { value: opFees });
+
+    // expect vault balance to be equal to fees  and opFeesBalance(add max) too
+    const vaultBalanceAfter = await hre.ethers.provider.getBalance(
+      vault.target
+    );
+    const balanceAfterFtomVault = await vault.getOpFeesBalance(maxAddress);
+
+    expect(vaultBalanceAfter).to.equal(vaultBalanceBefore + opFees);
+    expect(balanceAfterFtomVault).to.equal(opFees);
+  });
+
+  it("Should deposit FEES and emit event", async function () {
+    // set user eth balance
+    const [owner, otherAccount] = await hre.ethers.getSigners();
+    // Op is created on origin Chain, we're on destination but use
+    // same token duplicated by convenience for harhdat test
+    const {
+      storage,
+      factory,
+      vault,
+      bridge,
+      relayer,
+      bridgedTokenAftAddress,
+      bridgedEthAddress,
+      hash,
+      detailedOp,
+    } = await loadFixture(deployContractAndCreateOperation);
+    const user = otherAccount.address;
+    // uint256 opFees = 0.001 ether;
+    const opFees = ethers.parseEther("0.001");
+
+    //  get eth balance of vault contract before deposit fees
+    const vaultBalanceBefore = await hre.ethers.provider.getBalance(
+      vault.target
+    );
+    const chainIdFrom = detailedOp[0][2];
+    expect(await bridge.depositFees(hash, 31337, { value: opFees }))
+      .to.emit(relayer, "FeesDeposited")
+      .withArgs(hash, chainIdFrom);
+    // await bridge.depositFees(hash, 31337, { value: opFees });
+
+    // expect vault balance to be equal to fees  and opFeesBalance(add max) too
+    const vaultBalanceAfter = await hre.ethers.provider.getBalance(
+      vault.target
+    );
+    const balanceAfterFtomVault = await vault.getOpFeesBalance(maxAddress);
+
+    expect(vaultBalanceAfter).to.equal(vaultBalanceBefore + opFees);
+    expect(balanceAfterFtomVault).to.equal(opFees);
+  });
 });

@@ -318,4 +318,8 @@ contract Vault {
     function getTokenUserBalance(address user, address token) external view returns (uint256) {
         return s_usersDeposits[user][token];
     }
+
+    function getOpFeesBalance(address token) external view returns (uint256) {
+        return s_opFeesBalance[token];
+    }
 }

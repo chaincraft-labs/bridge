@@ -430,4 +430,16 @@ contract RelayerBase is Utils {
     function isOriginOperationCanceled(bytes32 operationHash) external view returns (bool) {
         return s_originOperations[operationHash].status == OperationStatus.ORG_OP_CANCELED;
     }
+
+    function getOriginOperationStatus(bytes32 operationHash) external view returns (OperationStatus) {
+        return s_originOperations[operationHash].status;
+    }
+
+    function getDetailedOriginOperation(bytes32 operationHash)
+        external
+        view
+        returns (OriginOperation memory operation)
+    {
+        return s_originOperations[operationHash];
+    }
 }

@@ -381,12 +381,12 @@ contract BridgeBase is Utils {
         {
             destinationNonces[from][chainIdTo][nonce] = true;
 
-            string[] memory roles;
-            roles[0] = "vault";
-            roles[1] = "relayer";
-            address[] memory operators = Storage(s_storage).getOperators(roles);
-            vault = Vault(operators[0]);
-            // relayer = RelayerBase(operators[1]);
+            // string[] memory roles;
+            // roles.push("vault");
+            // roles.push("relayer");
+            // address[] memory operators = Storage(s_storage).getOperators(roles);
+            vault = Vault(Storage(s_storage).getOperator("vault"));
+            // relayer = RelayerBase(Storage(s_storage).getOperator("relayer"));
             factory = TokenFactory(Storage(s_storage).getOperator("factory"));
         }
 
@@ -404,7 +404,12 @@ contract BridgeBase is Utils {
         //     prefixed(keccak256(abi.encodePacked(from, to, tokenName, amount, chainIdFrom, chainIdTo, nonce)));
         bytes32 message = computeOperationHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
 
+        // if (recoverSigner(message, signature) != from) {
+        // address recSigner = recoverSigner(message, signature);
         if (recoverSigner(message, signature) != from) {
+            console.log("LALALALALLALA TEST SIGNATURE from: %s", from);
+            console.log("LALALALALLALA TEST SIGNATURE recSigner: %s", recoverSigner(message, signature));
+            console.logBytes(signature);
             revert BridgeBase__FinalizationFailed("wrong signature");
         }
 

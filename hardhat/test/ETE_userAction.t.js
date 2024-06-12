@@ -615,7 +615,11 @@ describe("EndToEnd behavior", function () {
     //   const signature = await otherAccount.signMessage(
     //     hre.ethers.arrayify(hash)
     //   );
+    // signMessage prefix  with "\x19Ethereum Signed Message:\n"
+    //https://medium.com/@kaishinaw/signing-and-verifying-ethereum-messages-f5acd41ca1a8
     const signature = await otherAccount.signMessage(hre.ethers.getBytes(hash));
+    //https://docs.ethers.org/v5/api/signer/#Signer-signMessage
+    // const signature = await otherAccount.signMessage(hash);
     console.log("hash: ", hash);
     console.log("signature: ", signature);
     console.log("typeOfSignature: ", typeof signature);
@@ -792,5 +796,267 @@ describe("EndToEnd behavior", function () {
 
     expect(vaultBalanceAfter).to.equal(vaultBalanceBefore + opFees);
     expect(balanceAfterFtomVault).to.equal(opFees);
+  });
+
+  // DESTINATION callback to ping for block confirmation emit event to confirmed fees to origin
+  it("Should deposit FEES and emit event", async function () {
+    // set user eth balance
+    const [owner, otherAccount] = await hre.ethers.getSigners();
+    // Op is created on origin Chain, we're on destination but use
+    // same token duplicated by convenience for harhdat test
+    const {
+      storage,
+      factory,
+      vault,
+      bridge,
+      relayer,
+      bridgedTokenAftAddress,
+      bridgedEthAddress,
+      hash,
+      detailedOp,
+    } = await loadFixture(deployContractAndCreateOperation);
+    const user = otherAccount.address;
+    // uint256 opFees = 0.001 ether;
+    const opFees = ethers.parseEther("0.001");
+
+    //  get eth balance of vault contract before deposit fees
+    const vaultBalanceBefore = await hre.ethers.provider.getBalance(
+      vault.target
+    );
+    const chainIdFrom = detailedOp[0][2];
+    expect(await bridge.depositFees(hash, 31337, { value: opFees }))
+      .to.emit(relayer, "FeesDeposited")
+      .withArgs(hash, chainIdFrom);
+    // await bridge.depositFees(hash, 31337, { value: opFees });
+
+    // expect vault balance to be equal to fees  and opFeesBalance(add max) too
+    const vaultBalanceAfter = await hre.ethers.provider.getBalance(
+      vault.target
+    );
+    const balanceAfterFtomVault = await vault.getOpFeesBalance(maxAddress);
+
+    expect(vaultBalanceAfter).to.equal(vaultBalanceBefore + opFees);
+    expect(balanceAfterFtomVault).to.equal(opFees);
+
+    await storage.updateOperator("oracle", owner.address);
+    const blockNumber = await ethers.provider.getBlockNumber();
+    expect(await relayer.sendFeesLockConfirmation(hash))
+      .to.emit(relayer, "FeesDepositConfirmed")
+      .withArgs(hash, detailedOp[0][2], blockNumber);
+  });
+
+  // ORIGIN: server calls rceivesFeesLockConfiramtion
+  it("Should receive deositedFees confirmation and emit event", async function () {
+    // set user eth balance
+    const [owner, otherAccount] = await hre.ethers.getSigners();
+    // Op is created on origin Chain, we're on destination but use
+    // same token duplicated by convenience for harhdat test
+    const {
+      storage,
+      factory,
+      vault,
+      bridge,
+      relayer,
+      bridgedTokenAftAddress,
+      bridgedEthAddress,
+      hash,
+      detailedOp,
+    } = await loadFixture(deployContractAndCreateOperation);
+    const user = otherAccount.address;
+    // uint256 opFees = 0.001 ether;
+    //  const opFees = ethers.parseEther("0.001");
+
+    // DESTINATION DEPOSIT FEES
+    //  //  get eth balance of vault contract before deposit fees
+    //  const vaultBalanceBefore = await hre.ethers.provider.getBalance(
+    //    vault.target
+    //  );
+    //  const chainIdFrom = detailedOp[0][2];
+    //  expect(await bridge.depositFees(hash, 31337, { value: opFees }))
+    //    .to.emit(relayer, "FeesDeposited")
+    //    .withArgs(hash, chainIdFrom);
+    //  // await bridge.depositFees(hash, 31337, { value: opFees });
+
+    //  // expect vault balance to be equal to fees  and opFeesBalance(add max) too
+    //  const vaultBalanceAfter = await hre.ethers.provider.getBalance(
+    //    vault.target
+    //  );
+    //  const balanceAfterFtomVault = await vault.getOpFeesBalance(maxAddress);
+
+    //  expect(vaultBalanceAfter).to.equal(vaultBalanceBefore + opFees);
+    //  expect(balanceAfterFtomVault).to.equal(opFees);
+    console.log("operation details: ", detailedOp);
+    // ORIGIN RECEIVE FEES CONFIRMATION
+    const chainIdTo = detailedOp[0][3];
+    const fakeServer = owner.address;
+    const blockNumber = await ethers.provider.getBlockNumber();
+    await storage.updateOperator("oracle", fakeServer);
+    // get opPrarma from relayer, expect == to opDetail.status
+    const opParams = await relayer.getDetailedOriginOperation(hash);
+    console.log("opParams: ", opParams);
+    const statusFixture = detailedOp[1];
+    const statusRelayer = opParams[1];
+    console.log("statusFixture: ", statusFixture);
+    console.log("statusRelayer: ", statusRelayer);
+    expect(statusFixture).to.equal(statusRelayer);
+    // should emit event FeesLockConfirmed(hash, status, block number)
+    expect(
+      await relayer.receiveFeesLockConfirmation(hash, chainIdTo, fakeServer)
+    )
+      .to.emit(relayer, "FeesLockConfirmed")
+      .withArgs(hash, 2n, blockNumber);
+    // await relayer.receiveFeesLockConfirmation(hash, chainIdTo, fakeServer);
+    // operation.status should pass to ORG_FEES_LOCKED (2)
+    const opStatus = await relayer.getOriginOperationStatus(hash);
+    expect(opStatus).to.equal(4);
+  });
+
+  // ORIGIN: server calls rceivesFeesLockConfiramtion
+  it("Should emit main event when server call", async function () {
+    // set user eth balance
+    const [owner, otherAccount] = await hre.ethers.getSigners();
+    // Op is created on origin Chain, we're on destination but use
+    // same token duplicated by convenience for harhdat test
+    const {
+      storage,
+      factory,
+      vault,
+      bridge,
+      relayer,
+      bridgedTokenAftAddress,
+      bridgedEthAddress,
+      hash,
+      detailedOp,
+    } = await loadFixture(deployContractAndCreateOperation);
+    const user = otherAccount.address;
+    // uint256 opFees = 0.001 ether;
+    //  const opFees = ethers.parseEther("0.001");
+
+    // DESTINATION DEPOSIT FEES
+    //  //  get eth balance of vault contract before deposit fees
+    //  const vaultBalanceBefore = await hre.ethers.provider.getBalance(
+    //    vault.target
+    //  );
+    //  const chainIdFrom = detailedOp[0][2];
+    //  expect(await bridge.depositFees(hash, 31337, { value: opFees }))
+    //    .to.emit(relayer, "FeesDeposited")
+    //    .withArgs(hash, chainIdFrom);
+    //  // await bridge.depositFees(hash, 31337, { value: opFees });
+
+    //  // expect vault balance to be equal to fees  and opFeesBalance(add max) too
+    //  const vaultBalanceAfter = await hre.ethers.provider.getBalance(
+    //    vault.target
+    //  );
+    //  const balanceAfterFtomVault = await vault.getOpFeesBalance(maxAddress);
+
+    //  expect(vaultBalanceAfter).to.equal(vaultBalanceBefore + opFees);
+    //  expect(balanceAfterFtomVault).to.equal(opFees);
+    console.log("operation details: ", detailedOp);
+    // ORIGIN RECEIVE FEES CONFIRMATION
+    const chainIdTo = detailedOp[0][3];
+    const fakeServer = owner.address;
+    const blockNumber = await ethers.provider.getBlockNumber();
+    await storage.updateOperator("oracle", fakeServer);
+    // get opPrarma from relayer, expect == to opDetail.status
+    const opParams = await relayer.getDetailedOriginOperation(hash);
+    console.log("opParams: ", opParams);
+    const statusFixture = detailedOp[1];
+    const statusRelayer = opParams[1];
+    console.log("statusFixture: ", statusFixture);
+    console.log("statusRelayer: ", statusRelayer);
+    expect(statusFixture).to.equal(statusRelayer);
+    // should emit event FeesLockConfirmed(hash, status, block number)
+    expect(
+      await relayer.receiveFeesLockConfirmation(hash, chainIdTo, fakeServer)
+    )
+      .to.emit(relayer, "FeesLockConfirmed")
+      .withArgs(hash, 2n, blockNumber);
+    // await relayer.receiveFeesLockConfirmation(hash, chainIdTo, fakeServer);
+    // operation.status should pass to ORG_FEES_LOCKED (2)
+    const opStatus = await relayer.getOriginOperationStatus(hash);
+    expect(opStatus).to.equal(4);
+
+    const creationBlock = detailedOp[2][0];
+    // ?? pb detailesOp passe le test devrait être opParams donc detailedOp[0]
+    expect(await relayer.confirmFeesLockedAndDepositConfirmed(hash))
+      .to.emit(relayer, "FeesLockedAndDepositConfirmed")
+      .withArgs(hash, detailedOp[0], creationBlock, blockNumber);
+
+    const testParams = detailedOp[0];
+    const testUser = testParams[0];
+    const testSignature = testParams[7];
+    console.log("testUser: ", testUser);
+    console.log("testSignature: ", testSignature);
+  });
+
+  // DESTINATION receive main call to complete op from origin
+  it("Should deposit FEES and emit event", async function () {
+    // set user eth balance
+    const [owner, otherAccount] = await hre.ethers.getSigners();
+    // Op is created on origin Chain, we're on destination but use
+    // same token duplicated by convenience for harhdat test
+    const {
+      storage,
+      factory,
+      vault,
+      bridge,
+      relayer,
+      bridgedTokenAftAddress,
+      bridgedEthAddress,
+      hash,
+      detailedOp,
+    } = await loadFixture(deployContractAndCreateOperation);
+    const user = otherAccount.address;
+    // uint256 opFees = 0.001 ether;
+    const opFees = ethers.parseEther("0.001");
+
+    //  get eth balance of vault contract before deposit fees
+    const vaultBalanceBefore = await hre.ethers.provider.getBalance(
+      vault.target
+    );
+    const chainIdFrom = detailedOp[0][2];
+    expect(await bridge.depositFees(hash, 31337, { value: opFees }))
+      .to.emit(relayer, "FeesDeposited")
+      .withArgs(hash, chainIdFrom);
+    // await bridge.depositFees(hash, 31337, { value: opFees });
+
+    // expect vault balance to be equal to fees  and opFeesBalance(add max) too
+    const vaultBalanceAfter = await hre.ethers.provider.getBalance(
+      vault.target
+    );
+    const balanceAfterFtomVault = await vault.getOpFeesBalance(maxAddress);
+
+    expect(vaultBalanceAfter).to.equal(vaultBalanceBefore + opFees);
+    expect(balanceAfterFtomVault).to.equal(opFees);
+
+    await storage.updateOperator("oracle", owner.address);
+    const blockNumber = await ethers.provider.getBlockNumber();
+    expect(await relayer.sendFeesLockConfirmation(hash))
+      .to.emit(relayer, "FeesDepositConfirmed")
+      .withArgs(hash, detailedOp[0][2], blockNumber);
+
+    const userFrom = detailedOp[0][0];
+    const userTo = detailedOp[0][1];
+    const chainFrom = detailedOp[0][2];
+    const chainTo = detailedOp[0][3];
+    const tokenName = detailedOp[0][4];
+    const amount = detailedOp[0][5];
+    const nonce = detailedOp[0][6];
+    const signature = detailedOp[0][7];
+
+    expect(
+      await relayer.completeOperation(
+        userFrom,
+        userTo,
+        chainFrom,
+        chainTo,
+        tokenName,
+        amount,
+        nonce,
+        signature
+      )
+    )
+      .to.emit(relayer, "OperationFinalized")
+      .withArgs(hash, detailedOp[0], blockNumber);
   });
 });

@@ -7,6 +7,7 @@ import "./BridgeBase.sol";
 import "./Storage.sol";
 import "./Vault.sol";
 import "./Utils.sol";
+import "hardhat/console.sol";
 
 /**
  * @notice Base contract comunicating with the oracle/server
@@ -226,6 +227,8 @@ contract RelayerBase is Utils {
         address operator
     ) external onlyOracle {
         OriginOperation storage operation = s_originOperations[operationHash];
+        uint8 status = uint8(operation.status);
+        console.log("ICICICICICICICICICICIICICIC operation.status: %s ", status);
         // Quid if org : eth, dst : quick chain and:
         // user deposit and fees tx at the beginning of the eth block => fees confirmation tx can
         // be in the same block as the deposit tx on the dst chain (even before following tx org)
@@ -262,6 +265,7 @@ contract RelayerBase is Utils {
         emit FeesLockedAndDepositConfirmed(
             operationHash, operation.params, operation.blockStep.creationBlock, block.number
         );
+        // ADD SIGNATURE
     }
 
     function receivedFinalizedOperation(bytes32 operationHash) external onlyOracle {
@@ -319,7 +323,7 @@ contract RelayerBase is Utils {
         newOperation.params.chainIdFrom = chainIdFrom;
         newOperation.status = OperationStatus.DST_FEES_DEPOSITED;
 
-        emit FeesDeposited(operationHash, chainIdFrom); // event name
+        emit FeesDeposited(operationHash, chainIdFrom); // event name //c chainIdTo pour lr rappeler// block.number
         s_destinationOperations[operationHash] = newOperation;
         s_destinationOperationsList.push(operationHash);
     }

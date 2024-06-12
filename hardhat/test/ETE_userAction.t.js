@@ -253,7 +253,19 @@ describe("EndToEnd behavior", function () {
     //   console.log("signature: ", sig0);
     //   console.log("typeOfSignature: ", typeof sig0);
 
-    const hash = await bridge.getMessageToSign(
+    // const hash = await bridge.getMessageToSign(
+    //   user,
+    //   user,
+    //   31337,
+    //   441,
+    //   "BridgedEth2",
+    //   theamount,
+    //   nonce
+    // );
+    // console.log("hash: ", hash);
+    // console.log("typeOfHash: ", typeof hash);
+    //@todo LAST CHANGE Sign2
+    const hash = await bridge.getMessageToSignPrefixed(
       user,
       user,
       31337,
@@ -1043,7 +1055,7 @@ describe("EndToEnd behavior", function () {
     const amount = detailedOp[0][5];
     const nonce = detailedOp[0][6];
     const signature = detailedOp[0][7];
-
+    console.log("BEFORE TEST OF SIGNATURE userFrom: ", userFrom);
     expect(
       await relayer.completeOperation(
         userFrom,

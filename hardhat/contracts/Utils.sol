@@ -69,11 +69,26 @@ contract Utils {
         // return prefixed(keccak256(abi.encodePacked(sender, receiver, chainIdFrom, chainIdTo, tokenName, amount, nonce)));
     }
 
+    function getMessageToSignPrefixed(
+        address sender,
+        address receiver,
+        uint256 chainIdFrom,
+        uint256 chainIdTo,
+        // address tokenFrom,
+        // address tokenTo,
+        string memory tokenName,
+        uint256 amount,
+        uint256 nonce
+    ) public pure returns (bytes32) {
+        // return keccak256(abi.encodePacked(sender, receiver, chainIdFrom, chainIdTo, tokenName, amount, nonce));
+        return prefixed(keccak256(abi.encodePacked(sender, receiver, chainIdFrom, chainIdTo, tokenName, amount, nonce)));
+    }
+
     function prefixed(bytes32 hash) internal pure returns (bytes32) {
         // return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
         // signMessage from ethers/hardhat dont put 32 at the end :
         //https://docs.ethers.org/v5/api/signer/#Signer-signMessage
-        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n", hash));
+        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:32\n", hash));
     }
 
     function recoverSigner(bytes32 message, bytes memory sig) internal pure returns (address) {

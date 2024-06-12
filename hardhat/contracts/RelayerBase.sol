@@ -216,7 +216,11 @@ contract RelayerBase is Utils {
         operation.blockStep.creationBlock = uint64(block.number);
 
         s_originOperations[operationHash] = operation;
-
+        console.log("RELAYERBASE / createOperation / operationHash:");
+        console.logBytes32(operationHash);
+        console.log("RELAYERBASE / createOperation / from: %s", from);
+        console.log("RELAYERBASE / createOperation / relayer address %s:", address(this));
+        console.log("RELAYERBASE / createOperation / bridge address %s:", Storage(s_storage).getOperator("bridge"));
         emit OperationCreated(operationHash, params, block.number);
     }
 
@@ -360,8 +364,11 @@ contract RelayerBase is Utils {
     ) external onlyOracle {
         // check block (signature checked at creation)
         // check status not CANCELED
-        bytes32 operationHash = computeOperationHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
-        console.log("operationStatus: %s", uint8(s_destinationOperations[operationHash].status));
+        bytes32 operationHash = getMessageToSignPrefixed(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
+        console.log(
+            "RELAYERBASE / completeOperartion / operationStatus: %s",
+            uint8(s_destinationOperations[operationHash].status)
+        );
         require(
             s_destinationOperations[operationHash].status == OperationStatus.DST_FEES_CONFIRMED,
             "RelayerBase: invalid status"

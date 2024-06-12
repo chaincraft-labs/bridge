@@ -93,7 +93,7 @@ contract Utils {
         return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
     }
 
-    function recoverSigner(bytes32 message, bytes memory sig) internal pure returns (address) {
+    function recoverSigner(bytes32 message, bytes memory sig) public pure returns (address) {
         uint8 v;
         bytes32 r;
         bytes32 s;

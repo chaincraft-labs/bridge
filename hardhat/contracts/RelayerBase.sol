@@ -193,7 +193,9 @@ contract RelayerBase is Utils {
         uint256 nonce,
         bytes calldata signature
     ) external onlyBridge {
-        bytes32 operationHash = computeOperationHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
+        // bytes32 operationHash = computeOperationHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
+        bytes32 operationHash = getMessageToSignPrefixed(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
+
         require(
             s_originOperations[operationHash].status == OperationStatus.NONE, "RelayerBase: operation already exists"
         );
@@ -359,6 +361,7 @@ contract RelayerBase is Utils {
         // check block (signature checked at creation)
         // check status not CANCELED
         bytes32 operationHash = computeOperationHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
+        console.log("operationStatus: %s", uint8(s_destinationOperations[operationHash].status));
         require(
             s_destinationOperations[operationHash].status == OperationStatus.DST_FEES_CONFIRMED,
             "RelayerBase: invalid status"
@@ -445,5 +448,13 @@ contract RelayerBase is Utils {
         returns (OriginOperation memory operation)
     {
         return s_originOperations[operationHash];
+    }
+
+    function getDetailedDestinationOperation(bytes32 operationHash)
+        external
+        view
+        returns (DestinationOperation memory operation)
+    {
+        return s_destinationOperations[operationHash];
     }
 }

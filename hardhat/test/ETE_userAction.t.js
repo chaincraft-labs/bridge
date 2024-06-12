@@ -233,7 +233,7 @@ describe("EndToEnd behavior", function () {
     //   [zeroAddress2, tokenAddres]
     // );
     // // messgae hash
-    const messageHash = await bridge.getMessageToSign(
+    const messageHash = await bridge.getMessageToSignPrefixed(
       user,
       user,
       31337,
@@ -698,12 +698,14 @@ describe("EndToEnd behavior", function () {
     expect(userEthBalance).to.equal(theamount);
 
     // check operation is created realyer side
-
+    console.log("ETE / LINE 707 : prepParams : ", prepParams);
     const detailedOp = await relayer.getDetailedOriginOperation(hash);
     console.log("detailedOp: ", detailedOp);
     const opParams = detailedOp[0];
     const opStatus = detailedOp[1];
     const opBlock = detailedOp[2];
+    console.log("ETE / LINE 707 : opParams : ", opParams);
+    console.log("ETE / LINE 708 : opUser : ", opParams[0]);
     const opUser = opParams[0];
     const opTokenName = opParams[4];
     const opSignature = opParams[7];
@@ -716,11 +718,12 @@ describe("EndToEnd behavior", function () {
     const { bridge, relayer, hash, detailedOp } = await loadFixture(
       deployContractAndCreateOperation
     );
+    console.log("details: ", detailedOp);
     const storedOp = await relayer.getDetailedOriginOperation(hash);
     console.log("storedOp: ", storedOp);
     // get hash from op details
     const opParams = storedOp[0];
-    const recHash = await bridge.getMessageToSign(
+    const recHash = await bridge.getMessageToSignPrefixed(
       opParams[0],
       opParams[1],
       opParams[2],
@@ -730,6 +733,10 @@ describe("EndToEnd behavior", function () {
       opParams[6]
     );
     console.log("recHash: ", recHash);
+
+    //check dest
+    const storedOpDST = await relayer.getDetailedDestinationOperation(hash);
+    console.log("storedOpDST: ", storedOpDST);
     expect(recHash).to.equal(hash);
   });
 

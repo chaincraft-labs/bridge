@@ -84,7 +84,7 @@ contract Utils {
         return prefixed(keccak256(abi.encodePacked(sender, receiver, chainIdFrom, chainIdTo, tokenName, amount, nonce)));
     }
 
-    function prefixed(bytes32 hash) internal pure returns (bytes32) {
+    function prefixed(bytes32 hash) public pure returns (bytes32) {
         // return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
         // signMessage from ethers/hardhat dont put 32 at the end :
         //https://docs.ethers.org/v5/api/signer/#Signer-signMessage

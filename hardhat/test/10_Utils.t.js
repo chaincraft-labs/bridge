@@ -53,12 +53,31 @@ describe.only("Utils", function () {
       1_000_000_000_000_000_000n,
       1,
     ];
+    // message without prefix
+    console.log("TEST MESSAGE WITHOUT PREFIX-------------------");
     const msgHashRef = ethers.solidityPackedKeccak256(types, params);
     const msgHashCompute = await Utils.getMessageToSign(...params);
     console.log("Utils::getMessageToSign::msgHashCompute", msgHashCompute);
     console.log("Utils::getMessageToSign::msgHashRef", msgHashRef);
     expect(msgHashCompute).to.equal(msgHashRef);
 
+    const signature = await user.signMessage(msgHashCompute);
+    console.log("Utils::signMessage::signature", signature);
+    const signer = await ethers.verifyMessage(msgHashCompute, signature);
+    console.log("---ethers methods---");
+    console.log("==>Utils::verifyMessage::signer", signer);
+    console.log("==>Utils::verifyMessage::userAddress", user.address);
+    console.log("Utils::verifyMessage::address this", await Utils.getAddress());
+    console.log("Utils::verifyMessage::address owner %s \n", owner.address);
+
+    expect(signer).to.equal(user.address);
+
+    const utilsSigner = await Utils.recoverSigner(msgHashCompute, signature);
+    console.log("---contract methods---");
+    console.log("==>Utils::recoverSigner::utilsSigner %s \n", utilsSigner);
+    // expect(utilsSigner).to.equal(user.address);
+
+    console.log("TEST MESSAGE WITH PREFIX-------------------");
     const pmsgHashRef = ethers.solidityPackedKeccak256(
       ["string", "bytes32"],
       ["\x19Ethereum Signed Message:\n32", msgHashRef]
@@ -69,17 +88,77 @@ describe.only("Utils", function () {
       pmsgHashCompute
     );
     console.log("Utils::getMessageToSignPrefixed::pmsgHashRef", pmsgHashRef);
-    expect(msgHashCompute).to.equal(msgHashRef);
+    expect(pmsgHashCompute).to.equal(pmsgHashRef);
 
-    const signature = await user.signMessage(msgHashCompute);
-    console.log("Utils::signMessage::signature", signature);
-    const signer = await ethers.verifyMessage(msgHashCompute, signature);
-    console.log("Utils::verifyMessage::signer", signer);
-    console.log("Utils::verifyMessage::userAddress", user.address);
-    expect(signer).to.equal(user.address);
+    const psignature = await user.signMessage(pmsgHashCompute);
+    console.log("Utils::signMessage::signature", psignature);
+    const psigner = await ethers.verifyMessage(pmsgHashCompute, psignature);
+    console.log("---ethers methods---");
+    console.log("==>Utils::verifyMessage::signer", psigner);
+    console.log("==>Utils::verifyMessage::userAddress %s \n", user.address);
+    expect(psigner).to.equal(user.address);
 
-    const utilsSigner = await Utils.recoverSigner(msgHashCompute, signature);
-    console.log("Utils::recoverSigner::utilsSigner", utilsSigner);
-    expect(utilsSigner).to.equal(user.address);
+    const putilsSigner = await Utils.recoverSigner(pmsgHashCompute, psignature);
+    console.log("---contract methods---");
+    console.log("==>Utils::recoverSigner::putilsSigner %s \n", putilsSigner);
+    // expect(putilsSigner).to.equal(user.address);
+
+    const psignature2 = await user.signMessage(msgHashCompute);
+    console.log("Utils::signMessage::signature", psignature2);
+    const putilsSigner2 = await Utils.recoverSigner(
+      pmsgHashCompute,
+      psignature2
+    );
+    console.log("---contract methods---");
+    console.log("==>Utils::recoverSigner::putilsSigner %s \n", putilsSigner2);
+    // expect(putilsSigner2).to.equal(user.address);
+
+    // STEP SMC METHOD
+    const messageHash = await Utils.getMessageToSign(...params);
+    console.log("Utils / SMC / Message Hash", messageHash);
+    const signedMessage = await user.signMessage(messageHash);
+    console.log("Utils / SMC / Signed Message", signedMessage);
+
+    const ethsignedMessage = await Utils.getMessageToSignPrefixed(...params);
+    console.log("Utils / SMC / ETH Signed Message", ethsignedMessage);
+    const smcSigner = await Utils.recoverSigner(
+      ethsignedMessage,
+      signedMessage
+    );
+    console.log("---contract methods---");
+    console.log("==>Utils / SMC /  Signer %s \n", smcSigner);
+    //   expect(smcSigner).to.equal(user.address);
+
+    // STEP SMC METHOD2 BONNE METHODE
+    // 1. get the keccak256 hash of the message
+    const msgHashed = await Utils.getMessageToSign(
+      params[0],
+      params[1],
+      params[2],
+      params[3],
+      params[4],
+      params[5],
+      params[6]
+    );
+    console.log("Utils / SMC / Message Hash", msgHashed);
+    // 2. get the keccak256 hash of the msg hash with prefix
+    const prefixedMsgHashed = await Utils.prefixed(msgHashed);
+    console.log("Utils / SMC / Prefixed Message Hash", prefixedMsgHashed);
+    // 3. sign the message hash (not prefixed) as array of uint8
+    // cause by defaut signMessage take a string and treat it as a string
+    // by converting to UTF-8 bytes
+    // msg is treated as binary data ONLY if msg is Bytes type
+    // here retunr hash msg is a string so we need to convert it to bytes (uint8 array)
+    const signedMsgHased = await user.signMessage(ethers.getBytes(msgHashed));
+    // the signature is a 65 bytes array. SignMessage prefix the msg with \x19Ethereum Signed Message:\n32
+    console.log("Utils / SMC / Signed Message", signedMsgHased);
+    // 4. recover the signer from the signed message and the message hash with prefix
+    const recoveredSigner = await Utils.recoverSigner(
+      prefixedMsgHashed,
+      signedMsgHased
+    );
+    console.log("---contract methods---");
+    console.log("==>Utils / SMC /  Signer %s \n", recoveredSigner);
+    expect(recoveredSigner).to.equal(user.address);
   });
 });

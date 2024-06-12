@@ -88,7 +88,9 @@ contract Utils {
         // return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
         // signMessage from ethers/hardhat dont put 32 at the end :
         //https://docs.ethers.org/v5/api/signer/#Signer-signMessage
-        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:32\n", hash));
+        // return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n", hash));
+
+        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
     }
 
     function recoverSigner(bytes32 message, bytes memory sig) internal pure returns (address) {

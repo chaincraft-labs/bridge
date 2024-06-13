@@ -54,7 +54,8 @@ contract Utils {
     //replace in brdige to let internal other function and make library
     // Nonce should be actual + 1 as for op creation
 
-    function getMessageToSign(
+    // function getMessageToSign(
+    function getMessageHash(
         address sender,
         address receiver,
         uint256 chainIdFrom,
@@ -69,7 +70,8 @@ contract Utils {
         // return prefixed(keccak256(abi.encodePacked(sender, receiver, chainIdFrom, chainIdTo, tokenName, amount, nonce)));
     }
 
-    function getMessageToSignPrefixed(
+    // function getMessageToSignPrefixed(
+    function getPrefixedMessageHash(
         address sender,
         address receiver,
         uint256 chainIdFrom,
@@ -81,7 +83,9 @@ contract Utils {
         uint256 nonce
     ) public pure returns (bytes32) {
         // return keccak256(abi.encodePacked(sender, receiver, chainIdFrom, chainIdTo, tokenName, amount, nonce));
-        return prefixed(keccak256(abi.encodePacked(sender, receiver, chainIdFrom, chainIdTo, tokenName, amount, nonce)));
+        // return prefixed(keccak256(abi.encodePacked(sender, receiver, chainIdFrom, chainIdTo, tokenName, amount, nonce)));
+
+        return prefixed(getMessageHash(sender, receiver, chainIdFrom, chainIdTo, tokenName, amount, nonce));
     }
 
     function prefixed(bytes32 hash) public pure returns (bytes32) {

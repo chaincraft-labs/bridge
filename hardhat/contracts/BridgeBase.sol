@@ -403,7 +403,7 @@ contract BridgeBase is Utils {
         // bytes32 message =
         //     prefixed(keccak256(abi.encodePacked(from, to, tokenName, amount, chainIdFrom, chainIdTo, nonce)));
         // bytes32 message = computeOperationHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
-        bytes32 message = getMessageToSignPrefixed(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
+        bytes32 message = getPrefixedMessageHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
 
         // if (recoverSigner(message, signature) != from) {
         // address recSigner = recoverSigner(message, signature);

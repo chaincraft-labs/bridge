@@ -233,7 +233,8 @@ describe("EndToEnd behavior", function () {
     //   [zeroAddress2, tokenAddres]
     // );
     // // messgae hash
-    const messageHash = await bridge.getMessageToSignPrefixed(
+    // const messageHash = await bridge.getPrefixedMessageHash(
+    const messageHash = await bridge.getMessageHash(
       user,
       user,
       31337,
@@ -253,7 +254,7 @@ describe("EndToEnd behavior", function () {
     //   console.log("signature: ", sig0);
     //   console.log("typeOfSignature: ", typeof sig0);
 
-    // const hash = await bridge.getMessageToSign(
+    // const hash = await bridge.getMessageHash(
     //   user,
     //   user,
     //   31337,
@@ -265,7 +266,8 @@ describe("EndToEnd behavior", function () {
     // console.log("hash: ", hash);
     // console.log("typeOfHash: ", typeof hash);
     //@todo LAST CHANGE Sign2
-    const hash = await bridge.getMessageToSignPrefixed(
+    // const hash = await bridge.getPrefixedMessageHash(
+    const hash = await bridge.getMessageHash(
       user,
       user,
       31337,
@@ -432,7 +434,7 @@ describe("EndToEnd behavior", function () {
       //   [zeroAddress2, tokenAddres]
       // );
       // // messgae hash
-      const messageHash = await bridge.getMessageToSign(
+      const messageHash = await bridge.getMessageHash(
         user,
         user,
         31337,
@@ -452,7 +454,7 @@ describe("EndToEnd behavior", function () {
       //   console.log("signature: ", sig0);
       //   console.log("typeOfSignature: ", typeof sig0);
 
-      const hash = await bridge.getMessageToSign(
+      const hash = await bridge.getMessageHash(
         user,
         user,
         31337,
@@ -590,7 +592,7 @@ describe("EndToEnd behavior", function () {
     //   [zeroAddress2, tokenAddres]
     // );
     // // messgae hash
-    const messageHash = await bridge.getMessageToSign(
+    const messageHash = await bridge.getMessageHash(
       user,
       user,
       31337,
@@ -610,7 +612,8 @@ describe("EndToEnd behavior", function () {
     //   console.log("signature: ", sig0);
     //   console.log("typeOfSignature: ", typeof sig0);
 
-    const hash = await bridge.getMessageToSignPrefixed(
+    // const hash = await bridge.getPrefixedMessageHash(
+    const hash = await bridge.getMessageHash(
       user,
       user,
       31337,
@@ -784,7 +787,7 @@ describe("EndToEnd behavior", function () {
   //   //   [zeroAddress2, tokenAddres]
   //   // );
   //   // // messgae hash
-  //   const messageHash = await bridge.getMessageToSign(
+  //   const messageHash = await bridge.getMessageHash(
   //     user,
   //     user,
   //     31337,
@@ -804,7 +807,7 @@ describe("EndToEnd behavior", function () {
   //   //   console.log("signature: ", sig0);
   //   //   console.log("typeOfSignature: ", typeof sig0);
 
-  //   const hash = await bridge.getMessageToSign(
+  //   const hash = await bridge.getMessageHash(
   //     user,
   //     user,
   //     31337,
@@ -917,7 +920,8 @@ describe("EndToEnd behavior", function () {
     console.log("storedOp: ", storedOp);
     // get hash from op details
     const opParams = storedOp[0];
-    const recHash = await bridge.getMessageToSignPrefixed(
+    // const recHash = await bridge.getPrefixedMessageHash(
+    const recHash = await bridge.getMessageHash(
       opParams[0],
       opParams[1],
       opParams[2],

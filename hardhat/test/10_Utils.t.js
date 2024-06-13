@@ -7,7 +7,8 @@ const { expect } = require("chai");
 const hre = require("hardhat");
 const { ethers } = hre;
 
-describe.only("Utils", function () {
+// describe.only("Utils", function () {
+describe("Utils", function () {
   const zeroAddress = "0x" + "0".repeat(40);
   const toChecksum = (address) => {
     return ethers.getAddress(address);
@@ -56,9 +57,9 @@ describe.only("Utils", function () {
     // message without prefix
     console.log("TEST MESSAGE WITHOUT PREFIX-------------------");
     const msgHashRef = ethers.solidityPackedKeccak256(types, params);
-    const msgHashCompute = await Utils.getMessageToSign(...params);
-    console.log("Utils::getMessageToSign::msgHashCompute", msgHashCompute);
-    console.log("Utils::getMessageToSign::msgHashRef", msgHashRef);
+    const msgHashCompute = await Utils.getMessageHash(...params);
+    console.log("Utils::getMessageHash::msgHashCompute", msgHashCompute);
+    console.log("Utils::getMessageHash::msgHashRef", msgHashRef);
     expect(msgHashCompute).to.equal(msgHashRef);
 
     const signature = await user.signMessage(msgHashCompute);
@@ -82,12 +83,12 @@ describe.only("Utils", function () {
       ["string", "bytes32"],
       ["\x19Ethereum Signed Message:\n32", msgHashRef]
     );
-    const pmsgHashCompute = await Utils.getMessageToSignPrefixed(...params);
+    const pmsgHashCompute = await Utils.getPrefixedMessageHash(...params);
     console.log(
-      "Utils::getMessageToSignPrefixed::pmsgHashCompute",
+      "Utils::getPrefixedMessageHash::pmsgHashCompute",
       pmsgHashCompute
     );
-    console.log("Utils::getMessageToSignPrefixed::pmsgHashRef", pmsgHashRef);
+    console.log("Utils::getPrefixedMessageHash::pmsgHashRef", pmsgHashRef);
     expect(pmsgHashCompute).to.equal(pmsgHashRef);
 
     const psignature = await user.signMessage(pmsgHashCompute);
@@ -114,12 +115,12 @@ describe.only("Utils", function () {
     // expect(putilsSigner2).to.equal(user.address);
 
     // STEP SMC METHOD
-    const messageHash = await Utils.getMessageToSign(...params);
+    const messageHash = await Utils.getMessageHash(...params);
     console.log("Utils / SMC / Message Hash", messageHash);
     const signedMessage = await user.signMessage(messageHash);
     console.log("Utils / SMC / Signed Message", signedMessage);
 
-    const ethsignedMessage = await Utils.getMessageToSignPrefixed(...params);
+    const ethsignedMessage = await Utils.getPrefixedMessageHash(...params);
     console.log("Utils / SMC / ETH Signed Message", ethsignedMessage);
     const smcSigner = await Utils.recoverSigner(
       ethsignedMessage,
@@ -131,7 +132,7 @@ describe.only("Utils", function () {
 
     // STEP SMC METHOD2 BONNE METHODE
     // 1. get the keccak256 hash of the message
-    const msgHashed = await Utils.getMessageToSign(
+    const msgHashed = await Utils.getMessageHash(
       params[0],
       params[1],
       params[2],

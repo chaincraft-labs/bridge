@@ -194,7 +194,8 @@ contract RelayerBase is Utils {
         bytes calldata signature
     ) external onlyBridge {
         // bytes32 operationHash = computeOperationHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
-        bytes32 operationHash = getMessageToSignPrefixed(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
+        // bytes32 operationHash = getPrefixedMessageHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
+        bytes32 operationHash = getMessageHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
 
         require(
             s_originOperations[operationHash].status == OperationStatus.NONE, "RelayerBase: operation already exists"
@@ -364,7 +365,9 @@ contract RelayerBase is Utils {
     ) external onlyOracle {
         // check block (signature checked at creation)
         // check status not CANCELED
-        bytes32 operationHash = getMessageToSignPrefixed(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
+        // bytes32 operationHash = getPrefixedMessageHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
+        bytes32 operationHash = getMessageHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
+
         console.log(
             "RELAYERBASE / completeOperartion / operationStatus: %s",
             uint8(s_destinationOperations[operationHash].status)

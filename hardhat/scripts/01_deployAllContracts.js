@@ -83,6 +83,8 @@ const getTokenSymbol = (tokenName, chainId) => {
 // allfeat, test, ethEquivalent
 const usedNetworks = ["allfeat", "hardhat", "sepolia"];
 
+//@todo LE TOKEN NATIF N EST PAS A AJOUTER SUR LA CHAINE
+// car le storage deployment set déjà cette valeur !!!!!
 async function main() {
   //get network name
   const network = hre.network.name;

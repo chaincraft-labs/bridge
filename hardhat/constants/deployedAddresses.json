@@ -1,35 +1,36 @@
 {
-  "hardhat": {
+  "localhost": {
+    "Storage": [
+      "0x3C15538ED063e688c8DF3d571Cb7a0062d2fB18D",
+      "0x8B190573374637f144AC8D37375d97fd84cBD3a0"
+    ],
     "TokenFactory": [
-      "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+      "0xccf1769D8713099172642EB55DDFFC0c5A444FE9",
+      "0x9385556B571ab92bf6dC9a0DbD75429Dd4d56F91"
+    ],
+    "Vault": [
+      "0x3904b8f5b0F49cD206b7d5AABeE5D1F37eE15D8d",
+      "0x162700d1613DfEC978032A909DE02643bC55df1A"
+    ],
+    "RelayerBase": [
+      "0x2Dd78Fd9B8F40659Af32eF98555B8b31bC97A351",
+      "0x67aD6EA566BA6B0fC52e97Bc25CE46120fdAc04c"
+    ],
+    "BridgeBase": [
+      "0x56fC17a65ccFEC6B7ad0aDe9BD9416CB365B9BE8",
+      "0x114e375B6FCC6d6fCb68c7A1d407E652C54F25FB"
     ],
     "BridgedToken": {
-      "BridgedAft": [
-        "0xa16E02E87b7454126E5E10d957A927A7F5B5d2be",
-        "0xa16E02E87b7454126E5E10d957A927A7F5B5d2be"
+      "hbETH": [
+        "0x08D980748f3d1d6a347b1c2881F02192b2B7b904"
       ],
-      "BridgedDai": [
-        "0xB7A5bd0345EF1Cc5E66bf61BdeC17D2461fBd968",
-        "0xB7A5bd0345EF1Cc5E66bf61BdeC17D2461fBd968"
-      ],
-      "BridgedEth": [
-        "0xeEBe00Ac0756308ac4AaBfD76c05c4F3088B8883",
-        "0xeEBe00Ac0756308ac4AaBfD76c05c4F3088B8883"
+      "hbAFT": [
+        "0xEDD892A79e50aA5FD11A43379d37851b49aF3320"
       ]
     },
     "MockedDai": [
-      "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-      "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
-    ],
-    "Bridge": [
-      "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-    ],
-    "BridgeBase": [
-      "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-    ],
-    "RelayerBase": [
-      "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+      "0xD5724171C2b7f0AA717a324626050BD05767e2C6",
+      "0x683d9CDD3239E0e01E8dC6315fA50AD92aB71D2d"
     ]
   }
 }

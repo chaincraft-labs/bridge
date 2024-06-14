@@ -351,18 +351,163 @@ async function main() {
   }
 
   if (network == "allfeat") {
-    // set data for native token
-    tx = await storage.addNativeTokenByChainId(
-      "dai",
-      networkParams[network].chainId
+    let ehtNativeChainId = networkParams[usedNetworks[2]].chainId;
+
+    // if (network == "allfeat") {
+    let tokenSymbol = getTokenSymbol("ethereum", currentChainId);
+    //   tx = await factory.createToken("ethereum", tokenSymbol);
+    // await tx.wait();
+
+    let BridgedEth = await hre.ethers.deployContract("BridgedToken", [
+      "ethereum",
+      tokenSymbol,
+    ]);
+    await BridgedEth.waitForDeployment();
+
+    // tx = await storage.addNewTokenAddressByChainId(
+    //   "ethereum",
+    //   currentChainId,
+    //   BridgedEth.target
+    // );
+    // await tx.wait();
+    // tx = await BridgedEth.updateAdmin(vault.target);
+    // await tx.wait();
+    tx = await BridgedEth.updateAdmin(vault.target);
+    tx = await factory.helperHCK("ethereum", tokenSymbol, BridgedEth.target);
+    await tx.wait();
+
+    bridgedEthAddress = await factory.getTokenAddress(tokenSymbol);
+    console.log(
+      "==> bridgedEth (%s) deployed to: %s",
+      tokenSymbol,
+      bridgedEthAddress
     );
+    writeDeployedAddress(
+      network,
+      "BridgedToken",
+      bridgedEthAddress,
+      tokenSymbol
+    );
+    console.log(
+      "writing deployed address in /constants/deployedAddresses.json ...\n"
+    );
+    // }
+    // set data for native token
+    tx = await storage.addNativeTokenByChainId("ethereum", ehtNativeChainId);
     await tx.wait();
     console.log(
       "native token %s set in storage at  %s for chainId %s",
       nativeSymbol,
       getMaxAddress(),
-      networkParams[network].chainId
+      ehtNativeChainId
     );
+    // AFT TOKEN
+    let aftNativeChainId = networkParams[usedNetworks[0]].chainId;
+    if (network == "allfeat") {
+    } else {
+      // let tokenSymbol = getTokenSymbol("allfeat", currentChainId);
+      // tx = await factory.createToken("allfeat", tokenSymbol);
+      // await tx.wait();
+      // bridgedAftAddress = await factory.getTokenAddress(tokenSymbol);
+      // console.log(
+      //   "==> BridgedAft (%s) deployed to: %s",
+      //   tokenSymbol,
+      //   bridgedAftAddress
+      // );
+      // writeDeployedAddress(
+      //   network,
+      //   "BridgedToken",
+      //   bridgedAftAddress,
+      //   tokenSymbol
+      // );
+      // console.log(
+      //   "writing deployed address in /constants/deployedAddresses.json ...\n"
+      // );
+    }
+    // set data for native token
+    tx = await storage.addNativeTokenByChainId("allfeat", aftNativeChainId);
+    await tx.wait();
+    console.log(
+      "native token %s set in storage at  %s for chainId %s",
+      nativeSymbol,
+      getMaxAddress(),
+      aftNativeChainId
+    );
+    // DAI TOKEN
+    if (network != "allfeat") {
+      // mockedDai = await hre.ethers.deployContract("MockedDai");
+      // await mockedDai.waitForDeployment();
+      // mockedDaiAddress = mockedDai.target;
+      // tx = await storage.addNewTokenAddressByChainId(
+      //   "dai",
+      //   networkParams[network].chainId,
+      //   mockedDaiAddress
+      // );
+      // await tx.wait();
+      // console.log("==> MockedDai deployed to:", mockedDaiAddress);
+      // writeDeployedAddress(network, "MockedDai", mockedDaiAddress);
+      // console.log(
+      //   "writing deployed address in /constants/deployedAddresses.json ...\n"
+      // );
+    } else {
+      // let tokenSymbol = getTokenSymbol("dai", currentChainId);
+      // tx = await factory.createToken("dai", tokenSymbol);
+      // await tx.wait();
+      // bridgedDaiAddress = await factory.getTokenAddress(tokenSymbol);
+      // console.log(
+      //   "==> bridgedDai (%s) deployed to: %s",
+      //   tokenSymbol,
+      //   bridgedDaiAddress
+      // );
+      // writeDeployedAddress(
+      //   network,
+      //   "BridgedToken",
+      //   bridgedDaiAddress,
+      //   tokenSymbol
+      // );
+      // console.log(
+      //   "writing deployed address in /constants/deployedAddresses.json ...\n"
+      // );
+
+      let tokenSymbol = getTokenSymbol("dai", currentChainId);
+      //   tx = await factory.createToken("ethereum", tokenSymbol);
+      // await tx.wait();
+
+      let BridgedDai = await hre.ethers.deployContract("BridgedToken", [
+        "dai",
+        tokenSymbol,
+      ]);
+      await BridgedDai.waitForDeployment();
+
+      // tx = await storage.addNewTokenAddressByChainId(
+      //   "ethereum",
+      //   currentChainId,
+      //   BridgedEth.target
+      // );
+      // await tx.wait();
+      // tx = await BridgedEth.updateAdmin(vault.target);
+      // await tx.wait();
+      tx = await BridgedDai.updateAdmin(vault.target);
+
+      tx = await factory.helperHCK("dai", tokenSymbol, BridgedDai.target);
+      await tx.wait();
+
+      BridgedDaiAddress = await factory.getTokenAddress(tokenSymbol);
+      console.log(
+        "==> bridgedDai (%s) deployed to: %s",
+        tokenSymbol,
+        BridgedDaiAddress
+      );
+      writeDeployedAddress(
+        network,
+        "BridgedToken",
+        BridgedDaiAddress,
+        tokenSymbol
+      );
+      console.log(
+        "writing deployed address in /constants/deployedAddresses.json ...\n"
+      );
+    }
   }
   // @todo NEED AFTER TO SET ADDRESS ON THE OTHER CHAIN
 

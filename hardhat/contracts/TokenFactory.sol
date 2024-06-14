@@ -112,6 +112,19 @@ contract TokenFactory {
         return address(token);
     }
 
+    // pb with allfeat deployment (see script)
+    // due to create in createToken tx revert with indication of estimation gas pb
+    // so for allfeat we deploy manually
+    // this helper finish the config of the var in factory with the deployed token data
+    function helperHCK(string memory name, string memory symbol, address tokenAdd) external returns (address) {
+        Storage(s_storageAddress).addNewTokenAddressByChainId(name, block.chainid, tokenAdd);
+        address vault = Storage(s_storageAddress).getOperator("vault");
+        // BridgedToken(tokenAdd).updateAdmin(vault);
+        BridgedTokens.push(symbol);
+        s_isBridgedToken[tokenAdd] = true;
+        symbolToAddress[symbol] = tokenAdd;
+    }
+
     function getTokenAddress(string memory symbol) external view returns (address) {
         return symbolToAddress[symbol];
     }

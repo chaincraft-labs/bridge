@@ -40,8 +40,7 @@ const networkParams = {
     nativeSymbol: "ETH",
   },
 };
-// allfeat, test, ethEquivalent
-const usedNetworks = ["allfeat", "hardhat", "sepolia"];
+
 // only 2 chain allfeat // ethereum == polygon, sepolia, hardhat, localhost
 const tokenList = [
   {
@@ -81,6 +80,8 @@ const getTokenSymbol = (tokenName, chainId) => {
   const token = tokenList.filter((token) => token.tokenName === tokenName)[0];
   return token.symbols.filter((symbol) => symbol.chainId === chainId)[0].symbol;
 };
+// allfeat, test, ethEquivalent
+const usedNetworks = ["allfeat", "hardhat", "sepolia"];
 
 async function main() {
   //get network name
@@ -88,10 +89,11 @@ async function main() {
   const nativeSymbol = networkParams[network].nativeSymbol;
   const currentChainId = networkParams[network].chainId;
 
-  if (!usedNetworks.includes(network)) {
-    console.log("network not supported");
-    process.exit(1);
-  }
+  // SECU TO DEPLOY ON GOOD NETWORK
+  //   if (!usedNetworks.includes(network)) {
+  //     console.log("network not supported");
+  //     process.exit(1);
+  //   }
 
   console.log(
     "==>01_DEPLOYALLCONTRACTS\n----------------------------------------------------------\nDeploying contracts on network: %s \n----------------------------------------------------------",

@@ -39,5 +39,52 @@
       "0x683d9CDD3239E0e01E8dC6315fA50AD92aB71D2d",
       "0x9fD16eA9E31233279975D99D5e8Fc91dd214c7Da"
     ]
+  },
+  "sepolia": {
+    "Storage": [
+      "0x788dDe31e6353f52a004f2fbaa934dACf9416447",
+      "0x296751458B8BAC814De399279039D1dC3B2c5B3D"
+    ],
+    "TokenFactory": [
+      "0xF0E3550782dFD66a3844dc8a546BBE940934B7b9",
+      "0x87373a9326315dC5a2c6a265861bEC463fc74fd8"
+    ],
+    "Vault": [
+      "0xA5870D3a3d1D4Ad6cB74A0c430Eb8aB266e3017B",
+      "0xb96C58ef8b7ce4A42584bc057dCCBe01C85C7A3c"
+    ],
+    "RelayerBase": [
+      "0xE07c56AE7fd78C4FeB295f1A54BcC78D8aa30087",
+      "0xe440eCDF8F18cC90F1e1C5610E6f9ffeF4B6A7b3"
+    ],
+    "BridgeBase": [
+      "0x7Cb7a9667958C0D7c81c591330743a46b8E7c1Ad",
+      "0x9c714AB365C124ed98a7a00Af362809Da866cAdc"
+    ],
+    "BridgedToken": {
+      "sbAFT": [
+        "0x781f8b6395fd16945137c2C382069ee74a5C2C1D"
+      ]
+    },
+    "MockedDai": [
+      "0x574eC1cbB280A8d36AB2E76eE56d3012fd03d52f"
+    ]
+  },
+  "allfeat": {
+    "Storage": [
+      "0x25FAD5e555DDaC20dEafeCC4fC77e555F6dC6e49"
+    ],
+    "TokenFactory": [
+      "0x864f22548A5966019033F5d5Ae1f596Ca1a2E5F0"
+    ],
+    "Vault": [
+      "0x47BF9E11317698C1D10D4D56Ceb9ACdf2894f9F5"
+    ],
+    "RelayerBase": [
+      "0xceBb41E586318cbaBa2C18fdb32D5683Baf1c628"
+    ],
+    "BridgeBase": [
+      "0xAfBd248e275dd0c83F232ddbC18a3610C681b716"
+    ]
   }
 }

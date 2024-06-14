@@ -102,10 +102,14 @@ async function main() {
     network
   );
   console.log("nativeSymbol: %s", nativeSymbol);
-  const [owner, user, server] = await hre.ethers.getSigners();
+  // if (network == "hardhat") {
+  // const [owner, user, server] = await hre.ethers.getSigners();
+  // }
+  const [owner] = await hre.ethers.getSigners();
+
   console.log("--> owner address: %s ", owner.address);
-  console.log("--> user address: %s \n", user.address);
-  console.log("--> server address: %s \n", server.address);
+  // console.log("--> user address: %s \n", user.address);
+  // console.log("--> server address: %s \n", server.address);
   // 1. deploy storage
   // 2. deploy factory
   // 3. deploy vault
@@ -147,6 +151,8 @@ async function main() {
   await bridge.waitForDeployment();
   console.log("==> Bridge deployed to:", bridge.target);
 
+  // @todo ADD SERVER ADDRESS
+
   console.log(
     "writing deployed addresses in /constants/deployedAddresses.json ...\n"
   );
@@ -182,20 +188,31 @@ async function main() {
   //       params.nativeSymbol
   //     );
   //   });
-  await Promise.all(
-    Object.entries(networkParams).map(([name, params]) =>
-      storage.addChainIdToList(params.chainId)
-    )
-  );
+  // await Promise.all(
+  //   Object.entries(networkParams).map(([name, params]) =>
+  //     storage.addChainIdToList(params.chainId)
+  //   )
+  // );
+
+  await storage.addChainIdToList(31337);
+  await storage.addChainIdToList(441);
+  await storage.addChainIdToList(137);
+  await storage.addChainIdToList(11155111);
+  await storage.addChainIdToList(1);
+
   // pb 31337 is 3 times instead of 2
   const chainIdList = await storage.getChainIdsList();
   console.log("chainId added to chainIdList: %s\n", chainIdList);
 
-  await Promise.all(
-    tokenList.map((tokenData) =>
-      storage.addTokenNameToList(tokenData.tokenName)
-    )
-  );
+  // await Promise.all(
+  //   tokenList.map((tokenData) =>
+  //     storage.addTokenNameToList(tokenData.tokenName)
+  //   )
+  // );
+  await storage.addTokenNameToList("ethereum");
+  await storage.addTokenNameToList("allfeat");
+  await storage.addTokenNameToList("dai");
+
   const tokenNameList = await storage.getTokenNamesList();
   console.log("tokenName added to tokenNameList: %s\n", tokenNameList);
 
@@ -214,103 +231,137 @@ async function main() {
   // ETHEREUM TOKEN
   //   if (network == "sepolia" || network == "hardhat" || network == "localhost") {
   //   } else {
-  let ehtNativeChainId = networkParams[usedNetworks[2]].chainId;
+  // @todo @audit (wrong tag) => error revert ethereum
+  // no info
+  /*ProviderError: VM Exception while processing transaction: revert ethereum
+    at HttpProvider.request (/home/ibournubuntu/DEVALLFEAT/Allfeat-EVM-bridge-POC/hardhat/node_modules/hardhat/src/internal/core/providers/http.ts:90:21)
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at HardhatEthersProvider.estimateGas (/home/ibournubuntu/DEVALLFEAT/Allfeat-EVM-bridge-POC/hardhat/node_modules/@nomicfoundation/hardhat-ethers/src/internal/hardhat-ethers-provider.ts:246:27)
+    at /home/ibournubuntu/DEVALLFEAT/Allfeat-EVM-bridge-POC/hardhat/node_modules/@nomicfoundation/hardhat-ethers/src/signers.ts:235:35
+    at async Promise.all (index 0)
+    at HardhatEthersSigner._sendUncheckedTransaction (/home/ibournubuntu/DEVALLFEAT/Allfeat-EVM-bridge-POC/hardhat/node_modules/@nomicfoundation/hardhat-ethers/src/signers.ts:256:7)
+    at HardhatEthersSigner.sendTransaction (/home/ibournubuntu/DEVALLFEAT/Allfeat-EVM-bridge-POC/hardhat/node_modules/@nomicfoundation/hardhat-ethers/src/signers.ts:125:18)
+    at send (/home/ibournubuntu/DEVALLFEAT/Allfeat-EVM-bridge-POC/hardhat/node_modules/ethers/src.ts/contract/contract.ts:313:20)
+      at Proxy.createToken (/home/ibournubuntu/DEVALLFEAT/Allfeat-EVM-bridge-POC/hardhat/node_modules/ethers/src.ts/contract/contract.ts:352:16)
+      ast ref : "at  HardhatEthersProvider.estimateGas" */
+  // SO SPLIT CASE FOR ETHEREUM
+  // and allfeat where we deploy manually bridged token (not passing via factory)
+
+  if (network == "sepolia" || network == "hardhat" || network == "localhost") {
+    let ehtNativeChainId = networkParams[usedNetworks[2]].chainId;
+
+    if (network == "allfeat") {
+      let tokenSymbol = getTokenSymbol("ethereum", currentChainId);
+      tx = await factory.createToken("ethereum", tokenSymbol);
+      await tx.wait();
+      bridgedEthAddress = await factory.getTokenAddress(tokenSymbol);
+      console.log(
+        "==> bridgedEth (%s) deployed to: %s",
+        tokenSymbol,
+        bridgedEthAddress
+      );
+      writeDeployedAddress(
+        network,
+        "BridgedToken",
+        bridgedEthAddress,
+        tokenSymbol
+      );
+      console.log(
+        "writing deployed address in /constants/deployedAddresses.json ...\n"
+      );
+    }
+    // set data for native token
+    tx = await storage.addNativeTokenByChainId("ethereum", ehtNativeChainId);
+    await tx.wait();
+    console.log(
+      "native token %s set in storage at  %s for chainId %s",
+      nativeSymbol,
+      getMaxAddress(),
+      ehtNativeChainId
+    );
+    // AFT TOKEN
+    let aftNativeChainId = networkParams[usedNetworks[0]].chainId;
+    if (network == "allfeat") {
+    } else {
+      let tokenSymbol = getTokenSymbol("allfeat", currentChainId);
+      tx = await factory.createToken("allfeat", tokenSymbol);
+      await tx.wait();
+      bridgedAftAddress = await factory.getTokenAddress(tokenSymbol);
+      console.log(
+        "==> BridgedAft (%s) deployed to: %s",
+        tokenSymbol,
+        bridgedAftAddress
+      );
+      writeDeployedAddress(
+        network,
+        "BridgedToken",
+        bridgedAftAddress,
+        tokenSymbol
+      );
+      console.log(
+        "writing deployed address in /constants/deployedAddresses.json ...\n"
+      );
+    }
+    // set data for native token
+    tx = await storage.addNativeTokenByChainId("allfeat", aftNativeChainId);
+    await tx.wait();
+    console.log(
+      "native token %s set in storage at  %s for chainId %s",
+      nativeSymbol,
+      getMaxAddress(),
+      aftNativeChainId
+    );
+    // DAI TOKEN
+    if (network != "allfeat") {
+      mockedDai = await hre.ethers.deployContract("MockedDai");
+      await mockedDai.waitForDeployment();
+      mockedDaiAddress = mockedDai.target;
+      tx = await storage.addNewTokenAddressByChainId(
+        "dai",
+        networkParams[network].chainId,
+        mockedDaiAddress
+      );
+      await tx.wait();
+      console.log("==> MockedDai deployed to:", mockedDaiAddress);
+      writeDeployedAddress(network, "MockedDai", mockedDaiAddress);
+      console.log(
+        "writing deployed address in /constants/deployedAddresses.json ...\n"
+      );
+    } else {
+      let tokenSymbol = getTokenSymbol("dai", currentChainId);
+      tx = await factory.createToken("dai", tokenSymbol);
+      await tx.wait();
+      bridgedDaiAddress = await factory.getTokenAddress(tokenSymbol);
+      console.log(
+        "==> bridgedDai (%s) deployed to: %s",
+        tokenSymbol,
+        bridgedDaiAddress
+      );
+      writeDeployedAddress(
+        network,
+        "BridgedToken",
+        bridgedDaiAddress,
+        tokenSymbol
+      );
+      console.log(
+        "writing deployed address in /constants/deployedAddresses.json ...\n"
+      );
+    }
+  }
 
   if (network == "allfeat") {
-    let tokenSymbol = getTokenSymbol("ethereum", currentChainId);
-    tx = await factory.createToken("ethereum", tokenSymbol);
-    await tx.wait();
-    bridgedEthAddress = await factory.getTokenAddress(tokenSymbol);
-    console.log(
-      "==> bridgedEth (%s) deployed to: %s",
-      tokenSymbol,
-      bridgedEthAddress
-    );
-    writeDeployedAddress(
-      network,
-      "BridgedToken",
-      bridgedEthAddress,
-      tokenSymbol
-    );
-    console.log(
-      "writing deployed address in /constants/deployedAddresses.json ...\n"
-    );
-  }
-  // set data for native token
-  tx = await storage.addNativeTokenByChainId("ethereum", ehtNativeChainId);
-  await tx.wait();
-  console.log(
-    "native token %s set in storage at  %s for chainId %s",
-    nativeSymbol,
-    getMaxAddress(),
-    ehtNativeChainId
-  );
-  // AFT TOKEN
-  let aftNativeChainId = networkParams[usedNetworks[0]].chainId;
-  if (network == "allfeat") {
-  } else {
-    let tokenSymbol = getTokenSymbol("allfeat", currentChainId);
-    tx = await factory.createToken("allfeat", tokenSymbol);
-    await tx.wait();
-    bridgedAftAddress = await factory.getTokenAddress(tokenSymbol);
-    console.log(
-      "==> BridgedAft (%s) deployed to: %s",
-      tokenSymbol,
-      bridgedAftAddress
-    );
-    writeDeployedAddress(
-      network,
-      "BridgedToken",
-      bridgedAftAddress,
-      tokenSymbol
-    );
-    console.log(
-      "writing deployed address in /constants/deployedAddresses.json ...\n"
-    );
-  }
-  // set data for native token
-  tx = await storage.addNativeTokenByChainId("allfeat", aftNativeChainId);
-  await tx.wait();
-  console.log(
-    "native token %s set in storage at  %s for chainId %s",
-    nativeSymbol,
-    getMaxAddress(),
-    aftNativeChainId
-  );
-  // DAI TOKEN
-  if (network != "allfeat") {
-    mockedDai = await hre.ethers.deployContract("MockedDai");
-    await mockedDai.waitForDeployment();
-    mockedDaiAddress = mockedDai.target;
-    tx = await storage.addNewTokenAddressByChainId(
+    // set data for native token
+    tx = await storage.addNativeTokenByChainId(
       "dai",
-      networkParams[network].chainId,
-      mockedDaiAddress
+      networkParams[network].chainId
     );
     await tx.wait();
-    console.log("==> MockedDai deployed to:", mockedDaiAddress);
-    writeDeployedAddress(network, "MockedDai", mockedDaiAddress);
     console.log(
-      "writing deployed address in /constants/deployedAddresses.json ...\n"
-    );
-  } else {
-    let tokenSymbol = getTokenSymbol("dai", currentChainId);
-    tx = await factory.createToken("dai", tokenSymbol);
-    await tx.wait();
-    bridgedDaiAddress = await factory.getTokenAddress(tokenSymbol);
-    console.log(
-      "==> bridgedDai (%s) deployed to: %s",
-      tokenSymbol,
-      bridgedDaiAddress
-    );
-    writeDeployedAddress(
-      network,
-      "BridgedToken",
-      bridgedDaiAddress,
-      tokenSymbol
-    );
-    console.log(
-      "writing deployed address in /constants/deployedAddresses.json ...\n"
+      "native token %s set in storage at  %s for chainId %s",
+      nativeSymbol,
+      getMaxAddress(),
+      networkParams[network].chainId
     );
   }
   // @todo NEED AFTER TO SET ADDRESS ON THE OTHER CHAIN

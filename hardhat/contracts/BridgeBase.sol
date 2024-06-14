@@ -443,10 +443,14 @@ contract BridgeBase is Utils {
     function depositFees(
         bytes32 operationHash,
         // OperationParams calldata operationParams,
-        uint256 chainIdFrom // if we change the storage to have the chainId as first key
-            // uint256 initBlock, // ??
-            // uint256 confirmationBlock // ??
-    ) external payable {
+        uint256 chainIdFrom, // if we change the storage to have the chainId as first key
+        uint256 chainIdTo
+    )
+        // uint256 initBlock, // ??
+        // uint256 confirmationBlock // ??
+        external
+        payable
+    {
         address relayer = Storage(s_storage).getOperator("relayer");
         require(
             !RelayerBase(relayer).isDestinationOperationExist(operationHash), "RelayerBase: operation already exists"
@@ -458,9 +462,9 @@ contract BridgeBase is Utils {
 
         Vault vault = Vault(Storage(s_storage).getOperator("vault"));
         try vault.depositOperationFee{value: msg.value}() {
-            RelayerBase(relayer).lockDestinationFees(operationHash, chainIdFrom);
+            RelayerBase(relayer).lockDestinationFees(operationHash, chainIdFrom, chainIdTo);
         } catch {
-            RelayerBase(relayer).emitCancelOperation(operationHash, chainIdFrom);
+            RelayerBase(relayer).emitCancelOperation(operationHash, chainIdFrom, chainIdTo);
         }
     }
 
@@ -481,5 +485,9 @@ contract BridgeBase is Utils {
 
     function getNewUserNonce(address user) external view returns (uint256) {
         return nextUserNonce[user];
+    }
+
+    function getMaxAddress() external pure returns (address) {
+        return maxAddress;
     }
 }

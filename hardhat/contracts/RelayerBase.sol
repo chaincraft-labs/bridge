@@ -226,11 +226,11 @@ contract RelayerBase is Utils {
         operation.blockStep.creationBlock = uint64(block.number);
 
         s_originOperations[operationHash] = operation;
-        console.log("RELAYERBASE / createOperation / operationHash:");
-        console.logBytes32(operationHash);
-        console.log("RELAYERBASE / createOperation / from: %s", from);
-        console.log("RELAYERBASE / createOperation / relayer address %s:", address(this));
-        console.log("RELAYERBASE / createOperation / bridge address %s:", Storage(s_storage).getOperator("bridge"));
+        // console.log("RELAYERBASE / createOperation / operationHash:");
+        // console.logBytes32(operationHash);
+        // console.log("RELAYERBASE / createOperation / from: %s", from);
+        // console.log("RELAYERBASE / createOperation / relayer address %s:", address(this));
+        // console.log("RELAYERBASE / createOperation / bridge address %s:", Storage(s_storage).getOperator("bridge"));
         emit OperationCreated(operationHash, params, block.number);
     }
 
@@ -270,7 +270,7 @@ contract RelayerBase is Utils {
         uint256 chainIdTo = params.chainIdTo;
         OriginOperation storage operation = s_originOperations[operationHash];
         uint8 status = uint8(operation.status);
-        console.log("ICICICICICICICICICICIICICIC operation.status: %s ", status);
+        // console.log("ICICICICICICICICICICIICICIC operation.status: %s ", status);
         // Quid if org : eth, dst : quick chain and:
         // user deposit and fees tx at the beginning of the eth block => fees confirmation tx can
         // be in the same block as the deposit tx on the dst chain (even before following tx org)
@@ -294,7 +294,8 @@ contract RelayerBase is Utils {
     // fees tx should be confirmed
     function confirmFeesLockedAndDepositConfirmed(
         bytes32 operationHash,
-        OperationParams calldata params /* uint256 blockStep*/
+        OperationParams calldata params,
+        uint256 blockStep
     ) external {
         bytes32 key = Storage(s_storage).getKey("blockToWait", block.chainid);
         uint256 blockToWait = Storage(s_storage).getUint(key);
@@ -314,7 +315,7 @@ contract RelayerBase is Utils {
         // ADD SIGNATURE
     }
 
-    function receivedFinalizedOperation(bytes32 operationHash, OperationParams calldata params /*uint256 blockStep*/ )
+    function receivedFinalizedOperation(bytes32 operationHash, OperationParams calldata params, uint256 blockStep)
         external
         onlyOracle
     {
@@ -358,7 +359,8 @@ contract RelayerBase is Utils {
     function lockDestinationFees(
         bytes32 operationHash,
         // OperationParams calldata operationParams,
-        uint256 chainIdFrom // if we change the storage to have the chainId as first key
+        uint256 chainIdFrom, // if we change the storage to have the chainId as first key,
+        uint256 chainIdTo
     ) external payable onlyBridge {
         require(
             s_destinationOperations[operationHash].status == OperationStatus.NONE,
@@ -370,6 +372,7 @@ contract RelayerBase is Utils {
         blockStep.feesDeposit = uint64(block.number);
 
         newOperation.params.chainIdFrom = chainIdFrom;
+        newOperation.params.chainIdTo = chainIdTo;
         newOperation.status = OperationStatus.DST_FEES_DEPOSITED;
 
         // emit FeesDeposited(operationHash, chainIdFrom); // event name //c chainIdTo pour lr rappeler// block.number
@@ -384,7 +387,7 @@ contract RelayerBase is Utils {
     // server check block confirmation for feesLock if finality is reached then call this function to emit the event and
     // forward to origin chain
     // ADd chainID for operation
-    function sendFeesLockConfirmation(bytes32 operationHash, OperationParams calldata params /*uint256 blockStep*/ )
+    function sendFeesLockConfirmation(bytes32 operationHash, OperationParams calldata params, uint256 blockStep)
         external
         onlyOracle
     {
@@ -452,10 +455,10 @@ contract RelayerBase is Utils {
             params.from, params.to, params.chainIdFrom, params.chainIdTo, params.tokenName, params.amount, params.nonce
         );
 
-        console.log(
-            "RELAYERBASE / completeOperartion / operationStatus: %s",
-            uint8(s_destinationOperations[operationHash].status)
-        );
+        // console.log(
+        //     "RELAYERBASE / completeOperartion / operationStatus: %s",
+        //     uint8(s_destinationOperations[operationHash].status)
+        // );
         require(
             s_destinationOperations[operationHash].status == OperationStatus.DST_FEES_CONFIRMED,
             "RelayerBase: invalid status"
@@ -505,7 +508,7 @@ contract RelayerBase is Utils {
         emit ReceveidOperationCanceled(operationHash, chainIdFrom, block.number);
     }
 
-    function emitCancelOperation(bytes32 operationHash, uint256 chainIdFrom) external onlyBridge {
+    function emitCancelOperation(bytes32 operationHash, uint256 chainIdFrom, uint256 chainIdTo) external onlyBridge {
         DestinationOperation storage operation = s_destinationOperations[operationHash];
         require(
             operation.status != OperationStatus.DST_OP_FINALIZED && operation.status != OperationStatus.NONE,

@@ -64,13 +64,36 @@ const readLastDeployedAddress = function (
   const deployedAddresses = JSON.parse(
     fs.readFileSync("constants/deployedAddresses.json")
   );
+  console.log("TYPE OF OBJECT FILE", typeof deployedAddresses);
+  // is object null
+  if (!deployedAddresses) {
+    console.log("READING... null object");
+    return null;
+  }
+  console.log("READING... network ", deployedAddresses[network]);
   if (deployedAddresses[network] && deployedAddresses[network][contractName]) {
+    console.log(
+      "READING... first step ",
+      deployedAddresses[network][contractName]
+    );
     if (!tokenName) {
+      console.log(
+        "READING...",
+        deployedAddresses[network][contractName][
+          deployedAddresses[network][contractName].length - 1
+        ]
+      );
       return deployedAddresses[network][contractName][
         deployedAddresses[network][contractName].length - 1
       ];
     } else {
       if (deployedAddresses[network][contractName][tokenName]) {
+        console.log(
+          "READING...",
+          deployedAddresses[network][contractName][
+            deployedAddresses[network][contractName].length - 1
+          ]
+        );
         return deployedAddresses[network][contractName][tokenName][
           deployedAddresses[network][contractName][tokenName].length - 1
         ];

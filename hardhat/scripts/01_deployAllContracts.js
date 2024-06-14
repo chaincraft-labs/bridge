@@ -83,6 +83,8 @@ const getTokenSymbol = (tokenName, chainId) => {
 // allfeat, test, ethEquivalent
 const usedNetworks = ["allfeat", "hardhat", "sepolia"];
 
+// TO MOVE IN ENV
+operatorAdress = "0xe4192bf486aea10422ee097bc2cf8c28597b9f11";
 //@todo LE TOKEN NATIF N EST PAS A AJOUTER SUR LA CHAINE
 // car le storage deployment set déjà cette valeur !!!!!
 async function main() {
@@ -120,7 +122,11 @@ async function main() {
   // set addresses in bridge
 
   // 1. deploy storage
+  // const storage = await hre.ethers.deployContract("Storage", [nativeSymbol]);
+  let nativeName = network == "allfeat" ? "allfeat" : "ethereum";
+  console.log("nativeName", nativeName);
   const storage = await hre.ethers.deployContract("Storage", [nativeSymbol]);
+
   await storage.waitForDeployment();
   console.log("==> Storage deployed to:", storage.target);
 
@@ -175,6 +181,9 @@ async function main() {
   tx = await storage.updateOperator("relayer", relayer.target);
   await tx.wait();
   console.log("relayer address set in storage\n");
+  tx = await storage.updateOperator("oracle", operatorAdress);
+  await tx.wait();
+  console.log("oracle address set in storage\n");
 
   console.log(
     "----------------------------------------------------------\nDeploying tokens contracts \n----------------------------------------------------------"
@@ -251,28 +260,45 @@ async function main() {
   if (network == "sepolia" || network == "hardhat" || network == "localhost") {
     let ehtNativeChainId = networkParams[usedNetworks[2]].chainId;
 
-    if (network == "allfeat") {
-      let tokenSymbol = getTokenSymbol("ethereum", currentChainId);
-      tx = await factory.createToken("ethereum", tokenSymbol);
-      await tx.wait();
-      bridgedEthAddress = await factory.getTokenAddress(tokenSymbol);
-      console.log(
-        "==> bridgedEth (%s) deployed to: %s",
-        tokenSymbol,
-        bridgedEthAddress
-      );
-      writeDeployedAddress(
-        network,
-        "BridgedToken",
-        bridgedEthAddress,
-        tokenSymbol
-      );
-      console.log(
-        "writing deployed address in /constants/deployedAddresses.json ...\n"
-      );
-    }
+    // if (network == "allfeat") {
+    //   let tokenSymbol = getTokenSymbol("ethereum", currentChainId);
+    //   tx = await factory.createToken("ethereum", tokenSymbol);
+    //   await tx.wait();
+    //   bridgedEthAddress = await factory.getTokenAddress(tokenSymbol);
+    //   console.log(
+    //     "==> bridgedEth (%s) deployed to: %s",
+    //     tokenSymbol,
+    //     bridgedEthAddress
+    //   );
+    //   writeDeployedAddress(
+    //     network,
+    //     "BridgedToken",
+    //     bridgedEthAddress,
+    //     tokenSymbol
+    //   );
+    //   console.log(
+    //     "writing deployed address in /constants/deployedAddresses.json ...\n"
+    //   );
+    // }
     // set data for native token
     tx = await storage.addNativeTokenByChainId("ethereum", ehtNativeChainId);
+    await tx.wait();
+    console.log(
+      "native token %s set in storage at  %s for chainId %s",
+      nativeSymbol,
+      getMaxAddress(),
+      ehtNativeChainId
+    );
+    // tx = await storage.setTokenAddressByChainId(
+    //   "ethereum",
+    //   ehtNativeChainId,
+    //   getMaxAddress()
+    // );
+    tx = await storage.setTokenAddressByChainId(
+      "ethereum",
+      "11155111",
+      "0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF"
+    );
     await tx.wait();
     console.log(
       "native token %s set in storage at  %s for chainId %s",
@@ -304,7 +330,24 @@ async function main() {
       );
     }
     // set data for native token
-    tx = await storage.addNativeTokenByChainId("allfeat", aftNativeChainId);
+    // tx = await storage.addNativeTokenByChainId("allfeat", aftNativeChainId);
+    // await tx.wait();
+    // console.log(
+    //   "native token %s set in storage at  %s for chainId %s",
+    //   nativeSymbol,
+    //   getMaxAddress(),
+    //   aftNativeChainId
+    // );
+    // tx = await storage.setTokenAddressByChainId(
+    //   "allfeat",
+    //   ehtNativeChainId,
+    //   getMaxAddress()
+    // );
+    tx = await storage.setTokenAddressByChainId(
+      "allfeat",
+      "441",
+      "0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF"
+    );
     await tx.wait();
     console.log(
       "native token %s set in storage at  %s for chainId %s",
@@ -393,7 +436,24 @@ async function main() {
     );
     // }
     // set data for native token
-    tx = await storage.addNativeTokenByChainId("ethereum", ehtNativeChainId);
+    // tx = await storage.addNativeTokenByChainId("ethereum", ehtNativeChainId);
+    // await tx.wait();
+    // console.log(
+    //   "native token %s set in storage at  %s for chainId %s",
+    //   nativeSymbol,
+    //   getMaxAddress(),
+    //   ehtNativeChainId
+    // );
+    // tx = await storage.setTokenAddressByChainId(
+    //   "ethereum",
+    //   ehtNativeChainId,
+    //   getMaxAddress()
+    // );
+    tx = await storage.setTokenAddressByChainId(
+      "ethereum",
+      "11155111",
+      "0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF"
+    );
     await tx.wait();
     console.log(
       "native token %s set in storage at  %s for chainId %s",
@@ -425,7 +485,24 @@ async function main() {
       // );
     }
     // set data for native token
-    tx = await storage.addNativeTokenByChainId("allfeat", aftNativeChainId);
+    // tx = await storage.addNativeTokenByChainId("allfeat", aftNativeChainId);
+    // await tx.wait();
+    // console.log(
+    //   "native token %s set in storage at  %s for chainId %s",
+    //   nativeSymbol,
+    //   getMaxAddress(),
+    //   aftNativeChainId
+    // );
+    // tx = await storage.setTokenAddressByChainId(
+    //   "allfeat",
+    //   aftNativeChainId,
+    //   getMaxAddress()
+    // );
+    tx = await storage.setTokenAddressByChainId(
+      "allfeat",
+      "441",
+      "0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF"
+    );
     await tx.wait();
     console.log(
       "native token %s set in storage at  %s for chainId %s",

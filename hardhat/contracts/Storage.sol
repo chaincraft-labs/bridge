@@ -114,6 +114,7 @@ contract Storage {
         s_addressStorage[getKey("admin")] = msg.sender;
 
         setUint(getKey("nativeChainId"), nativeChainId);
+
         setString(getKey("nativeTokenName"), nativeTokenName);
         addChainIdToList(nativeChainId);
         addTokenNameToList(nativeTokenName);
@@ -656,6 +657,7 @@ contract Storage {
         }
         setTokenAddressByChainId(tokenName, chainId, tokenAddress);
     }
+    // @todo CHANGE complex inutil => prone to error in flow of action / doon't store to tokenName but value set at initialization
 
     function addNativeTokenByChainId(string memory tokenName, uint256 chainId) public {
         setTokenAddressByChainId(getString(getKey("nativeTokenName")), chainId, maxAddress);

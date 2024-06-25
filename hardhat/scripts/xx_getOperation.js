@@ -87,59 +87,27 @@ async function main() {
   const network = hre.network.name;
   const nativeSymbol = networkParams[network].nativeSymbol;
   const currentChainId = networkParams[network].chainId;
-  const [userWallet] = await hre.ethers.getSigners(); // attention the one of owner change it !!
 
-  console.log("NETWORK", network);
-  let bridgeAddress = await readLastDeployedAddress(network, "BridgeBase");
-  console.log("Bridge Address", bridgeAddress);
-  let bridge = await hre.ethers.getContractAt("BridgeBase", bridgeAddress);
-  // BRIDGE ETHEREUM   TO ALLFEAT
-  if (network != "sepolia") {
-    console.log("WRONG NETWORK SHOULD BE SEPOLIA");
-    process.exit(1);
-  }
+  // if (!usedNetworks.includes(network)) {
+  //   console.log("network not supported");
+  //   process.exit(1);
+  // }
+  // let oracleAddress = "0xE4192BF486AeA10422eE097BC2Cf8c28597B9F11";
 
-  console.log(
-    "==>USER ACTION ON %s\n----------------------------------------------------------\nDeposit ETH to bridge \n----------------------------------------------------------",
-    network
+  let storageAddress = readLastDeployedAddress(
+    "sepolia", //usedNetworks[0],
+    "RelayerBase"
   );
-  // 0.01 ether
-  // let amount = ethers.utils.parseEther("0.01"); // == 10000000000000000
-  let amount = 1_000_000_000_000_000n;
-
-  // get deployed Utils
-  // @todo CODE GET NONCE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  let nonce = 1; //3; //2; // 1; //0; //1; // 0;
-  const msgHashed = await bridge.getMessageHash(
-    userWallet.address,
-    userWallet.address,
-    11155111,
-    441,
-    "ethereum",
-    amount,
-    nonce
+  let relayer = await hre.ethers.getContractAt("RelayerBase", storageAddress);
+  let result = await relayer.getDetailedOriginOperation(
+    "0x77b8f24e3f8b594f12312f4eaffddd0db3ab411da930be97feb683a80d206cb3"
   );
-  console.log("Message Hash", msgHashed);
-  const signedMsgHased = await userWallet.signMessage(
-    ethers.getBytes(msgHashed)
-  );
-  console.log("Signed Message Hash", signedMsgHased);
-  let tx = await bridge
-    .connect(userWallet)
-    .createBridgeOperation(
-      userWallet.address,
-      userWallet.address,
-      11155111,
-      441,
-      "ethereum",
-      amount,
-      nonce,
-      signedMsgHased,
-      { value: amount }
-    );
+  console.log("operation detail :", result);
 
-  console.log("Bridge Operation", tx.hash);
-  await tx.wait();
+  //   const [owner, user, server] = await hre.ethers.getSigners();
+  //   console.log("--> owner address: %s ", owner.address);
+  //   console.log("--> user address: %s \n", user.address);
+  //   console.log("--> server address: %s \n", server.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
@@ -149,7 +117,11 @@ main().catch((error) => {
   process.exitCode = 1;
 });
 
-//commands
+/// commands
+// npx hardhat run scripts/01_deployAllContracts.js --network localhost
+// npx hardhat run scripts /01_setTokens.js--network localhost
 
-// npx hardhat run scripts/11_userAction_depositSepolia.js --network sepolia
-// npx hardhat run scripts/12_userAction_depositFeesAllfeat.js --network allfeat
+// npx hardhat run scripts/01_deployAllContracts.js --network sepolia
+// npx hardhat run scripts/01_deployAllContracts.js --network allfeat
+// npx hardhat run scripts/01_setTokens.js --network sepolia
+// npx hardhat run scripts/01_setTokens.js --network allfeat

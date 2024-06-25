@@ -110,7 +110,7 @@ async function main() {
   let amount = 1_000_000_000_000_000n;
 
   // @todo CODE GET NONCE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  let nonce = 7; //3; //2; //1; //0; //1; //0;
+  let nonce = 1; //3; //2; //1; //0; //1; //0;
   const msgHashed = await bridge.getMessageHash(
     userWallet.address,
     userWallet.address,

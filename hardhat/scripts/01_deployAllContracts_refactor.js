@@ -92,7 +92,7 @@ const deployAndSaveAddress = async (network, contractName, params) => {
   const instance = await hre.ethers.deployContract(contractName, params);
 
   await instance.waitForDeployment();
-  console.log("==> Storage deployed to:", storage.target);
+  console.log(`==> ${contractName} deployed to: `, instance.target);
 
   writeDeployedAddress(network, contractName, instance.target);
   console.log("address written in /constants/deployedAddresses.json ...\n");
@@ -188,6 +188,7 @@ async function main() {
     relayer.target,
   ]);
 
+  // be sure address are received !!
   const operators = [
     { role: "factory", address: factory.target },
     { role: "vault", address: vault.target },
@@ -232,10 +233,6 @@ async function main() {
     "allfeat",
     "dai",
   ]);
-
-  await storage.addTokenNameToList("ethereum");
-  await storage.addTokenNameToList("allfeat");
-  await storage.addTokenNameToList("dai");
 
   const tokenNameList = await storage.getTokenNamesList();
   console.log("tokenName added to tokenNameList: %s\n", tokenNameList);

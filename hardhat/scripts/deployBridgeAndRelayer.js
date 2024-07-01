@@ -16,8 +16,11 @@ async function main() {
   // Get factory contract
   const factoryAddress = readLastDeployedAddress(network, "TokenFactory");
   console.log("factoryAddress: ", factoryAddress);
-  //   const relayerAddress = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
-  const oracleAddress = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
+  //   const relayerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+  const oracleAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+
+  // checksum address oracleAddress
+  // if (!hre.ethers.utils.isAddress(oracleAddress)) {
 
   // dploy relayer contract
   const relayer = await hre.ethers.deployContract("RelayerBase", [

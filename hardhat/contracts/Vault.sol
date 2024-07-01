@@ -24,20 +24,31 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 // @todo custom errors !!!
 
 contract Vault {
+    // struct UserPosition{
+    //     uint256 tokenDepositBalance;
+
+    // }
+    address constant maxAddress = address(type(uint160).max); // 0xffffFFFfFFffffffffffffffffffffFfFFFfffFFFfF
+
     address public s_storageAddress;
     mapping(address => uint256) public s_vaultBalance;
+    // should be add by admin with storage setting authorized tokens (not remove if unauthorized !!)
+    address[] public s_tokensInVault;
     // balance should be given to vault WHEN op is finalized
     // userBalance is redeemable if op is CANCELED
     // Mapping of user/operator => token => balance
+    // find better memory management (struct position ?)
     mapping(address user => mapping(address token => uint256 balance) tokenBalance) public s_usersDeposits;
+    mapping(address user => mapping(address token => uint256 balance) tokenBalance) public s_usersAmountToRedeem;
 
     // Mapping of the fees for each token (only one relayer, orcale... but later
     // should be adjust to manage list of oracles... and amount due to each)
+    // later struct totXTokenFees and mapping operator amountToReddem
     mapping(address token => uint256) public s_feesBalance;
     // opFees are meant for the tx fees of the operators reumbursment
     mapping(address token => uint256) public s_opFeesBalance;
 
-    // Mapping of minted tokens (bridged)
+    // Mapping of minted tokens (bridged) // or bunr and mint with mint >= burn
     mapping(address token => uint256) public s_mintedBalance;
 
     // modifier (later functions if more optimized)
@@ -73,59 +84,53 @@ contract Vault {
         // check is isAdmin(msg.sender) in the storage
         s_storageAddress = storageAddress;
         if (!Storage(s_storageAddress).isAdmin(msg.sender)) {
-            revert("TokenFactory: caller is not the admin");
+            revert("Vault: caller is not the admin");
         }
     }
-
-    // function deposit(address from, address token, uint256 amount, string memory tokenType, string memory depositType) {
-    //     // check if the token is bridged
-    //     // check if the token is allowed
-    //     // check if the user is allowed
-    //     // check if the amount is not 0
-    //     // check if the depositType is allowed
-    //     // check if the tokenType is allowed
-    //     // check if the user has enough balance
-    // }
 
     // deposit token or native token
     function depositNative(address from) external payable onlyBridge {
         // add to the depositors balance
-        s_usersDeposits[from][address(0)] += msg.value;
+        s_usersDeposits[from][maxAddress] += msg.value;
     }
 
     function depositToken(address from, address token, uint256 amount) external onlyBridge {
         // transfer token to the vault
         // add to the depositors balance
         // uint256 nonce = actualNonce[msg.sender]++;
+        s_usersDeposits[from][token] += amount;
+
         bool res = ERC20(token).transferFrom(from, address(this), amount);
 
         if (!res) {
             revert("transfer failed");
         }
-        s_usersDeposits[from][token] += amount;
     }
 
     // BRIDGED TOKENS
-    // SEE bridge : should
-    function mint(address token, address to, uint256 amount) external onlyBridge {
-        BridgedToken(token).mint(to, amount);
+    // SEE bridge : Vault is the owner
+    function mint(address to, address token, uint256 amount) external onlyBridge {
         s_mintedBalance[token] += amount;
+        s_usersDeposits[to][token] += amount;
+        BridgedToken(token).mint(to, amount);
     }
 
     function burn(address token, address owner, uint256 amount) external onlyBridge {
         // ERC20burnable check if the caller is the owner and the amount is not greater than the balance
-        BridgedToken(token).burn(owner, amount);
         s_mintedBalance[token] -= amount;
+        s_usersDeposits[owner][token] -= amount;
+        BridgedToken(token).burn(owner, amount);
     }
 
     function unlockNative(address to, uint256 amount) external onlyBridge {
         // check if the amount is not greater than the balance
         // transfer the amount to the user
-        if (amount > s_vaultBalance[address(0)]) {
+        if (amount > s_vaultBalance[maxAddress]) {
             revert("Vault: amount is greater than the balance");
         }
+        s_vaultBalance[maxAddress] -= amount;
+
         payable(to).transfer(amount);
-        s_vaultBalance[address(0)] -= amount;
     }
 
     function unlockToken(address to, address token, uint256 amount) external onlyBridge {
@@ -134,11 +139,32 @@ contract Vault {
         if (amount > s_vaultBalance[token]) {
             revert("Vault: amount is greater than the balance");
         }
+        s_vaultBalance[token] -= amount;
+
         bool res = ERC20(token).transfer(to, amount);
         if (!res) {
             revert("transfer failed");
         }
-        s_vaultBalance[token] -= amount;
+    }
+
+    function cancelDeposit(address from, address token, uint256 amount) external onlyBridge {
+        // check if the amount is not greater than the balance
+        // transfer the amount to the user
+        if (amount > s_usersDeposits[from][token]) {
+            revert("Vault: amount is greater than the balance");
+        }
+        s_usersDeposits[from][token] -= amount;
+        s_usersAmountToRedeem[from][token] += amount;
+    }
+
+    function finalizeDeposit(address from, address token, uint256 amount) external onlyBridge {
+        // check if the amount is not greater than the balance
+        // transfer the amount to the user
+        if (amount > s_usersDeposits[from][token]) {
+            revert("Vault: amount is greater than the balance");
+        }
+        s_usersDeposits[from][token] -= amount;
+        s_vaultBalance[token] += amount;
     }
 
     // FEES MANAGEMENT
@@ -162,32 +188,51 @@ contract Vault {
         OPERATION
     }
 
-    function depositFees(address token, uint256 amount, uint8 u8FeesType) external payable {
-        FeesType feesType = FeesType(u8FeesType);
-        if (token == address(0)) {
-            if (msg.value == 0) {
-                revert("Vault: msg.value is 0");
-            }
-            amount = msg.value;
-        } else {
-            if (amount == 0) {
-                revert("Vault: amount is 0");
-            }
-            bool res = ERC20(token).transferFrom(msg.sender, address(this), amount);
-            if (!res) {
-                revert("transfer failed");
-            }
+    // function depositFees(address token, uint256 amount, uint8 u8FeesType) external payable {
+    //     FeesType feesType = FeesType(u8FeesType);
+    //     if (token == address(0)) {
+    //         if (msg.value == 0) {
+    //             revert("Vault: msg.value is 0");
+    //         }
+    //         amount = msg.value;
+    //     } else {
+    //         if (amount == 0) {
+    //             revert("Vault: amount is 0");
+    //         }
+    //         bool res = ERC20(token).transferFrom(msg.sender, address(this), amount);
+    //         if (!res) {
+    //             revert("transfer failed");
+    //         }
+    //     }
+    //     if (feesType == FeesType.PROTOCOL) {
+    //         s_feesBalance[token] += amount;
+    //     } else {
+    //         s_opFeesBalance[token] += amount;
+    //     }
+    // }
+
+    function depositOperationFee() external payable {
+        if (msg.value == 0) {
+            revert("Vault: msg.value is 0");
         }
-        if (feesType == FeesType.PROTOCOL) {
-            s_feesBalance[token] += amount;
-        } else {
-            s_opFeesBalance[token] += amount;
+        s_opFeesBalance[maxAddress] += msg.value;
+    }
+
+    function depositProtocolFee(address token, uint256 amount) external {
+        if (amount == 0) {
+            revert("Vault: amount is 0");
+        }
+        s_feesBalance[token] += amount;
+
+        bool res = ERC20(token).transferFrom(msg.sender, address(this), amount);
+        if (!res) {
+            revert("transfer failed");
         }
     }
 
     // Admin withdrawal (urgence // add check pause status... later), admin can withdraw all
     function adminUrgenceWithdrawal(address token, uint256 amount) external onlyAdmin {
-        if (token == address(0)) {
+        if (token == maxAddress) {
             if (amount > address(this).balance) {
                 revert("Vault: amount is greater than the balance");
             }
@@ -201,15 +246,16 @@ contract Vault {
                 revert("transfer failed");
             }
         }
+        s_vaultBalance[token] -= amount;
     }
 
     // Admin regular withdrawal (only protocol fees)
-    function adminWithdrawal(address token, uint256 amount) external onlyAdmin {
+    function adminOpFeesWithdrawal(address token, uint256 amount) external onlyAdmin {
         // check fee balance
         if (amount > s_feesBalance[token]) {
             revert("Vault: amount is greater than the balance");
         }
-        if (token == address(0)) {
+        if (token == maxAddress) {
             payable(msg.sender).transfer(amount);
         } else {
             bool res = ERC20(token).transfer(msg.sender, amount);
@@ -222,12 +268,14 @@ contract Vault {
     }
 
     // Operator redeem (add check mapping its actions to correspondant fees)
-    function operatorRedeem(address token, uint256 amount) external onlyBridge {
+    function operatorRedeem(address token, uint256 amount) external onlyOracle {
         // check op fees balance
+        // check ad is operator
+        // later mapping operators => feesRedeemable
         if (amount > s_opFeesBalance[token]) {
             revert("Vault: amount is greater than the balance");
         }
-        if (token == address(0)) {
+        if (token == maxAddress) {
             payable(msg.sender).transfer(amount);
         } else {
             bool res = ERC20(token).transfer(msg.sender, amount);
@@ -240,13 +288,14 @@ contract Vault {
     }
 
     // user withdrawal (only his balance / add later check with relayer ONLY if op is CANCELED)
-    function userReddem(address token, uint256 amount) external {
+    function redeemUserDeposit(address token, uint256 amount) external {
         // ADD CHECK OP CANCELED
         // check user balance
-        if (amount > s_usersDeposits[msg.sender][token]) {
+        if (amount > s_usersAmountToRedeem[msg.sender][token]) {
             revert("Vault: amount is greater than the balance");
         }
-        if (token == address(0)) {
+        s_usersAmountToRedeem[msg.sender][token] -= amount;
+        if (token == maxAddress) {
             payable(msg.sender).transfer(amount);
         } else {
             bool res = ERC20(token).transfer(msg.sender, amount);
@@ -263,5 +312,14 @@ contract Vault {
     function updateVaultBalance(address user, address token, uint256 amount) external onlyRelayer {
         s_vaultBalance[token] += amount;
         s_usersDeposits[user][token] -= amount;
+    }
+
+    // getters
+    function getTokenUserBalance(address user, address token) external view returns (uint256) {
+        return s_usersDeposits[user][token];
+    }
+
+    function getOpFeesBalance(address token) external view returns (uint256) {
+        return s_opFeesBalance[token];
     }
 }

@@ -13,19 +13,19 @@ async function main() {
   const network = hre.network.name;
   console.log("Deploying tokens on network: ", network);
 
-  const bridgedAft = await hre.ethers.deployContract("BridgedAft");
+  const bridgedAft = await hre.ethers.deployContract("BridgedTokenAft");
   await bridgedAft.waitForDeployment();
   console.log("token Aft deployed to:", bridgedAft.target);
 
-  const bridgedDai = await hre.ethers.deployContract("BridgedAft");
+  const bridgedDai = await hre.ethers.deployContract("BridgedTokenAft");
   await bridgedDai.waitForDeployment();
   console.log("token Dai deployed to:", bridgedDai.target);
 
-  const bridgedEth = await hre.ethers.deployContract("BridgedAft");
+  const bridgedEth = await hre.ethers.deployContract("BridgedTokenEth");
   await bridgedEth.waitForDeployment();
   console.log("token Eth deployed to:", bridgedEth.target);
 
-  const mockedDai = await hre.ethers.deployContract("MockedDai");
+  const mockedDai = await hre.ethers.deployContract("MockedTokenDai");
   await mockedDai.waitForDeployment();
   console.log("mocked Dai deployed to:", mockedDai.target);
 
@@ -34,21 +34,21 @@ async function main() {
     network,
     "BridgedToken",
     bridgedAft.target,
-    "BridgedAft"
+    "BridgedTokenAft"
   );
   writeDeployedAddress(
     network,
     "BridgedToken",
     bridgedDai.target,
-    "BridgedDai"
+    "BridgedTokenDai"
   );
   writeDeployedAddress(
     network,
     "BridgedToken",
     bridgedEth.target,
-    "BridgedEth"
+    "BridgedTokenEth"
   );
-  writeDeployedAddress(network, "MockedDai", mockedDai.target);
+  writeDeployedAddress(network, "MockedTokenDai", mockedDai.target);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

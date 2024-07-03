@@ -97,7 +97,10 @@ contract TokenFactory {
         // ADMIN SHOULD HAVE ADDED THE SYMBOL & CHAIN TO LISTS
         //@todo change REF TO TOKEN BY NAME not SYMBOL (and add origin / destiantion symbol)
         // Storage(s_storageAddress).addNewTokenAddressByChainId(symbol, originChainId, originAddress);
-        Storage(s_storageAddress).addNewTokenAddressByChainId(name, block.chainid, address(token));
+
+        // @todo CLEANUP
+        // Storage(s_storageAddress).addNewTokenAddressByChainId(name, block.chainid, address(token));
+        Storage(s_storageAddress).setTokenAddressByChainId(name, block.chainid, address(token));
 
         // transfert ownership to Vault
         address vault = Storage(s_storageAddress).getOperator("vault");

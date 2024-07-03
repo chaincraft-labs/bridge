@@ -121,6 +121,9 @@ contract Storage {
 
         // set initial values
         setInitialValues();
+
+        // CLEANUP IN PROGRESS..
+        setTokenAddressByChainId(nativeTokenName, nativeChainId, maxAddress);
     }
 
     //TESTSING

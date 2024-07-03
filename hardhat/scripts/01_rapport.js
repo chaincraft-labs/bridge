@@ -98,32 +98,34 @@ async function main() {
   console.log(
     "---------------------------------\ntoken data in storage\n---------------------------------"
   );
-  let tAddress = await storage.getTokenAddressByChainId("ethereum", "441");
+
+  let newBigInt = BigInt(441);
+  let tAddress = await storage.getTokenAddressByChainId("ethereum", newBigInt);
   console.log(
     "SEOPLIA storage side : ethereum symb/add on allfeat: abETH/",
     tAddress
   );
-  tAddress = await storage.getTokenAddressByChainId("ethereum", "11155111");
+  tAddress = await storage.getTokenAddressByChainId("ethereum", 11155111);
   console.log(
     "SEOPLIA storage side : ethereum symb/add on sepolia: ETH/",
     tAddress
   );
-  tAddress = await storage.getTokenAddressByChainId("allfeat", "441");
+  tAddress = await storage.getTokenAddressByChainId("allfeat", 441);
   console.log(
     "SEOPLIA storage side : allfeat symb/add on allfeat: AFT/",
     tAddress
   );
-  tAddress = await storage.getTokenAddressByChainId("allfeat", "11155111");
+  tAddress = await storage.getTokenAddressByChainId("allfeat", 11155111);
   console.log(
     "SEOPLIA storage side : allfeat symb/add on sepolia: ebAFT/",
     tAddress
   );
-  tAddress = await storage.getTokenAddressByChainId("dai", "441");
+  tAddress = await storage.getTokenAddressByChainId("dai", 441);
   console.log(
     "SEOPLIA storage side : dai symb/add on allfeat: abDAI/",
     tAddress
   );
-  tAddress = await storage.getTokenAddressByChainId("dai", "11155111");
+  tAddress = await storage.getTokenAddressByChainId("dai", 11155111);
   console.log("SEOPLIA storage side : dai symb/add on sepolia: DAI/", tAddress);
 
   console.log(

@@ -34,10 +34,29 @@ const tokenList = [
     },
 ];
 
+const nativeTokens = {
+  31337: 'ethereum',
+  440: 'allfeat',
+  11155111: 'ethereum',
+  441: 'allfeat',
+};
+
+const getNativeToken = (chainId) => {
+  try {
+    return nativeTokens[chainId];
+  }
+  catch (err) {throw('Invalid chainId!')}
+}
+
 // utils 
 const getTokenSymbol = (tokenName, chainId) => {
   const token = tokenList.filter((token) => token.tokenName === tokenName)[0];
   return token.symbols.filter((symbol) => symbol.chainId === chainId)[0].symbol;
 };
 
-module.exports = {tokenList, getTokenSymbol}
+module.exports = {
+  tokenList,
+  nativeTokens,
+  getTokenSymbol,
+  getNativeToken,
+}

@@ -2,7 +2,6 @@ const hre = require("hardhat");
 const ethers = require("ethers");
 const fs = require("fs");
 const path = require("path");
-
 const { getTokenSymbol } = require('../constants/tokens');
 const { networkParams } = require('../constants/networks');
 
@@ -11,20 +10,40 @@ const CONSTANT_DIR = "constants";
 const DEPLOY_ADDRESSES_FILE = "constants/deployedAddresses.json";
 const NONCE_FILE = "nonce.json"
 
-const setNonce = async (userAddress) => {
+
+
+const initNonce = () => {
     const nonceFile = path.join(CONSTANT_DIR, NONCE_FILE);
     
     try {
-        const nonceJson = JSON.parse(fs.readFileSync(nonceFile, "utf8"));
-        if (nonceJson.hasOwnProperty(userAddress)) {
-            nonceJson[userAddress]++;
+        fs.writeFile(nonceFile, JSON.stringify({}, null, 4), (err) => {
+            if (err) throw err;
+        });
+    }
+    catch (err) {
+        console.log(err)
+    }
+}
+
+const setNonce = async (userAddress) => {
+    const {chainId} = await initContext();
+    const nonceFile = path.join(CONSTANT_DIR, NONCE_FILE);
+    
+    try {
+        let nonceJson = JSON.parse(fs.readFileSync(nonceFile, "utf8"));
+
+        if (!nonceJson.hasOwnProperty(chainId)) {
+            nonceJson[chainId] = {}
+        }
+        
+        if (nonceJson[chainId].hasOwnProperty(userAddress)) {
+            nonceJson[chainId][userAddress]++;
         } else {
-            nonceJson[userAddress] = 0;
+            nonceJson[chainId][userAddress] = 0;
         }
 
-        fs.writeFile(nonceFile, JSON.stringify(nonceJson), (err) => {
+        fs.writeFile(nonceFile, JSON.stringify(nonceJson, null, 4), (err) => {
             if (err) throw err;
-            // console.log('File written successfully!');
         });
     }
     catch (err) {
@@ -33,22 +52,23 @@ const setNonce = async (userAddress) => {
 }
 
 const getNonce = async (userAddress) => {
+    const {chainId} = await initContext();
     const nonceFile = path.join(CONSTANT_DIR, NONCE_FILE);
     
     try {
         const nonceJson = JSON.parse(fs.readFileSync(nonceFile, "utf8"));
-        if (!nonceJson.hasOwnProperty(userAddress)) {
-            await setNonce(userAddress);
+        
+        if (!nonceJson.hasOwnProperty(chainId) || !nonceJson[chainId].hasOwnProperty(userAddress)) {
+            setNonce(userAddress);
+            return 0;
         }
 
-        console.log(`nonce ${nonceJson[userAddress]} for ${userAddress}`)
-        return nonceJson[userAddress];
+        return nonceJson[chainId][userAddress];
     }
     catch (err) {
         console.log(err)
     }
 }
-
 
 const toChecksumAddress = (address) => {
     return ethers.getAddress(address);
@@ -65,6 +85,10 @@ const showContext = async () => {
     console.log(`chain id      : ${chainId}`);
     console.log(`Native symbol : ${nativeSymbol}`);
     console.log(`owner         : ${owner.address}`);
+}
+
+const getNetworkParam = (network) => {
+    return networkParams[network];
 }
 
 const initContext = async () => {
@@ -169,7 +193,7 @@ const writeDeployedAddress = (network, contractName, address, tokenName = null) 
 };
 
 const storeContractAddresses = (params) => {
-    console.log(`\n⚪️ Store contract addresses to db.`)
+    // console.log(`\n⚪️ Store contract addresses to db.`)
     params.map((param) => {
         console.log(`🔵 Storing ${param.address} address for network ${param.network} ...`);
         writeDeployedAddress(
@@ -184,11 +208,11 @@ const storeContractAddresses = (params) => {
 const setTokenAddressToStorage = async (storage, tokenName, chainId) => {
     const tokenSymbol = getTokenSymbol(tokenName, chainId);
     
-    console.log(`🔵 Setting token ${tokenName}/${tokenSymbol} in storage at ${getMaxAddress()} for chainId ${chainId} ...`);
+    console.log(`🔵 Setting token ${tokenName}/${tokenSymbol} for chainId ${chainId} at ${getMaxAddress()} ...`);
     try {
         const tx = await storage.setTokenAddressByChainId(tokenName, chainId, getMaxAddress());
         await tx.wait();
-        console.log(`🟢 Token ${tokenName}/${tokenSymbol} set in storage at ${getMaxAddress()} for chainId ${chainId}`);
+        console.log(`🟢 Token set!`);
     } 
     catch (err) {
         console.log(err.message)
@@ -220,7 +244,7 @@ const deployBridgedToken = async (network, tokenFactory, vault, tokenName, chain
         await tx2.wait();
         
         const tokenAddress = await tokenFactory.getTokenAddress(tokenSymbol);
-        console.log(`🟢 Token ${tokenName}/${tokenSymbol} deployed at ${tokenAddress}`);
+        console.log(`🟢 Token deployed at ${tokenAddress}`);
         
         storeContractAddresses([{
             network: network,
@@ -239,12 +263,9 @@ const deployBridgedToken = async (network, tokenFactory, vault, tokenName, chain
 }
 
 const addNativeToken = async (storage, tokenName, chainId) => {
-    console.log(`🔵 Adding token ${tokenName} ${getMaxAddress()} ...`);
-    
     try {
         const tx = await storage.addNativeTokenByChainId(tokenName, chainId);
         await tx.wait();
-        console.log(`🟢 Token ${tokenName} added!`);
     }
     catch (err) {
         console.log(`🔴 Unknown error : ${err}`);
@@ -253,14 +274,14 @@ const addNativeToken = async (storage, tokenName, chainId) => {
 
 const createToken = async (network, tokenFactory, tokenName, chainId) => {
     const tokenSymbol = getTokenSymbol(tokenName, chainId);    
-    console.log(`🔵 Creating the token ${tokenName}/${tokenSymbol} ... `);
+    
     
     try {
         const tx = await tokenFactory.createToken(tokenName, tokenSymbol);
         await tx.wait();
         
         const tokenAddress = await tokenFactory.getTokenAddress(tokenSymbol);
-        console.log(`🟢 Token ${tokenName}/${tokenSymbol} created at ${tokenAddress}`);
+        
         
         storeContractAddresses([{
             network: network,
@@ -270,7 +291,7 @@ const createToken = async (network, tokenFactory, tokenName, chainId) => {
         }]);
     }
     catch (err) {
-        if (err.message.includes("reverted with reason string 'TokenFactory: token symbol already exists")) {
+        if (err.message.includes("token symbol already exists")) {
             console.log(`🟠 Token ${tokenName}/${tokenSymbol} already created`);
         } else {
             console.log(`🔴 Unknown error : ${err}`);
@@ -294,7 +315,7 @@ const deployMockedDaiToken = async (network, storage, chainId) => {
         tx = await storage.addNewTokenAddressByChainId(tokenName, chainId, contract.target);
         await tx.wait();
             
-        console.log(`🟢 Token ${tokenName} deployed at ${contract.target}`);
+        console.log(`🟢 Token deployed at ${contract.target}`);
         
         storeContractAddresses([{
             network: network,
@@ -311,6 +332,116 @@ const deployMockedDaiToken = async (network, storage, chainId) => {
     }
 }
 
+const getUser = async (userName) => {
+
+    try {
+        return new ethers.Wallet(
+            process.env[userName.toUpperCase()],
+            hre.ethers.provider
+        );
+    }
+    catch (err) {
+        throw(`User '${userName}' does not exist!`);
+    }
+}
+
+const createBridgeOperation = async (network, userName, amount, chainIdFrom, chainIdTo, tokenName) => {
+    const userWallet = await getUser(userName);
+    const userAddress = userWallet.address;
+    const nonce = await getNonce(userAddress);
+
+    console.log(`🔵 Depositing token by user ${userAddress} ...`);
+    const bridgeAddress = await readLastDeployedAddress(network, "BridgeBase");
+    const bridge = await hre.ethers.getContractAt("BridgeBase", bridgeAddress);
+
+    console.log(`\nuserAddress : ${userAddress}`)
+    console.log(`chainIdFrom : ${chainIdFrom}`)
+    console.log(`chainIdTo   : ${chainIdTo}`)
+    console.log(`tokenName   : ${tokenName}`)
+    console.log(`amount      : ${amount}`)
+    console.log(`nonce       : ${nonce}\n`)
+
+    const msgHashed = await bridge.getMessageHash(
+        userAddress,
+        userAddress,
+        chainIdFrom,
+        chainIdTo,
+        tokenName,
+        amount,
+        nonce
+    );
+
+    console.log(`🔵 Signing message ...`);
+    const signedMsgHased = await userWallet.signMessage(ethers.getBytes(msgHashed));
+    console.log(`🟢 Message signed.`);
+
+    console.log(`🔵 Creating bridge operation ...`);
+    const tx = await bridge
+        .connect(userWallet)
+        .createBridgeOperation(
+            userAddress,
+            userAddress,
+            chainIdFrom,
+            chainIdTo,
+            tokenName,
+            amount,
+            nonce,
+            signedMsgHased,
+            { value: amount }
+        );
+    await tx.wait();
+
+    await setNonce(userAddress);
+    console.log(`🟢 Token desposited.`);
+}
+
+const depoitFees = async (network, userName, amount, chainIdFrom, chainIdTo, tokenName) => {
+
+    const userWallet = await getUser(userName);
+    const userAddress = userWallet.address;
+    const nonce = await getNonce(userAddress);
+    const bridgeAddress = await readLastDeployedAddress(network, "BridgeBase");
+    const bridge = await hre.ethers.getContractAt("BridgeBase", bridgeAddress);
+    
+    console.log(`\nuserAddress : ${userAddress}`)
+    console.log(`chainIdFrom : ${chainIdFrom}`)
+    console.log(`chainIdTo   : ${chainIdTo}`)
+    console.log(`tokenName   : ${tokenName}`)
+    console.log(`amount      : ${amount}`)
+    console.log(`nonce       : ${nonce}\n`)
+    
+    console.log(`🔵 Depositing fees by user ${userAddress}...`);
+
+    const msgHashed = await bridge.getMessageHash(
+        userAddress,
+        userAddress,
+        chainIdFrom,
+        chainIdTo,
+        tokenName,
+        amount,
+        nonce
+    );
+
+    const tx = await bridge
+        .connect(userWallet)
+        .depositFees(
+            msgHashed,
+            chainIdFrom,
+            chainIdTo,
+            { value: amount }
+        );
+    await tx.wait();
+    console.log(`tx hash : ${tx.hash}`);
+    console.log(`tx data : ${tx.data}`);
+    console.log(`tx chainId : ${tx.chainId}`);
+    console.log(`tx nonce : ${tx.nonce}`);
+    // console.log(tx);
+
+    await setNonce(userAddress);
+    console.log(`🟢 Fees desposited.`);
+}
+
+
 module.exports = {
     storeContractAddresses,
     readLastDeployedAddress,
@@ -326,4 +457,8 @@ module.exports = {
     deployMockedDaiToken,
     setNonce,
     getNonce,
+    initNonce,
+    createBridgeOperation,
+    getNetworkParam,
+    depoitFees,
 };

@@ -109,7 +109,7 @@ contract Vault {
 
     // BRIDGED TOKENS
     // SEE bridge : Vault is the owner
-    function mint(address token, address to, uint256 amount) external onlyBridge {
+    function mint(address to, address token, uint256 amount) external onlyBridge {
         s_mintedBalance[token] += amount;
         s_usersDeposits[to][token] += amount;
         BridgedToken(token).mint(to, amount);

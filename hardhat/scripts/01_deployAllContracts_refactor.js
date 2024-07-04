@@ -89,12 +89,45 @@ operatorAdress = "0xe4192bf486aea10422ee097bc2cf8c28597b9f11";
 // car le storage deployment set déjà cette valeur !!!!!
 
 const deployAndSaveAddress = async (network, contractName, params) => {
-  const instance = await hre.ethers.deployContract(contractName, [...params]);
+  const instance = await hre.ethers.deployContract(contractName, params);
 
   await instance.waitForDeployment();
+  console.log(`==> ${contractName} deployed to: `, instance.target);
 
   writeDeployedAddress(network, contractName, instance.target);
+  console.log("address written in /constants/deployedAddresses.json ...\n");
+
   return instance;
+};
+
+const updateOperators = async (storageInstance, operators) => {
+  await Promise.all(
+    operators.map(async (operator) => {
+      const tx = await storageInstance.updateOperator(
+        operator.role,
+        operator.address
+      );
+      await tx.wait();
+      console.log(`${operator.role} address set in storage`);
+    })
+  ).catch((err) => {
+    console.log("error updating operators...", err.message);
+  });
+};
+
+// parallel exec (don't use this if sequential call needed)
+const batchFunc = async (instance, funcName, params) => {
+  await Promise.all(
+    params.map(async (param) => {
+      const tx = await instance[funcName](param);
+      await tx.wait();
+      console.log(
+        `error calling func ${funcName} on ${instance} with param: ${param}`
+      );
+    })
+  ).catch((err) => {
+    console.log("error updating operators...", err.message);
+  });
 };
 
 async function main() {
@@ -135,65 +168,36 @@ async function main() {
   // const storage = await hre.ethers.deployContract("Storage", [nativeSymbol]);
   let nativeName = network == "allfeat" ? "allfeat" : "ethereum";
   console.log("nativeName", nativeName);
-  const storage = await hre.ethers.deployContract("Storage", [nativeSymbol]);
 
-  await storage.waitForDeployment();
-  console.log("==> Storage deployed to:", storage.target);
+  const storage = await deployAndSaveAddress(network, "Storage", [
+    nativeSymbol,
+  ]);
 
-  // 2. deploy factory
-  const factory = await hre.ethers.deployContract("TokenFactory", [
+  const factory = await deployAndSaveAddress(network, "TokenFactory", [
     storage.target,
   ]);
-  await factory.waitForDeployment();
-  console.log("==> TokenFactory deployed to:", factory.target);
 
-  // 3. deploy vault
-  const vault = await hre.ethers.deployContract("Vault", [storage.target]);
-  await vault.waitForDeployment();
-  console.log("==> Vault deployed to:", vault.target);
+  const vault = await deployAndSaveAddress(network, "Vault", [storage.target]);
 
-  // 5. deploy relayer
-  const relayer = await hre.ethers.deployContract("RelayerBase", [
+  const relayer = await deployAndSaveAddress(network, "RelayerBase", [
     storage.target,
   ]);
-  await relayer.waitForDeployment();
-  console.log("==> Relayer deployed to:", relayer.target);
 
-  // 4. deploy bridge
-  const bridge = await hre.ethers.deployContract("BridgeBase", [
+  const bridge = await deployAndSaveAddress(network, "BridgeBase", [
     storage.target,
     relayer.target,
   ]);
-  await bridge.waitForDeployment();
-  console.log("==> Bridge deployed to:", bridge.target);
 
-  // @todo ADD SERVER ADDRESS
-
-  console.log(
-    "writing deployed addresses in /constants/deployedAddresses.json ...\n"
-  );
-  writeDeployedAddress(network, "Storage", storage.target);
-  writeDeployedAddress(network, "TokenFactory", factory.target);
-  writeDeployedAddress(network, "Vault", vault.target);
-  writeDeployedAddress(network, "RelayerBase", relayer.target);
-  writeDeployedAddress(network, "BridgeBase", bridge.target);
-
+  // be sure address are received !!
+  const operators = [
+    { role: "factory", address: factory.target },
+    { role: "vault", address: vault.target },
+    { role: "bridge", address: bridge.target },
+    { role: "relayer", address: relayer.target },
+    { role: "oracle", address: operatorAdress },
+  ];
   // set addresses in storage
-  let tx = await storage.updateOperator("factory", factory.target);
-  await tx.wait();
-  console.log("factory address set in storage");
-  tx = await storage.updateOperator("vault", vault.target);
-  await tx.wait();
-  console.log("vault address set in storage");
-  tx = await storage.updateOperator("bridge", bridge.target);
-  await tx.wait();
-  console.log("bridge address set in storage");
-  tx = await storage.updateOperator("relayer", relayer.target);
-  await tx.wait();
-  console.log("relayer address set in storage\n");
-  tx = await storage.updateOperator("oracle", operatorAdress);
-  await tx.wait();
-  console.log("oracle address set in storage\n");
+  await updateOperators(operators);
 
   console.log(
     "----------------------------------------------------------\nDeploying tokens contracts \n----------------------------------------------------------"
@@ -213,11 +217,7 @@ async function main() {
   //   )
   // );
 
-  await storage.addChainIdToList(31337);
-  await storage.addChainIdToList(441);
-  await storage.addChainIdToList(137);
-  await storage.addChainIdToList(11155111);
-  await storage.addChainIdToList(1);
+  await batchFunc(storage, "addChainIdToList", [31337, 441, 137, 11155111, 1]);
 
   // pb 31337 is 3 times instead of 2
   const chainIdList = await storage.getChainIdsList();
@@ -228,9 +228,11 @@ async function main() {
   //     storage.addTokenNameToList(tokenData.tokenName)
   //   )
   // );
-  await storage.addTokenNameToList("ethereum");
-  await storage.addTokenNameToList("allfeat");
-  await storage.addTokenNameToList("dai");
+  await batchFunc(storage, "addTokenNameToList", [
+    "ethereum",
+    "allfeat",
+    "dai",
+  ]);
 
   const tokenNameList = await storage.getTokenNamesList();
   console.log("tokenName added to tokenNameList: %s\n", tokenNameList);

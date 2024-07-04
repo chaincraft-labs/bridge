@@ -87,17 +87,43 @@ async function main() {
   const network = hre.network.name;
   const nativeSymbol = networkParams[network].nativeSymbol;
   const currentChainId = networkParams[network].chainId;
-  const [userWallet] = await hre.ethers.getSigners(); // attention the one of owner change it !!
+  // const [userWallet] = await hre.ethers.getSigners(); // attention the one of owner change it !!
+
+  // Récupérer l'argument de la ligne de commande
+  const signerOption = process.env.SIGNER_OPTION; //process.argv[2];
+
+  let userWallet; //signer
+  switch (signerOption) {
+    case "signer2":
+      userWallet = new ethers.Wallet(
+        process.env.USER_PRIVATE_KEY_2,
+        hre.ethers.provider
+      );
+      break;
+    case "signer3":
+      userWallet = new ethers.Wallet(
+        process.env.USER_PRIVATE_KEY_3,
+        hre.ethers.provider
+      );
+      break;
+    default:
+      [userWallet] = await hre.ethers.getSigners();
+  }
+
+  console.log("User Wallet => ", userWallet.address);
+  // command line argument
+  // npx hardhat run scripts/deploy.js signer2 or 3 or nothing (default)
+  // SIGNER_OPTION=signer2 npx hardhat run scripts/11_userAction_depositSepolia.js --network sepolia
 
   console.log("NETWORK", network);
   let bridgeAddress = await readLastDeployedAddress(network, "BridgeBase");
   console.log("Bridge Address", bridgeAddress);
   let bridge = await hre.ethers.getContractAt("BridgeBase", bridgeAddress);
   // BRIDGE ETHEREUM   TO ALLFEAT
-  if (network != "sepolia") {
-    console.log("WRONG NETWORK SHOULD BE SEPOLIA");
-    process.exit(1);
-  }
+  // if (network != "sepolia") {
+  //   console.log("WRONG NETWORK SHOULD BE SEPOLIA");
+  //   process.exit(1);
+  // }
 
   console.log(
     "==>USER ACTION ON %s\n----------------------------------------------------------\nDeposit ETH to bridge \n----------------------------------------------------------",
@@ -105,11 +131,11 @@ async function main() {
   );
   // 0.01 ether
   // let amount = ethers.utils.parseEther("0.01"); // == 10000000000000000
-  let amount = 10_000_000_000_000_000n;
+  let amount = 1_000_000_000_000_000n;
 
   // get deployed Utils
   // @todo CODE GET NONCE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  let nonce = 7; //3; //2; // 1; //0; //1; // 0;
+  let nonce = 0; //3; //2; // 1; //0; //1; // 0;
   const msgHashed = await bridge.getMessageHash(
     userWallet.address,
     userWallet.address,
@@ -140,6 +166,10 @@ async function main() {
 
   console.log("Bridge Operation", tx.hash);
   await tx.wait();
+
+  // set a new signer from pvt key in .env : USER_PRIVATE_KEY_2
+  // let userWallet2 = new ethers.Wallet(process.env.USER_PRIVATE_KEY_2, hre.ethers.provider);
+  // console.log("USER 2", userWallet2.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

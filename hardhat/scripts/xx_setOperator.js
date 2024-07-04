@@ -87,72 +87,25 @@ async function main() {
   const network = hre.network.name;
   const nativeSymbol = networkParams[network].nativeSymbol;
   const currentChainId = networkParams[network].chainId;
-  // const [userWallet] = await hre.ethers.getSigners(); // attention the one of owner change it !!
 
-  const signerOption = process.env.SIGNER_OPTION; //process.argv[2];
+  // if (!usedNetworks.includes(network)) {
+  //   console.log("network not supported");
+  //   process.exit(1);
+  // }
+  let oracleAddress = "0xE4192BF486AeA10422eE097BC2Cf8c28597B9F11";
 
-  let userWallet; //signer
-  switch (signerOption) {
-    case "signer2":
-      userWallet = new ethers.Wallet(
-        process.env.USER_PRIVATE_KEY_2,
-        hre.ethers.provider
-      );
-      break;
-    case "signer3":
-      userWallet = new ethers.Wallet(
-        process.env.USER_PRIVATE_KEY_3,
-        hre.ethers.provider
-      );
-      break;
-    default:
-      [userWallet] = await hre.ethers.getSigners();
-  }
-
-  console.log("User Wallet => ", userWallet.address);
-
-  let bridgeAddress = await readLastDeployedAddress(network, "BridgeBase");
-  console.log("Bridge Address", bridgeAddress);
-  let bridge = await hre.ethers.getContractAt("BridgeBase", bridgeAddress);
-
-  let relayerAddress = await readLastDeployedAddress(network, "RelayerBase");
-  let relayer = await hre.ethers.getContractAt("RelayerBase", relayerAddress);
-  // DEPOSIT FEES ON ALLFEAT
-  if (network != "allfeat") {
-    console.log("WRONG NETWORK SHOULD BE ALLFEAT");
-    process.exit(1);
-  }
-
-  console.log(
-    "==>USER ACTION ON %s\n----------------------------------------------------------\nDeposit AFT fees \n----------------------------------------------------------",
-    network
+  let storageAddress = readLastDeployedAddress(
+    "allfeat", //usedNetworks[0],
+    "Storage"
   );
-  // 0.01 ether
-  // let amount = ethers.utils.parseEther("0.001"); // == 10000000000000000
-  let amount = 1_000_000_000_000_000n;
-
-  // @todo CODE GET NONCE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  let nonce = 0; //3; //2; //1; //0; //1; //0;
-  const msgHashed = await bridge.getMessageHash(
-    userWallet.address,
-    userWallet.address,
-    11155111,
-    441,
-    "ethereum",
-    amount,
-    nonce
-  );
-  console.log("Message Hash", msgHashed);
-
-  // let tx = await relayer
-  //   .connect(userWallet)
-  //   .lockDestinationFees(msgHashed, 11155111, { value: amount });
-  let tx = await bridge
-    .connect(userWallet)
-    .depositFees(msgHashed, 11155111, 441, { value: amount });
-
-  console.log("Relayer lock fees:", tx.hash);
+  let storage = await hre.ethers.getContractAt("Storage", storageAddress);
+  tx = await storage.updateOperator("oracle", oracleAddress);
   await tx.wait();
+
+  //   const [owner, user, server] = await hre.ethers.getSigners();
+  //   console.log("--> owner address: %s ", owner.address);
+  //   console.log("--> user address: %s \n", user.address);
+  //   console.log("--> server address: %s \n", server.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
@@ -161,3 +114,12 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
+
+/// commands
+// npx hardhat run scripts/01_deployAllContracts.js --network localhost
+// npx hardhat run scripts /01_setTokens.js--network localhost
+
+// npx hardhat run scripts/01_deployAllContracts.js --network sepolia
+// npx hardhat run scripts/01_deployAllContracts.js --network allfeat
+// npx hardhat run scripts/01_setTokens.js --network sepolia
+// npx hardhat run scripts/01_setTokens.js --network allfeat

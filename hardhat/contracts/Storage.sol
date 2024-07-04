@@ -631,6 +631,25 @@ contract Storage {
         emit Storage_TokenAddressSet(tokenName, chainId, tokenAddress);
     }
 
+    // new cleanup
+    function batchSetTokenAddressByChainId(
+        string[] memory tokenNames,
+        uint256[] memory chainIds,
+        address[] memory tokenAddresses
+    ) public {
+        require(
+            tokenNames.length == chainIds.length,
+            "Storage: batchUpdateTokenAddressByChainId: tokenNames and chainIds length mismatch"
+        );
+        require(
+            chainIds.length == tokenAddresses.length,
+            "Storage: batchUpdateTokenAddressByChainId: chainIds and tokenAddresses length mismatch"
+        );
+        for (uint256 i = 0; i < tokenNames.length; i++) {
+            setTokenAddressByChainId(tokenNames[i], chainIds[i], tokenAddresses[i]);
+        }
+    }
+
     function getTokenAddressByChainId(string memory tokenName, uint256 chainId) public view returns (address) {
         return getAddress(getKey(tokenName, chainId));
     }

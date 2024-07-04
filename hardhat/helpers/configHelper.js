@@ -37,6 +37,39 @@ const tokenSymbols = {
   dai: "DAI",
 };
 
+const tokenParams = {
+  ethereum: {
+    tokenName: "ethereum",
+    tokenSymbol: "ETH",
+    originChainId: [1, 31337, 11155111],
+    isNative: true,
+  },
+  allfeat: {
+    tokenName: "allfeat",
+    tokenSymbol: "AFT",
+    originChainId: [441],
+    isNative: true,
+  },
+  matic: {
+    tokenName: "matic",
+    tokenSymbol: "MATIC",
+    originChainId: [137],
+    isNative: true,
+  },
+  dai: {
+    tokenName: "dai",
+    tokenSymbol: "DAI",
+    originChainId: [1],
+    isNative: false,
+  },
+  mockedDai: {
+    tokenName: "mockedDai",
+    tokenSymbol: "DAI",
+    originChainId: [31337, 11155111],
+    isNative: false,
+  },
+};
+
 const tokenList = [
   {
     tokenName: "ethereum",
@@ -70,9 +103,9 @@ const tokenList = [
   },
 ];
 
-const usedNetworks = ["allfeat", "hardhat", "sepolia", "localhost"];
+// const usedNetworks = ["allfeat", "hardhat", "sepolia", "localhost"];
 
-const usedTokens = ["ethereum", "allfeat", "mockedDai"];
+// const usedTokens = ["ethereum", "allfeat", "mockedDai"];
 
 const getChainIdByNetworkName = (name) => {
   return networkParams[name].chainId;
@@ -97,7 +130,8 @@ module.exports = {
   getChainIdByNetworkName,
   getNetworkNameByChainId,
   computeTokenSymbol,
-  usedNetworks,
-  usedTokens,
+  // usedNetworks,
+  // usedTokens,
   tokenSymbols,
+  tokenParams,
 };

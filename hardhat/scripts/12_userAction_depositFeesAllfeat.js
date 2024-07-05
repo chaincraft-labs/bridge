@@ -87,7 +87,29 @@ async function main() {
   const network = hre.network.name;
   const nativeSymbol = networkParams[network].nativeSymbol;
   const currentChainId = networkParams[network].chainId;
-  const [userWallet] = await hre.ethers.getSigners(); // attention the one of owner change it !!
+  // const [userWallet] = await hre.ethers.getSigners(); // attention the one of owner change it !!
+
+  const signerOption = process.env.SIGNER_OPTION; //process.argv[2];
+
+  let userWallet; //signer
+  switch (signerOption) {
+    case "signer2":
+      userWallet = new ethers.Wallet(
+        process.env.USER_PRIVATE_KEY_2,
+        hre.ethers.provider
+      );
+      break;
+    case "signer3":
+      userWallet = new ethers.Wallet(
+        process.env.USER_PRIVATE_KEY_3,
+        hre.ethers.provider
+      );
+      break;
+    default:
+      [userWallet] = await hre.ethers.getSigners();
+  }
+
+  console.log("User Wallet => ", userWallet.address);
 
   let bridgeAddress = await readLastDeployedAddress(network, "BridgeBase");
   console.log("Bridge Address", bridgeAddress);
@@ -110,7 +132,7 @@ async function main() {
   let amount = 1_000_000_000_000_000n;
 
   // @todo CODE GET NONCE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  let nonce = 1; //3; //2; //1; //0; //1; //0;
+  let nonce = 0; //3; //2; //1; //0; //1; //0;
   const msgHashed = await bridge.getMessageHash(
     userWallet.address,
     userWallet.address,

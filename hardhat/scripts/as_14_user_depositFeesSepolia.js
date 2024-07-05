@@ -87,89 +87,50 @@ async function main() {
   const network = hre.network.name;
   const nativeSymbol = networkParams[network].nativeSymbol;
   const currentChainId = networkParams[network].chainId;
-  // const [userWallet] = await hre.ethers.getSigners(); // attention the one of owner change it !!
+  const [userWallet] = await hre.ethers.getSigners(); // attention the one of owner change it !!
 
-  // Récupérer l'argument de la ligne de commande
-  const signerOption = process.env.SIGNER_OPTION; //process.argv[2];
-
-  let userWallet; //signer
-  switch (signerOption) {
-    case "signer2":
-      userWallet = new ethers.Wallet(
-        process.env.USER_PRIVATE_KEY_2,
-        hre.ethers.provider
-      );
-      break;
-    case "signer3":
-      userWallet = new ethers.Wallet(
-        process.env.USER_PRIVATE_KEY_3,
-        hre.ethers.provider
-      );
-      break;
-    default:
-      [userWallet] = await hre.ethers.getSigners();
-  }
-
-  console.log("User Wallet => ", userWallet.address);
-  // command line argument
-  // npx hardhat run scripts/deploy.js signer2 or 3 or nothing (default)
-  // SIGNER_OPTION=signer2 npx hardhat run scripts/11_userAction_depositSepolia.js --network sepolia
-
-  console.log("NETWORK", network);
   let bridgeAddress = await readLastDeployedAddress(network, "BridgeBase");
   console.log("Bridge Address", bridgeAddress);
   let bridge = await hre.ethers.getContractAt("BridgeBase", bridgeAddress);
-  // BRIDGE ETHEREUM   TO ALLFEAT
-  // if (network != "sepolia") {
-  //   console.log("WRONG NETWORK SHOULD BE SEPOLIA");
-  //   process.exit(1);
-  // }
+
+  let relayerAddress = await readLastDeployedAddress(network, "RelayerBase");
+  let relayer = await hre.ethers.getContractAt("RelayerBase", relayerAddress);
+  // DEPOSIT FEES ON ALLFEAT
+  if (network != "sepolia") {
+    console.log("WRONG NETWORK SHOULD BE SEPOLIA");
+    process.exit(1);
+  }
 
   console.log(
-    "==>USER ACTION ON %s\n----------------------------------------------------------\nDeposit ETH to bridge \n----------------------------------------------------------",
+    "==>USER ACTION ON %s\n----------------------------------------------------------\nDeposit AFT fees \n----------------------------------------------------------",
     network
   );
   // 0.01 ether
-  // let amount = ethers.utils.parseEther("0.01"); // == 10000000000000000
+  // let amount = ethers.utils.parseEther("0.001"); // == 10000000000000000
   let amount = 1_000_000_000_000_000n;
 
-  // get deployed Utils
   // @todo CODE GET NONCE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  let nonce = 0; //3; //2; // 1; //0; //1; // 0;
+  let nonce = 0; //2; //1; //0; //1; //0;
   const msgHashed = await bridge.getMessageHash(
     userWallet.address,
     userWallet.address,
-    11155111,
     441,
-    "ethereum",
+    11155111,
+    "allfeat",
     amount,
     nonce
   );
   console.log("Message Hash", msgHashed);
-  const signedMsgHased = await userWallet.signMessage(
-    ethers.getBytes(msgHashed)
-  );
-  console.log("Signed Message Hash", signedMsgHased);
+
+  // let tx = await relayer
+  //   .connect(userWallet)
+  //   .lockDestinationFees(msgHashed, 11155111, { value: amount });
   let tx = await bridge
     .connect(userWallet)
-    .createBridgeOperation(
-      userWallet.address,
-      userWallet.address,
-      11155111,
-      441,
-      "ethereum",
-      amount,
-      nonce,
-      signedMsgHased,
-      { value: amount }
-    );
+    .depositFees(msgHashed, 441, 11155111, { value: amount });
 
-  console.log("Bridge Operation", tx.hash);
+  console.log("Relayer lock fees:", tx.hash);
   await tx.wait();
-
-  // set a new signer from pvt key in .env : USER_PRIVATE_KEY_2
-  // let userWallet2 = new ethers.Wallet(process.env.USER_PRIVATE_KEY_2, hre.ethers.provider);
-  // console.log("USER 2", userWallet2.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
@@ -178,8 +139,3 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
-
-//commands
-
-// npx hardhat run scripts/11_userAction_depositSepolia.js --network sepolia
-// npx hardhat run scripts/12_userAction_depositFeesAllfeat.js --network allfeat

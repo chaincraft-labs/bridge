@@ -20,7 +20,7 @@ contract TokenFactory {
     string[] public BridgedTokens;
 
     modifier onlyAdmin() {
-        require(Storage(s_storageAddress).isAdmin(msg.sender), "TokenFactory: caller is not the admin");
+        require(Storage(s_storageAddress).isRole("admin", msg.sender), "TokenFactory: caller is not the admin");
         _;
     }
 
@@ -33,7 +33,7 @@ contract TokenFactory {
         // store the storage address
         // check is isAdmin(msg.sender) in the storage
         s_storageAddress = storageAddress;
-        if (!Storage(s_storageAddress).isAdmin(msg.sender)) {
+        if (!Storage(s_storageAddress).isRole("admin", msg.sender)) {
             revert("TokenFactory: caller is not the admin");
         }
     }
@@ -100,7 +100,7 @@ contract TokenFactory {
 
         // @todo CLEANUP
         // Storage(s_storageAddress).addNewTokenAddressByChainId(name, block.chainid, address(token));
-        Storage(s_storageAddress).setTokenAddressByChainId(name, block.chainid, address(token));
+        Storage(s_storageAddress).addNewTokenAddressByChainId(name, block.chainid, address(token));
 
         // transfert ownership to Vault
         address vault = Storage(s_storageAddress).getOperator("vault");

@@ -53,28 +53,28 @@ contract Vault {
 
     // modifier (later functions if more optimized)
     modifier onlyAdmin() {
-        require(Storage(s_storageAddress).isAdmin(msg.sender), "Vault: caller is not the admin");
+        require(Storage(s_storageAddress).isRole("admin", msg.sender), "Vault: caller is not the admin");
         _;
     }
 
     modifier onlyFactory() {
-        require(Storage(s_storageAddress).isFactory(msg.sender), "Vault: caller is not the factory");
+        require(Storage(s_storageAddress).isRole("factory", msg.sender), "Vault: caller is not the factory");
         _;
     }
 
     modifier onlyBridge() {
-        require(Storage(s_storageAddress).isBridge(msg.sender), "Vault: caller is not the bridge");
+        require(Storage(s_storageAddress).isRole("bridge", msg.sender), "Vault: caller is not the bridge");
         _;
     }
     // server
 
     modifier onlyOracle() {
-        require(Storage(s_storageAddress).isOracle(msg.sender), "Vault: caller is not the oracle");
+        require(Storage(s_storageAddress).isRole("oracle", msg.sender), "Vault: caller is not the oracle");
         _;
     }
 
     modifier onlyRelayer() {
-        require(Storage(s_storageAddress).isRelayer(msg.sender), "Vault: caller is not the relayer");
+        require(Storage(s_storageAddress).isRole("relayer", msg.sender), "Vault: caller is not the relayer");
         _;
     }
 
@@ -83,7 +83,7 @@ contract Vault {
         // store the storage address
         // check is isAdmin(msg.sender) in the storage
         s_storageAddress = storageAddress;
-        if (!Storage(s_storageAddress).isAdmin(msg.sender)) {
+        if (!Storage(s_storageAddress).isRole("admin", msg.sender)) {
             revert("Vault: caller is not the admin");
         }
     }

@@ -103,10 +103,6 @@ const tokenList = [
   },
 ];
 
-// const usedNetworks = ["allfeat", "hardhat", "sepolia", "localhost"];
-
-// const usedTokens = ["ethereum", "allfeat", "mockedDai"];
-
 const getChainIdByNetworkName = (name) => {
   return networkParams[name].chainId;
 };

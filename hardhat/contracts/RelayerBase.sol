@@ -141,14 +141,14 @@ contract RelayerBase is Utils {
     /* modifiers */
 
     modifier onlyBridge() {
-        if (!Storage(s_storage).isBridge(msg.sender)) {
+        if (!Storage(s_storage).isRole("bridge", msg.sender)) {
             revert("only bridge");
         }
         _;
     }
 
     modifier onlyOracle() {
-        if (!Storage(s_storage).isOracle(msg.sender)) {
+        if (!Storage(s_storage).isRole("oracle", msg.sender)) {
             revert("only oracle");
         }
         _;
@@ -159,7 +159,7 @@ contract RelayerBase is Utils {
         // first deployed is storage so admin of storage should be the admin of the factory and msg.sender
 
         s_storage = storageAddress;
-        if (!Storage(s_storage).isAdmin(msg.sender)) {
+        if (!Storage(s_storage).isRole("admin", msg.sender)) {
             revert("TokenFactory: caller is not the admin");
         }
     }

@@ -114,7 +114,7 @@ contract BridgeBase is Utils {
 
     // MAke Access control instead
     modifier onlyAdmin(address _admin) {
-        if (!Storage(s_storage).isAdmin(_admin)) {
+        if (!Storage(s_storage).isRole("admin", _admin)) {
             revert("BridgeBase: caller is not the admin");
         }
         _;
@@ -137,21 +137,21 @@ contract BridgeBase is Utils {
     // }
 
     modifier onlyOracle() {
-        if (!Storage(s_storage).isOracle(msg.sender)) {
+        if (!Storage(s_storage).isRole("oracle", msg.sender)) {
             revert("BridgeBase: caller is not the oracle");
         }
         _;
     }
 
     modifier onlyRelayer() {
-        if (!Storage(s_storage).isRelayer(msg.sender)) {
+        if (!Storage(s_storage).isRole("relayer", msg.sender)) {
             revert("BridgeBase: caller is not the relayer");
         }
         _;
     }
 
     modifier onlyAdminOrBridge() {
-        if (!Storage(s_storage).isAdmin(msg.sender) && !Storage(s_storage).isBridge(msg.sender)) {
+        if (!Storage(s_storage).isRole("admin", msg.sender) && !Storage(s_storage).isRole("bridge", msg.sender)) {
             revert("BridgeBase: caller is not the admin or the bridge");
         }
         _;

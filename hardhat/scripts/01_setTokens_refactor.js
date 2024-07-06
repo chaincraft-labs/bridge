@@ -70,7 +70,7 @@ async function main() {
 
   // set newtoken batch
 
-  let tx = await storage.batchSetTokenAddressByChainId(
+  let tx = await storage.batchAddNewTokensAddressesByChainId(
     tokensToSet.names,
     tokensToSet.chaindIds,
     tokensToSet.addresses

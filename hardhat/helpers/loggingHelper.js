@@ -42,18 +42,56 @@ const styleMessage = (msg, msgStyles) => {
   return `${styleHeader}${msg}${styleFooter}`;
 };
 
+// @todo make it more generic to ease msg logging
+// 80 :"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
+const dDotSeparator = ":".repeat(80);
+const sDotSeparator = ".".repeat(80);
+const dashSeparator = "-".repeat(80);
+const titleSeparator = dashSeparator;
+
 const toStyle = {
   success: (msg) => {
     return styleMessage(msg, ["brightGreen"]);
   },
   title: (msg) => {
-    return styleMessage(msg, ["bold"]);
+    const formattedMsg = `\n${titleSeparator}\n===========>   ${msg}\n${titleSeparator}`;
+    return styleMessage(formattedMsg, ["bold"]);
   },
   error: (msg) => {
     return styleMessage(msg, ["red", "bold", "brightYellowBackground"]);
   },
   italic: (msg) => {
     return styleMessage(msg, ["italic"]);
+  },
+  redItalic: (msg) => {
+    return styleMessage(msg, ["red", "italic"]);
+  },
+  blueItalic: (msg) => {
+    return styleMessage(msg, ["cyan", "italic"]);
+  },
+  yellowItalic: (msg) => {
+    return styleMessage(msg, ["brightYellow", "italic"]);
+  },
+  greenItalic: (msg) => {
+    return styleMessage(msg, ["green", "italic"]);
+  },
+  bold: (msg) => {
+    return styleMessage(msg, ["bold"]);
+  },
+  redBold: (msg) => {
+    return styleMessage(msg, ["red", "bold"]);
+  },
+  blueBold: (msg) => {
+    return styleMessage(msg, ["cyan", "bold"]);
+  },
+  yellowBold: (msg) => {
+    return styleMessage(msg, ["yellow", "bold"]);
+  },
+  greenBold: (msg) => {
+    return styleMessage(msg, ["green", "bold"]);
+  },
+  discrete: (msg) => {
+    return styleMessage(msg, ["brightBlack", "italic"]);
   },
 };
 

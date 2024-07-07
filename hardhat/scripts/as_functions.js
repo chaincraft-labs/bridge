@@ -136,11 +136,7 @@ const updateOperator = async () => {
 }
 
 const addChainIds = async (chainIds) => {
-<<<<<<< HEAD
     // e.g. chainIds = [11155111, 31337, 440, 441]
-=======
-    // chainIds = [11155111, 31337, 440, 441]
->>>>>>> origin/dev
     const {network} = await initContext();
     const storageAddress = readLastDeployedAddress(network, "Storage");
     const storage = await hre.ethers.getContractAt("Storage", storageAddress);
@@ -158,11 +154,7 @@ const addChainIds = async (chainIds) => {
 }
 
 const addTokens = async (tokens) => {
-<<<<<<< HEAD
     // e.g. tokens = ['ethereum', 'allfeat', 'dai']
-=======
-    // tokens = ['ethereum', 'allfeat', 'dai']
->>>>>>> origin/dev
     const {network} = await initContext();
     const storageAddress = readLastDeployedAddress(network, "Storage");
     const storage = await hre.ethers.getContractAt("Storage", storageAddress);
@@ -190,10 +182,7 @@ const addEth = async (networkEth) => {
     const tokenFactory = await hre.ethers.getContractAt("TokenFactory", tokenFactoryAddress);
 
     if (
-<<<<<<< HEAD
         network === "geth" || 
-=======
->>>>>>> origin/dev
         network === "sepolia" || 
         network === "hardhat" || 
         network === "anvil_local" || 
@@ -222,10 +211,7 @@ const addAft = async (networkAft) => {
     const tokenFactory = await hre.ethers.getContractAt("TokenFactory", tokenFactoryAddress);   
 
     if (
-<<<<<<< HEAD
         network === "geth" || 
-=======
->>>>>>> origin/dev
         network === "sepolia" || 
         network === "hardhat" || 
         network === "anvil_local" || 
@@ -249,10 +235,7 @@ const addDai = async () => {
     const tokenFactory = await hre.ethers.getContractAt("TokenFactory", tokenFactoryAddress);   
 
     if (
-<<<<<<< HEAD
         network === "geth" || 
-=======
->>>>>>> origin/dev
         network === "sepolia" || 
         network === "hardhat" || 
         network === "anvil_local" || 

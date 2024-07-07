@@ -151,7 +151,7 @@ const main = async () => {
   program
     .version("1.0.0")
     .description("Bridge relayer CLI")
-    .option('--deploy [pattern]', 'deploy all contracts, set operators, chainIds and token. Options: geth,allfeat_local,1337,440')
+    .option('--deploy [pattern]', 'deploy all contracts, set operators, chainIds and token. pattern [getAllfeatLocal]')
     .option('--deploy-contracts', 'deploy all contracts')
     .option('--deploy-storage', 'deploy Storage contract')
     .option('--deploy-token-factory', 'deploy TokenFactory contract')

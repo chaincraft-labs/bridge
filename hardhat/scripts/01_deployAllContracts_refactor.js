@@ -73,9 +73,9 @@ const batchWriteFunc = async (instance, funcName, params) => {
     })
   ).catch((err) => {
     console.log(
-      `${toStyle.error(
-        "Error: "
-      )} calling func ${funcName} on ${instance} with params: ${params}\n${err}`
+      `${toStyle.error("Error: ")} calling func ${funcName} on ${
+        instance.target
+      } with params: ${params}\n${err}`
     );
   });
 };
@@ -93,6 +93,29 @@ async function main() {
   const currentChainId = networkParams[network].chainId;
   const [owner, user, server] = await hre.ethers.getSigners();
 
+  console.log(toStyle.title(`Script: deployAllContracts...`));
+  console.log(
+    `Will deploy to network: ${toStyle.blueItalic(
+      network
+    )} (chainId ${toStyle.blueItalic(currentChainId)}) with:`
+  );
+  console.log(
+    `- native token ${toStyle.blueItalic(
+      nativeTokenName
+    )} (${toStyle.blueItalic(nativeTokenSymbol)})`
+  );
+  console.log(
+    `- admin / deployer address: ${toStyle.blueItalic(owner.address)}`
+  );
+
+  // Check we don't have localhost AND hardhat in network used (same id)
+  if (usedNetworks.includes("localhost") && usedNetworks.includes("hardhat")) {
+    throw `${toStyle.error("Error: ")}${toStyle.yellowItalic(
+      "usedNetworks"
+    )} should NOT include "localhost" and "hardhat" at the same time in${toStyle.yellowItalic(
+      "constants/deploymentConfig.js"
+    )}!\n`;
+  }
   // Check if we deploy to a network from the deploymentConfig (deployment security)
   if (!usedNetworks.includes(network)) {
     throw `${toStyle.error(
@@ -110,11 +133,6 @@ async function main() {
       )} is not included in the networkParams!!`;
     }
   });
-
-  // @todo : modify display
-  console.log("nativeTokenName", nativeTokenName);
-  console.log("nativeTokenSymbol: %s", nativeTokenSymbol);
-  console.log("--> owner address: %s ", owner.address);
 
   ///////////////////////////////////////////////////////////////////////////////
   //
@@ -179,11 +197,11 @@ async function main() {
   );
 
   // ===> chainIds
-  const chainIdToAdd = usedNetworks
+  const chainIdsToAdd = usedNetworks
     .map((usedNetwork) => getChainIdByNetworkName(usedNetwork))
     .filter((usedChainId) => usedChainId != getChainIdByNetworkName(network));
 
-  tx = await storage.batchAddChainIdsToList(chainIdToAdd);
+  tx = await storage.batchAddChainIdsToList(chainIdsToAdd);
   await tx.wait();
 
   const chainIdList = await storage.getChainIdsList();
@@ -213,7 +231,7 @@ async function main() {
   console.log(
     toStyle.title(`Deploying tokens contracts and storing addresses in storage`)
   );
-  console.log(toStyle.bold(`\n* Native token:`));
+  console.log(toStyle.bold(`* Native token:`));
   /*
    * Native token: data are set in storage constructor
    */
@@ -234,7 +252,7 @@ async function main() {
   /*
    * Mocked tokens: checks whether tokens should be deployed on this network & deploy them
    */
-  console.log(toStyle.bold(`\n* Mocked tokens:`));
+  console.log(toStyle.bold(`* Mocked tokens:`));
   // Load the tokens declared in networkParams
   const currentNetworkTokens = networkParams[network].deployedTokens;
 
@@ -273,7 +291,7 @@ async function main() {
    * Bridged tokens: checks whether tokens are deployed on other chains & so need to be deployed as bridged tokens
    * The factory deploys the bridged tokens and set their data in storage contract
    */
-  console.log(toStyle.bold(`\n* Bridged tokens:`));
+  console.log(toStyle.bold(`* Bridged tokens:`));
   // Load native and mocked tokens of this network, the ones from 'usedTokens' to not deploy as BridgedToken
   const notBridgedTokens = currentNetworkTokens.map((token) => {
     return token.name;

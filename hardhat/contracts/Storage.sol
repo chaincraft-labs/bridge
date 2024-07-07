@@ -9,6 +9,7 @@ import {TokenFactory} from "./TokenFactory.sol";
 // @todo : unify : 'update' or 'set' / 'batchSet' or 'setBatch'...
 // @todo : errors : Typo => first lettre to upper case
 // @todo : errors & event '__' instead of '_'
+error storage_not_admin2(string reason);
 
 error storage_not_admin();
 error storage_token_not_in_list(string tokenName);
@@ -802,13 +803,19 @@ contract Storage {
         string[] memory tokenNames,
         uint256[] memory chainIds,
         address[] memory tokenAddresses
-    ) public {
-        if (tokenNames.length == chainIds.length || chainIds.length == tokenAddresses.length) {
+    ) public returns (string memory) {
+        if (!isAdmin() && !isFactory()) {
+            revert storage_not_admin2("test");
+        }
+        if (tokenNames.length != chainIds.length || chainIds.length != tokenAddresses.length) {
             revert Storage__InvalidArrayLengthInParams("batchAddTokenAddressessByChainId");
         }
 
-        for (uint256 i = 0; i < tokenNames.length; i++) {
+        for (uint256 i = 0; i < tokenNames.length;) {
             addNewTokenAddressByChainId(tokenNames[i], chainIds[i], tokenAddresses[i]);
+            unchecked {
+                ++i;
+            }
         }
     }
 

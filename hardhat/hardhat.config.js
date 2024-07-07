@@ -45,14 +45,6 @@ module.exports = {
       url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
       accounts: [deployerPrivateKey],
     },
-    anvil_local: {
-      url: `http://127.0.0.1:8545`,
-      accounts: [process.env.ANVIL_KEY],
-    },
-    mainnet: {
-      url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
-      accounts: [deployerPrivateKey],
-    },
     sepolia: {
       url: `https://eth-sepolia.g.alchemy.com/v2/${providerApiKey}`,
       accounts: [deployerPrivateKey],

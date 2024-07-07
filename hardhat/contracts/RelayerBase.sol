@@ -113,9 +113,9 @@ contract RelayerBase is Utils {
     // );
     // event StatusChanged(uint256 operationHash, OperationStatus oldStatus, OperationStatus newStatus);
 
-    event OperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockNumber);
-    event SentOperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockNumber);
-    event ReceveidOperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockNumber);
+    event OperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockStep);
+    event SentOperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockStep);
+    event ReceveidOperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockStep);
     // As origin
     // event OperationCreated(bytes32 operationHash, OperationParams params, uint256 blockNumber);
     event OperationCreated(bytes32 operationHash, OperationParams params, uint256 blockStep);
@@ -127,16 +127,16 @@ contract RelayerBase is Utils {
     //     bytes32 operationHash, OperationParams params, uint256 initBlock, uint256 blockNumber
     // );
     event FeesLockedAndDepositConfirmed(bytes32 operationHash, OperationParams params, uint256 blockStep);
-    event OperationClosed(bytes32 operationHash, uint256 blockNumber);
+    event OperationClosed(bytes32 operationHash, OperationParams params, uint256 blockStep);
     // As destination
     // event FeesDeposited(bytes32 operationHash, uint256 chainId);
     event FeesDeposited(bytes32 operationHash, OperationParams params, uint256 blockStep);
 
-    // event FeesDepositConfirmed(bytes32 operationHash, uint256 chainId, uint256 blockNumber);
+    // event FeesDepositConfirmed(bytes32 operationHash, uint256 chainId, uint256 blockStep);
     event FeesDepositConfirmed(bytes32 operationHash, OperationParams params, uint256 blockStep);
 
-    event OperationReceived(bytes32 operationHash, OperationParams params, uint256 blockNumber);
-    event OperationFinalized(bytes32 operationHash, OperationParams params, uint256 blockNumber);
+    event OperationReceived(bytes32 operationHash, OperationParams params, uint256 blockStep);
+    event OperationFinalized(bytes32 operationHash, OperationParams params, uint256 blockStep);
 
     /* modifiers */
 
@@ -329,7 +329,7 @@ contract RelayerBase is Utils {
             Storage(s_storage).getTokenAddressByChainId(operation.params.tokenName, operation.params.chainIdFrom);
         BridgeBase bridge = BridgeBase(Storage(s_storage).getOperator("bridge"));
         bridge.finalizeBridgeDeposit(operation.params.from, tokenFrom, operation.params.amount);
-        emit OperationClosed(operationHash, block.number);
+        emit OperationClosed(operationHash, params, block.number);
     }
 
     // MAKE CONSTANT FOR VARIABLE NAME AND TAG !!!

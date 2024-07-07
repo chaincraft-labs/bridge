@@ -31,6 +31,10 @@ const networkParams = {
       chainId: 31337,
       nativeSymbol: "ETH",
     },
+    geth: {
+      chainId: 1337,
+      nativeSymbol: "ETH",
+    },
 };
 
 module.exports = {networkParams}

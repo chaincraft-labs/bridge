@@ -473,7 +473,7 @@ contract BridgeBase is Utils {
         vault.cancelDeposit(user, tokenFrom, amount);
     }
 
-    function finalizeBridgeDeposit(address user, address tokenFrom, uint256 amount) external onlyAdminOrBridge {
+    function finalizeBridgeDeposit(address user, address tokenFrom, uint256 amount) external onlyRelayer {
         Vault vault = Vault(Storage(s_storage).getOperator("vault"));
         vault.finalizeDeposit(user, tokenFrom, amount);
     }

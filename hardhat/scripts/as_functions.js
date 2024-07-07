@@ -136,7 +136,7 @@ const updateOperator = async () => {
 }
 
 const addChainIds = async (chainIds) => {
-    // chainIds = [11155111, 31337, 440, 441]
+    // e.g. chainIds = [11155111, 31337, 440, 441]
     const {network} = await initContext();
     const storageAddress = readLastDeployedAddress(network, "Storage");
     const storage = await hre.ethers.getContractAt("Storage", storageAddress);
@@ -154,7 +154,7 @@ const addChainIds = async (chainIds) => {
 }
 
 const addTokens = async (tokens) => {
-    // tokens = ['ethereum', 'allfeat', 'dai']
+    // e.g. tokens = ['ethereum', 'allfeat', 'dai']
     const {network} = await initContext();
     const storageAddress = readLastDeployedAddress(network, "Storage");
     const storage = await hre.ethers.getContractAt("Storage", storageAddress);
@@ -182,6 +182,7 @@ const addEth = async (networkEth) => {
     const tokenFactory = await hre.ethers.getContractAt("TokenFactory", tokenFactoryAddress);
 
     if (
+        network === "geth" || 
         network === "sepolia" || 
         network === "hardhat" || 
         network === "anvil_local" || 
@@ -210,6 +211,7 @@ const addAft = async (networkAft) => {
     const tokenFactory = await hre.ethers.getContractAt("TokenFactory", tokenFactoryAddress);   
 
     if (
+        network === "geth" || 
         network === "sepolia" || 
         network === "hardhat" || 
         network === "anvil_local" || 
@@ -233,6 +235,7 @@ const addDai = async () => {
     const tokenFactory = await hre.ethers.getContractAt("TokenFactory", tokenFactoryAddress);   
 
     if (
+        network === "geth" || 
         network === "sepolia" || 
         network === "hardhat" || 
         network === "anvil_local" || 

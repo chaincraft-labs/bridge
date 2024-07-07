@@ -7,6 +7,7 @@ const tokenList = [
         { chainId: 441, symbol: "abETH" },
         { chainId: 440, symbol: "abETH" },
         { chainId: 31337, symbol: "ETH" },
+        { chainId: 1337, symbol: "ETH" },
         { chainId: 11155111, symbol: "ETH" },
       ],
     },
@@ -18,6 +19,7 @@ const tokenList = [
         { chainId: 441, symbol: "abDAI" },
         { chainId: 440, symbol: "abDAI" },
         { chainId: 31337, symbol: "DAI" },
+        { chainId: 1337, symbol: "DAI" },
         { chainId: 11155111, symbol: "DAI" },
       ],
     },
@@ -29,6 +31,7 @@ const tokenList = [
         { chainId: 441, symbol: "AFT" },
         { chainId: 440, symbol: "MAFT" },
         { chainId: 31337, symbol: "hbAFT" },
+        { chainId: 1337, symbol: "hbAFT" },
         { chainId: 11155111, symbol: "sbAFT" },
       ],
     },
@@ -36,6 +39,7 @@ const tokenList = [
 
 const nativeTokens = {
   31337: 'ethereum',
+  1337: 'ethereum',
   440: 'allfeat',
   11155111: 'ethereum',
   441: 'allfeat',

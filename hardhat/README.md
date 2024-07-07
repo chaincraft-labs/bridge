@@ -82,3 +82,49 @@ Options:
   --get-nonce [address]                                                      get nonce
   -h, --help                                
 ```
+
+
+## Setup GETH local node in dev mode
+
+1. Install Geth
+2. Start the node
+3. Import Hardhat account
+4. Fund new imported account
+
+### 1 Install Geth
+[Download Geth](https://geth.ethereum.org/downloads)
+
+### 2 Start Geth node
+Example:
+```bash
+mkdir /tmp/geth
+cd /tmp/geth
+geth geth --datadir . --dev --http --dev.period 12
+```
+
+* --http : allow to interact with the node
+* --dev.period 12 : mine a block every 12 seconds
+
+
+### 3 Import hardhat account
+1. Copy the hardhat account private key into a file (without the 0x suffix)
+```bash
+echo "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d" > user2
+```
+2. Import the account and define a password (at least 10 chars)
+```bash
+clef importraw user2
+```
+
+### 4 Fund imported account
+
+1. Identify the IPC once the node is started with the "IPC endpoint opened" words. The IPC should be something like url=/tmp/geth/geth.ipc
+
+2. Start the javascript console
+   ```bash
+   geth attach /tmp/geth/geth.ipc
+   ```
+3. Fund the account. (eth.accounts[0] is the dev account)
+   ```bash
+    eth.sendTransaction({from: eth.accounts[0], to: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8", value: web3.toWei(50, "ether")})
+    ```

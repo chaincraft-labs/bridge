@@ -18,8 +18,8 @@ const {
 } = require('./as_functions');
 
 
-const deploy = async (options) => {
-  const [networkEth, networkAft] = options.split(',');
+const deploy = async (pattern) => {
+  const [networkEth, networkAft, chainidEth, chainidAft] = deployPatterns[pattern].split(',');
 
   initNonce();
   await showContext();
@@ -29,8 +29,8 @@ const deploy = async (options) => {
   await deployRelayerBase();
   await deployBridgeBase();
   await updateOperator();
-  await _addChainIds('1115511,31337,440,441', false); // hardcoding for testing
-  await _addTokens('ethereum,allfeat,dai', false);
+  await _addChainIds(`${chainidEth},${chainidAft}`, false); // hardcoding for testing
+  await _addTokens(addTokenPatterns[pattern], false);
   await addEth(networkEth);
   await addAft(networkAft);
   await addDai();
@@ -109,42 +109,41 @@ const _setNonce = async (userAddress) => {
   setNonce(userAddress).catch((err) => console.log(err));
 
     getNonce(userAddress)
-        .then((nonce) => console.log(`non => ${nonce}`))
+        .then((nonce) => console.log(`nonce => ${nonce}`))
         .catch((err) => console.log(err))
 }
 
 const _getNonce = async (userAddress) => {
   await showContext(); 
   getNonce(userAddress)
-  .then((nonce) => console.log(`non => ${nonce}`))
+  .then((nonce) => console.log(`nonce => ${nonce}`))
   .catch((err) => console.log(err))
 }
 
-const _userDepositToken = async (data) => {
-  let [userName, amount, chainIdFrom, chainIdTo, tokenName] = data.split(',');
-  amount = 1_000_000_000_000_000n; // hardcoded in Storage contract
+const _depositToken = async (pattern) => {
+  const [userName, amount, chainIdFrom, chainIdTo, tokenName] = depositPatterns[pattern];
   await showContext(); 
   await userDepositToken(userName, amount, chainIdFrom, chainIdTo, tokenName);
 }
 
-const _userDepositFees = async (data) => {
-  let [userName, amount, chainIdFrom, chainIdTo, tokenName] = data.split(',');
-  amount = 1_000_000_000_000_000n; // hardcoded in Storage contract
+const _depositFees = async (pattern) => {
+  const [userName, amount, chainIdFrom, chainIdTo, tokenName] = depositPatterns[pattern];
   await showContext(); 
   await userDepositFees(userName, amount, chainIdFrom, chainIdTo, tokenName);
 }
 
-const _testDepositToken = async () => {
-  const data = 'user1,1_000_000_000_000_000n,31337,440,ethereum'
-  await _userDepositToken(data);
+const depositPatterns = {
+  "gethAllfeatLocal": ['user2', 1_000_000_000_000_000n, 1337, 440, 'ethereum'],
+  "allfeatGethLocal": ['user2', 1_000_000_000_000_000n, 440, 1337,' allfeat'],
 }
 
-const _testDepositFees = async () => {
-  const data = 'user1,1_000_000_000_000_000n,31337,440,ethereum'
-  await _userDepositFees(data);
+const deployPatterns = {
+  "gethAllfeatLocal": 'geth,allfeat_local,1337,440',
 }
 
-
+const addTokenPatterns = {
+  "gethAllfeatLocal": 'ethereum,allfeat,dai',
+}
 
 
 const main = async () => {
@@ -152,7 +151,7 @@ const main = async () => {
   program
     .version("1.0.0")
     .description("Bridge relayer CLI")
-    .option('--deploy [options]', 'deploy all contracts, set operators, chainIds and token. Options: anvil_local,allfeat_local')
+    .option('--deploy [pattern]', 'deploy all contracts, set operators, chainIds and token. Options: geth,allfeat_local,1337,440')
     .option('--deploy-contracts', 'deploy all contracts')
     .option('--deploy-storage', 'deploy Storage contract')
     .option('--deploy-token-factory', 'deploy TokenFactory contract')
@@ -160,15 +159,13 @@ const main = async () => {
     .option('--deploy-relayer-base', 'deploy RelayerBase contract')
     .option('--deploy-bridge-base', 'deploy BridgeBase contract')
     .option('--update-operator', 'update operator')
-    .option('--add-chain-ids [chain Ids]', 'add chainIds to storage [11155111, 31337, 440, 441]')
+    .option('--add-chain-ids [chain Ids]', 'add chainIds to storage [1337,440]')
     .option('--add-tokens [tokens]', 'add tokens to storage []')
-    .option('--add-eth [network ETH]', 'add ETH token. network e.g anvil_local')
+    .option('--add-eth [network ETH]', 'add ETH token. network e.g geth')
     .option('--add-aft [network AFT]', 'add AFT token. network e.g allfeat_local')
     .option('--add-dai', 'add DAI')
-    .option('--user-deposit-token [userAddress,amount,chainIdFrom,chainIdTo,tokenName]', 'user deposit token')
-    .option('--user-deposit-fees [userAddress,amount,chainIdFrom,chainIdTo,tokenName]', 'user deposit fees')
-    .option('--test-deposit-token', 'Test user deposit token')
-    .option('--test-deposit-fees', 'Test user deposit fees')
+    .option('--deposit-token [pattern]', 'deposit token, pattern [getAllfeatLocal | allfreatGethLocal]')
+    .option('--deposit-fees [pattern]', 'deposit fees, pattern: [getAllfeatLocal | allfreatGethLocal]')
     .option('--show-deployed-addr', 'show last deployed addresses')
     .option('--set-nonce [address]', 'set nonce')
     .option('--get-nonce [address]', 'get nonce')
@@ -187,10 +184,8 @@ const main = async () => {
       if (options.addEth) {_addEth(options.addEth);}
       if (options.addAft) {_addAft(options.addAft);}
       if (options.addDai) {_addDai();}
-      if (options.userDepositToken) {_userDepositToken(options.userDepositToken);}
-      if (options.userDepositFees) {_userDepositFees(options.userDepositFees);}
-      if (options.testDepositToken) {_testDepositToken();}
-      if (options.testDepositFees) {_testDepositFees();}
+      if (options.depositToken) {_depositToken(options.depositToken);}
+      if (options.depositFees) {_depositFees(options.depositFees);}
       if (options.showDeployedAddr) {showDeployAddresses()}
       if (options.setNonce) {_setNonce(options.setNonce)}
       if (options.getNonce) {_getNonce(options.getNonce)}      

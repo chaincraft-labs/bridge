@@ -8,9 +8,7 @@ const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY ?? "";
 const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "";
 
 module.exports = {
-  // const config = {
   solidity: "0.8.20",
-  // defaultNetwork: "localhost",
   defaultNetwork: "hardhat",
   namedAccounts: {
     deployer: {
@@ -39,42 +37,46 @@ module.exports = {
       url: `http://127.0.0.1:8545`,
       accounts: [process.env.ANVIL_KEY],
     },
-    // mainnet: {
-    //   url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
-    //   accounts: [deployerPrivateKey],
-    // },
+    geth: {
+      url: `http://127.0.0.1:8545`,
+      accounts: [process.env.GETH_KEY],
+    },
+    mainnet: {
+      url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
+      accounts: [deployerPrivateKey],
+    },
     sepolia: {
       url: `https://eth-sepolia.g.alchemy.com/v2/${providerApiKey}`,
       accounts: [deployerPrivateKey],
     },
-    // goerli: {
-    //   url: `https://eth-goerli.alchemyapi.io/v2/${providerApiKey}`,
-    //   accounts: [deployerPrivateKey],
-    // },
-    // arbitrum: {
-    //   url: `https://arb-mainnet.g.alchemy.com/v2/${providerApiKey}`,
-    //   accounts: [deployerPrivateKey],
-    // },
-    // arbitrumGoerli: {
-    //   url: `https://arb-goerli.g.alchemy.com/v2/${providerApiKey}`,
-    //   accounts: [deployerPrivateKey],
-    // },
-    // optimism: {
-    //   url: `https://opt-mainnet.g.alchemy.com/v2/${providerApiKey}`,
-    //   accounts: [deployerPrivateKey],
-    // },
-    // optimismGoerli: {
-    //   url: `https://opt-goerli.g.alchemy.com/v2/${providerApiKey}`,
-    //   accounts: [deployerPrivateKey],
-    // },
-    // polygon: {
-    //   url: `https://polygon-mainnet.g.alchemy.com/v2/${providerApiKey}`,
-    //   accounts: [deployerPrivateKey],
-    // },
-    // polygonMumbai: {
-    //   url: `https://polygon-mumbai.g.alchemy.com/v2/${providerApiKey}`,
-    //   accounts: [deployerPrivateKey],
-    // },
+    goerli: {
+      url: `https://eth-goerli.alchemyapi.io/v2/${providerApiKey}`,
+      accounts: [deployerPrivateKey],
+    },
+    arbitrum: {
+      url: `https://arb-mainnet.g.alchemy.com/v2/${providerApiKey}`,
+      accounts: [deployerPrivateKey],
+    },
+    arbitrumGoerli: {
+      url: `https://arb-goerli.g.alchemy.com/v2/${providerApiKey}`,
+      accounts: [deployerPrivateKey],
+    },
+    optimism: {
+      url: `https://opt-mainnet.g.alchemy.com/v2/${providerApiKey}`,
+      accounts: [deployerPrivateKey],
+    },
+    optimismGoerli: {
+      url: `https://opt-goerli.g.alchemy.com/v2/${providerApiKey}`,
+      accounts: [deployerPrivateKey],
+    },
+    polygon: {
+      url: `https://polygon-mainnet.g.alchemy.com/v2/${providerApiKey}`,
+      accounts: [deployerPrivateKey],
+    },
+    polygonMumbai: {
+      url: `https://polygon-mumbai.g.alchemy.com/v2/${providerApiKey}`,
+      accounts: [deployerPrivateKey],
+    },
     polygonAmoy: {
       url: `https://polygon-amoy.g.alchemy.com/v2/${providerApiKey}`,
       accounts: [deployerPrivateKey],
@@ -86,5 +88,3 @@ module.exports = {
     },
   },
 };
-
-// export default config;

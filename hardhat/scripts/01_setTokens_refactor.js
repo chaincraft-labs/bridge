@@ -5,8 +5,13 @@ const {
   tokenParams,
   getChainIdByNetworkName,
   networkParams,
+  getContext,
 } = require("../helpers/configHelper");
-const { toStyle } = require("../helpers/loggingHelper");
+const {
+  deploymentCheck,
+  deployAndSaveAddress,
+} = require("../helpers/functionHelpers");
+const { toStyle, display } = require("../helpers/loggingHelper");
 const { usedNetworks, usedTokens } = require("../constants/deploymentConfig");
 
 async function main() {
@@ -15,57 +20,39 @@ async function main() {
   //                CONTEXT LOADING & CHEKCS
   //
   ///////////////////////////////////////////////////////////////////////////////
-  const currentNetwork = hre.network.name;
-  const currentChainId = networkParams[currentNetwork].chainId;
-  const [owner, user, server] = await hre.ethers.getSigners();
+  const context = await getContext();
+  const owner = context.accounts[0];
+  let tx;
 
-  console.log(toStyle.title(`Script: setTokens...`));
-  console.log(
-    `Setting token addresses of other chains on: ${toStyle.blueItalic(
-      currentNetwork
-    )} (chainId ${toStyle.blueItalic(currentChainId)}) with:`
+  display.h1(`Script: setTokens...`);
+  display.context(
+    "Will set token addresses of other networks on: ",
+    context,
+    false
   );
-  console.log(
-    `- admin / deployer address: ${toStyle.blueItalic(owner.address)}`
-  );
-  // Check we don't have localhost AND hardhat in network used (same id)
-  if (usedNetworks.includes("localhost") && usedNetworks.includes("hardhat")) {
-    throw `${toStyle.error("Error: ")}${toStyle.yellowItalic(
-      "usedNetworks"
-    )} should NOT include "localhost" and "hardhat" at the same time in${toStyle.yellowItalic(
-      "constants/deploymentConfig.js"
-    )}!\n`;
-  }
-  // Check if we deploy to a network from the deploymentConfig (deployment security)
-  if (!usedNetworks.includes(currentNetwork)) {
-    throw `${toStyle.error(
-      "Error: "
-    )}Trying to deploy to a network not included in ${toStyle.yellowItalic(
-      "constants/deploymentConfig.js"
-    )}!`;
-  }
-  // Check if the networks in deploymentConfig are amongst networkParams (to have their data)
-  const networkKeys = Object.keys(networkParams);
-  usedNetworks.forEach((usedNetwork) => {
-    if (!networkKeys.includes(usedNetwork)) {
-      throw `${toStyle.error("Error: ")}Used network: ${toStyle.yellowItalic(
-        usedNetwork
-      )} is not included in the networkParams!!`;
-    }
-  });
+
+  deploymentCheck.noLocalChainDuplicate(usedNetworks);
+  deploymentCheck.usedNetworksSetInConfig(usedNetworks);
+  deploymentCheck.deploymentOnUsedNetworks(usedNetworks, context.network);
+
   // Get storage to call
-  let storageAddress = readLastDeployedAddress(currentNetwork, "Storage");
+  let storageAddress = readLastDeployedAddress(context.network, "Storage");
   let storage = await hre.ethers.getContractAt("Storage", storageAddress);
   console.log(
     `${toStyle.discrete("Storage contract address used:")} ${storageAddress}\n`
   );
   // Get the networks whose token addresses are to be read to register them
   const networksToSet = usedNetworks.filter(function (usedNetwork) {
-    return usedNetwork != currentNetwork;
+    return usedNetwork != context.network;
   });
 
   const tokensDataToSet = { names: [], chainIds: [], addresses: [] };
 
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  //                READ ADDRESSES TO STORE
+  //
+  ///////////////////////////////////////////////////////////////////////////////
   for (index in networksToSet) {
     const networkToSet = networksToSet[index];
 
@@ -101,7 +88,7 @@ async function main() {
     }
   }
 
-  let tx = await storage.batchAddNewTokensAddressesByChainId(
+  tx = await storage.batchAddNewTokensAddressesByChainId(
     tokensDataToSet.names,
     tokensDataToSet.chainIds,
     tokensDataToSet.addresses
@@ -133,3 +120,5 @@ main().catch((error) => {
 // npx hardhat run scripts/01_deployAllContracts.js --network allfeat
 // npx hardhat run scripts/01_setTokens.js --network sepolia
 // npx hardhat run scripts/01_setTokens.js --network allfeat
+
+// $ cd scripts && ./tryDeployAll.sh && cd -

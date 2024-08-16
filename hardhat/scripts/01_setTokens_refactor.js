@@ -1,5 +1,8 @@
 const hre = require("hardhat");
-const { readLastDeployedAddress } = require("../helpers/fileHelpers");
+const {
+  readLastDeployedAddress,
+  logCurrentFileName,
+} = require("../helpers/fileHelpers");
 const { getMaxAddress, computeTokenSymbol } = require("../utils/addressUtil");
 const {
   tokenParams,
@@ -17,7 +20,7 @@ const { usedNetworks, usedTokens } = require("../constants/deploymentConfig");
 async function main() {
   ///////////////////////////////////////////////////////////////////////////////
   //
-  //                CONTEXT LOADING & CHEKCS
+  //                CONTEXT LOADING & CHECKS
   //
   ///////////////////////////////////////////////////////////////////////////////
   const context = await getContext();
@@ -31,9 +34,18 @@ async function main() {
     false
   );
 
-  deploymentCheck.noLocalChainDuplicate(usedNetworks);
-  deploymentCheck.usedNetworksSetInConfig(usedNetworks);
-  deploymentCheck.deploymentOnUsedNetworks(usedNetworks, context.network);
+  // function logCurrentFileName() {
+  //   // Récupérer le nom du fichier en cours d'exécution
+  //   const currentFileName = __filename.split("/").pop();
+  //   console.log(
+  //     `Le nom du fichier en cours d'exécution est : ${currentFileName}`
+  //   );
+  // }
+
+  // Appeler la fonction
+  logCurrentFileName();
+
+  deploymentCheck.validateNetworks(usedNetworks, context.network);
 
   // Get storage to call
   let storageAddress = readLastDeployedAddress(context.network, "Storage");
@@ -105,20 +117,7 @@ async function main() {
   }
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
-
-/// commands
-// npx hardhat run scripts/01_deployAllContracts.js --network localhost
-// npx hardhat run scripts /01_setTokens.js--network localhost
-
-// npx hardhat run scripts/01_deployAllContracts.js --network sepolia
-// npx hardhat run scripts/01_deployAllContracts.js --network allfeat
-// npx hardhat run scripts/01_setTokens.js --network sepolia
-// npx hardhat run scripts/01_setTokens.js --network allfeat
-
-// $ cd scripts && ./tryDeployAll.sh && cd -

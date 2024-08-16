@@ -1,3 +1,8 @@
+const hre = require("hardhat");
+
+// @todo move functions in appropriate helper
+
+// @todo change allfeat for harmony (testnet) and add real allfeat chainId
 const networkParams = {
   localhost: {
     chainId: 31337,
@@ -9,15 +14,10 @@ const networkParams = {
     nativeToken: { name: "ethereum", symbol: "ETH" },
     deployedTokens: [{ name: "mockedDai", symbol: "DAI" }],
   },
-  allfeat: {
-    chainId: 441,
-    nativeToken: { name: "allfeat", symbol: "AFT" },
-    deployedTokens: [],
-  },
-  polygon: {
-    chainId: 137,
-    nativeToken: { name: "matic", symbol: "MATIC" },
-    deployedTokens: [],
+  gethTestnet: {
+    chainId: 1337,
+    nativeToken: { name: "ethereum", symbol: "ETH" },
+    deployedTokens: [{ name: "mockedDai", symbol: "DAI" }],
   },
   sepolia: {
     chainId: 11155111,
@@ -28,6 +28,72 @@ const networkParams = {
     chainId: 1,
     nativeToken: { name: "ethereum", symbol: "ETH" },
     deployedTokens: [{ name: "dai", symbol: "DAI" }],
+  },
+  allfeatLocal: {
+    chainId: 440,
+    nativeToken: { name: "allfeat", symbol: "AFT" },
+    deployedTokens: [],
+  },
+  harmonie: {
+    chainId: 441,
+    nativeToken: { name: "allfeat", symbol: "AFT" },
+    deployedTokens: [],
+  },
+  // @todo CHANGE NAME IN SCRIPT tp harmonie testnet and get real mainnet id
+  allfeat: {
+    chainId: 441,
+    nativeToken: { name: "allfeat", symbol: "AFT" },
+    deployedTokens: [],
+  },
+  polygonAmoy: {
+    chainId: 80002,
+    nativeToken: { name: "matic", symbol: "MATIC" },
+    deployedTokens: [],
+  },
+  polygon: {
+    chainId: 137,
+    nativeToken: { name: "matic", symbol: "MATIC" },
+    deployedTokens: [],
+  },
+  fantomTestnet: {
+    chainId: 4002,
+    nativeToken: { name: "fantom", symbol: "FTM" },
+    deployedTokens: [],
+  },
+  fantom: {
+    chainId: 250,
+    nativeToken: { name: "fantom", symbol: "FTM" },
+    deployedTokens: [],
+  },
+  bscTestnet: {
+    chainId: 97,
+    nativeToken: { name: "binance", symbol: "BNB" },
+    deployedTokens: [],
+  },
+  bsc: {
+    chainId: 56,
+    nativeToken: { name: "binance", symbol: "BNB" },
+    deployedTokens: [],
+  },
+  arbitrumSepolia: {
+    chainId: 421614,
+    nativeToken: { name: "ethereum", symbol: "ETH" },
+    deployedTokens: [],
+  },
+  arbitrum: {
+    chainId: 42161,
+    nativeToken: { name: "ethereum", symbol: "ETH" },
+    deployedTokens: [],
+  },
+  optimismSepolia: {
+    chainId: 11155420,
+    nativeToken: { name: "ethereum", symbol: "ETH" },
+    deployedTokens: [],
+  },
+  optimism: {
+    chainId: 10,
+    nativeToken: { name: "ethereum", symbol: "ETH" },
+    deployedTokens: [],
   },
 };
 // to complete
@@ -120,6 +186,17 @@ const computeTokenSymbol = (network, symbol) => {
   return `${firstLetter}b${symbol}`;
 };
 
+const getContext = async () => {
+  const network = hre.network.name;
+  return {
+    network,
+    chainId: networkParams[network].chainId,
+    nativeTokenName: networkParams[network].nativeToken.name,
+    nativeTokenSymbol: networkParams[network].nativeToken.symbol,
+    accounts: await hre.ethers.getSigners(),
+  };
+};
+
 module.exports = {
   networkParams,
   tokenList,
@@ -130,4 +207,5 @@ module.exports = {
   // usedTokens,
   tokenSymbols,
   tokenParams,
+  getContext,
 };

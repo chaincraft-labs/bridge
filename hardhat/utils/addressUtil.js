@@ -20,10 +20,20 @@ const computeTokenSymbol = (network, symbol) => {
   return `${firstLetter}b${symbol}`;
 };
 
+const numToHex = (num) => {
+  return "0x" + num.toString(16);
+};
+
+const hexToNum = (hexString) => {
+  return parseInt(hexString, 16);
+};
+
 module.exports = {
   getRandomAddress,
   toChecksumAddress,
   getZeroAddress,
   getMaxAddress,
   computeTokenSymbol,
+  numToHex,
+  hexToNum,
 };

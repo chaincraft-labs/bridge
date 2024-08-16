@@ -9,6 +9,7 @@ const {
 } = require("./util");
 
 // @todo
+// MAke script to read all storage state on this network and compare to config token/network/operators
 // network add polygon for relayer test
 // change to hardhat ignition to deploy
 

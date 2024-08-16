@@ -8,18 +8,25 @@ const DEPLOYED_ADDRESSES_FILE_PATH = path.join(
   DEPLOYED_ADDRESSES_FILE
 );
 
+// @todo add error if writing flow is not complete
+/**
+ * @description - Logs in constants/... .json addresses of deployed contracts
+ * @description - Format:
+ * {
+ *  "networkName": {
+ *      "ContractName": [addresses],
+ *      "MockedToken" | "BridgedToken":{
+ *          "tokenSymbol": [addresses]
+ *       },
+ *   },
+ * }
+ */
 const writeDeployedAddress = function (
   network,
   contractName,
   address,
-  tokenName = null
+  tokenSymbol = null
 ) {
-  // console.log(
-  //   `Writing deployed address of ${
-  //     tokenName ? tokenName : contractName
-  //   } to deployedAddresses.json...`
-  // );
-
   // file and path checks
   if (!fs.existsSync(CONSTANTS_DIR)) {
     fs.mkdirSync(CONSTANTS_DIR);
@@ -40,17 +47,17 @@ const writeDeployedAddress = function (
   }
 
   if (!deployedAddresses[network][contractName]) {
-    deployedAddresses[network][contractName] = tokenName ? {} : [];
+    deployedAddresses[network][contractName] = tokenSymbol ? {} : [];
   }
 
-  if (tokenName && !deployedAddresses[network][contractName][tokenName]) {
-    deployedAddresses[network][contractName][tokenName] = [];
+  if (tokenSymbol && !deployedAddresses[network][contractName][tokenSymbol]) {
+    deployedAddresses[network][contractName][tokenSymbol] = [];
   }
 
-  if (!tokenName) {
+  if (!tokenSymbol) {
     deployedAddresses[network][contractName].push(address);
   } else {
-    deployedAddresses[network][contractName][tokenName].push(address);
+    deployedAddresses[network][contractName][tokenSymbol].push(address);
   }
 
   fs.writeFileSync(
@@ -63,42 +70,24 @@ const writeDeployedAddress = function (
 const readLastDeployedAddress = function (
   network,
   contractName,
-  tokenName = null
+  tokenSymbol = null
 ) {
   const deployedAddresses = JSON.parse(
     fs.readFileSync(DEPLOYED_ADDRESSES_FILE_PATH)
   );
 
   if (!deployedAddresses) {
-    // console.log("READING... null object");
     return null;
   }
-  // console.log("READING... network ", deployedAddresses[network]);
   if (deployedAddresses[network] && deployedAddresses[network][contractName]) {
-    // console.log(
-    //   "READING... first step ",
-    //   deployedAddresses[network][contractName]
-    // );
-    if (!tokenName) {
-      // console.log(
-      //   "READING...",
-      //   deployedAddresses[network][contractName][
-      //     deployedAddresses[network][contractName].length - 1
-      //   ]
-      // );
+    if (!tokenSymbol) {
       return deployedAddresses[network][contractName][
         deployedAddresses[network][contractName].length - 1
       ];
     } else {
-      if (deployedAddresses[network][contractName][tokenName]) {
-        // console.log(
-        //   "READING...",
-        //   deployedAddresses[network][contractName][
-        //     deployedAddresses[network][contractName].length - 1
-        //   ]
-        // );
-        return deployedAddresses[network][contractName][tokenName][
-          deployedAddresses[network][contractName][tokenName].length - 1
+      if (deployedAddresses[network][contractName][tokenSymbol]) {
+        return deployedAddresses[network][contractName][tokenSymbol][
+          deployedAddresses[network][contractName][tokenSymbol].length - 1
         ];
       }
     }
@@ -113,8 +102,18 @@ const readNetworks = function () {
   );
   return Object.keys(deployedAddresses);
 };
+
+function logCurrentFileName() {
+  const stack = new Error().stack; // Obtenir la pile d'appels
+  const callerFileName = stack.split("\n")[2].trim().split("/").pop(); // Extraire le nom du fichier
+  console.log(`Le nom du fichier en cours d'exécution est : ${callerFileName}`);
+
+  console.log("stack", stack);
+}
+
 module.exports = {
   writeDeployedAddress,
   readLastDeployedAddress,
   readNetworks,
+  logCurrentFileName,
 };

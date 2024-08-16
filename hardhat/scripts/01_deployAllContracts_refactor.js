@@ -21,7 +21,7 @@ const {
 } = require("../helpers/functionHelpers");
 
 // @todo : TO MOVE IN ENV
-operatorAdress = "0xe4192bf486aea10422ee097bc2cf8c28597b9f11";
+operatorAddress = "0xe4192bf486aea10422ee097bc2cf8c28597b9f11";
 
 // @todo : add igniton and tasks (for live...)
 // @todo : add try catch / error management
@@ -29,7 +29,7 @@ operatorAdress = "0xe4192bf486aea10422ee097bc2cf8c28597b9f11";
 async function main() {
   ///////////////////////////////////////////////////////////////////////////////
   //
-  //                CONTEXT LOADING & CHEKCS
+  //                CONTEXT LOADING & CHECKS
   //
   ///////////////////////////////////////////////////////////////////////////////
   const context = await getContext();
@@ -39,9 +39,7 @@ async function main() {
   display.h1(`Script: deployAllContracts...`);
   display.context("Will deploy to network: ", context);
 
-  deploymentCheck.noLocalChainDuplicate(usedNetworks);
-  deploymentCheck.usedNetworksSetInConfig(usedNetworks);
-  deploymentCheck.deploymentOnUsedNetworks(usedNetworks, context.network);
+  deploymentCheck.validateNetworks(usedNetworks, context.network);
 
   ///////////////////////////////////////////////////////////////////////////////
   //
@@ -89,7 +87,7 @@ async function main() {
     vault.target,
     bridge.target,
     relayer.target,
-    operatorAdress,
+    operatorAddress,
   ];
   tx = await storage.batchUpdateOperators(roles, operators);
   await tx.wait();
@@ -191,6 +189,7 @@ async function main() {
     (usedToken) => !notBridgedTokens.includes(usedToken)
   );
 
+  // @todo refactor and export deployment and log as for deployAnSaveAddress
   await Promise.all(
     bridgedTokens.map(async (token) => {
       const symbol = computeTokenSymbol(

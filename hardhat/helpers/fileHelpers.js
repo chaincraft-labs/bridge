@@ -104,11 +104,13 @@ const readNetworks = function () {
 };
 
 function logCurrentFileName() {
-  const stack = new Error().stack; // Obtenir la pile d'appels
-  const callerFileName = stack.split("\n")[2].trim().split("/").pop(); // Extraire le nom du fichier
-  console.log(`Le nom du fichier en cours d'exécution est : ${callerFileName}`);
-
-  console.log("stack", stack);
+  const stack = new Error().stack;
+  // extract the name of the file
+  const callerFileName = stack.split("\n")[2].trim().split("/").pop();
+  // remove line info at the end
+  const fileNameWithoutLineInfo = callerFileName.split(":")[0];
+  // console.log(`Name of the file currently processed : ${fileNameWithoutLineInfo}`);
+  return fileNameWithoutLineInfo;
 }
 
 module.exports = {

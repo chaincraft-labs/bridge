@@ -27,23 +27,12 @@ async function main() {
   const owner = context.accounts[0];
   let tx;
 
-  display.h1(`Script: setTokens...`);
+  display.h1(`Script: ${logCurrentFileName()}...`);
   display.context(
     "Will set token addresses of other networks on: ",
     context,
     false
   );
-
-  // function logCurrentFileName() {
-  //   // Récupérer le nom du fichier en cours d'exécution
-  //   const currentFileName = __filename.split("/").pop();
-  //   console.log(
-  //     `Le nom du fichier en cours d'exécution est : ${currentFileName}`
-  //   );
-  // }
-
-  // Appeler la fonction
-  logCurrentFileName();
 
   deploymentCheck.validateNetworks(usedNetworks, context.network);
 

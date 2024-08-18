@@ -2,6 +2,7 @@ const hre = require("hardhat");
 
 // @todo move functions in appropriate helper
 
+// @todo ntaiveToken => nativeAsset/Coin/Currency
 // @todo change allfeat for harmony (testnet) and add real allfeat chainId
 const networkParams = {
   localhost: {

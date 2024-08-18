@@ -5,7 +5,10 @@ const {
   getChainIdByNetworkName,
   getContext,
 } = require("../helpers/configHelper");
-const { writeDeployedAddress } = require("../helpers/fileHelpers");
+const {
+  writeDeployedAddress,
+  logCurrentFileName,
+} = require("../helpers/fileHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
 const { usedNetworks, usedTokens } = require("../constants/deploymentConfig");
 const {
@@ -36,7 +39,7 @@ async function main() {
   const owner = context.accounts[0];
   let tx;
 
-  display.h1(`Script: deployAllContracts...`);
+  display.h1(`Script: ${logCurrentFileName()}...`);
   display.context("Will deploy to network: ", context);
 
   deploymentCheck.validateNetworks(usedNetworks, context.network);

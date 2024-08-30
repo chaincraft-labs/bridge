@@ -44,3 +44,5 @@ task("start-node", "Starts a Hardhat node with forking")
 //
 // get current process ans PIDs:  ps aux | grep hardhat
 // kill it: kill -9 <PID>
+
+// npx hardhat start-node --network-to-fork "sepolia"

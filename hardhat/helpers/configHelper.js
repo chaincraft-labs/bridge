@@ -37,7 +37,7 @@ const networkParams = {
   },
   harmonie: {
     chainId: 441,
-    nativeToken: { name: "allfeat", symbol: "AFT" },
+    nativeToken: { name: "harmonie", symbol: "HMY" },
     deployedTokens: [],
   },
   // @todo CHANGE NAME IN SCRIPT tp harmonie testnet and get real mainnet id

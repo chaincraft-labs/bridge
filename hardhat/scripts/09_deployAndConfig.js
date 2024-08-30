@@ -52,43 +52,47 @@ async function runCommand(command) {
 //   const commandTotalCount = networksToDeploy.length * scriptFileNames.length;
 //   let commandCounter = 0;
 
-//   scriptFileNames.forEach((scriptFile) => {
-//     networksToDeploy.forEach((networkToDeploy) => {
+//   for (const scriptFile of scriptFileNames) {
+//     for (const networkToDeploy of networksToDeploy) {
 //       const command = buildCommand(scriptFile, networkToDeploy);
 //       console.log(
 //         `Running command ${++commandCounter}/${commandTotalCount}: "${command}"...`
 //       );
 //       try {
-//         // execSync returns only when the child_process closed
-//         const output = execSync(command, { stdio: "pipe" }).toString();
-//         console.log(`output...\n${output}`);
+//         await runCommand(command);
 //       } catch (error) {
-//         console.log(`error...\n${error}`);
+//         console.error(`Error while executing command: ${error.message}`);
 //       }
-//     });
-//   });
+//     }
+//   }
 // }
 
 async function main() {
   const commandTotalCount = networksToDeploy.length * scriptFileNames.length;
   let commandCounter = 0;
 
-  for (const scriptFile of scriptFileNames) {
-    for (const networkToDeploy of networksToDeploy) {
+  scriptFileNames.forEach((scriptFile) => {
+    networksToDeploy.forEach((networkToDeploy) => {
       const command = buildCommand(scriptFile, networkToDeploy);
       console.log(
         `Running command ${++commandCounter}/${commandTotalCount}: "${command}"...`
       );
       try {
-        await runCommand(command); // Attendre que la commande se termine
+        // execSync returns only when the child_process closed
+        const output = execSync(command, { stdio: "pipe" }).toString();
+        console.log(`output...\n${output}`);
       } catch (error) {
-        console.error(`Error while executing command: ${error.message}`);
+        console.log(`error...\n${error}`);
       }
-    }
-  }
+    });
+  });
 }
 
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
+
+// npx hardhat run ./scripts/09_deployAndConfig.js
+
+// node ./scripts/09_deployAndConfig.js

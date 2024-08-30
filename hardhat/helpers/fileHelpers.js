@@ -7,6 +7,8 @@ const DEPLOYED_ADDRESSES_FILE_PATH = path.join(
   CONSTANTS_DIR,
   DEPLOYED_ADDRESSES_FILE
 );
+const LAST_NONCE_FILE = "nonceRecord.json";
+const LAST_NONCE_FILE_PATH = path.join(CONSTANTS_DIR, LAST_NONCE_FILE);
 
 // @todo add error if writing flow is not complete
 /**
@@ -95,6 +97,49 @@ const readLastDeployedAddress = function (
   return null;
 };
 
+// write nonce in constants/nonceRecord.json
+// format:
+// {
+//   "lastOriginNonce": { "sepolia": 0, "allfeat": 0 }
+// }
+const writeLastUsedNonce = function (network, nonce) {
+  // file and path checks
+  if (!fs.existsSync(CONSTANTS_DIR)) {
+    fs.mkdirSync(CONSTANTS_DIR);
+  }
+
+  if (!fs.existsSync(LAST_NONCE_FILE_PATH)) {
+    fs.writeFileSync(LAST_NONCE_FILE_PATH, "{}");
+  }
+
+  // Get json data from file
+  const lastNonce = JSON.parse(fs.readFileSync(LAST_NONCE_FILE_PATH));
+
+  // Checks if elements exist in the json data and creates them if they don't. Then push the new address
+  if (!lastNonce["lastOriginNonce"]) {
+    lastNonce["lastOriginNonce"] = {};
+  }
+
+  lastNonce["lastOriginNonce"][network] = nonce;
+
+  fs.writeFileSync(LAST_NONCE_FILE_PATH, JSON.stringify(lastNonce, null, 2));
+};
+
+// read last used nonce of network
+const readLastUsedNonce = function (network) {
+  const lastNonce = JSON.parse(fs.readFileSync(LAST_NONCE_FILE_PATH));
+
+  if (!lastNonce) {
+    return null;
+  }
+
+  if (lastNonce["lastOriginNonce"] && lastNonce["lastOriginNonce"][network]) {
+    return lastNonce["lastOriginNonce"][network];
+  }
+
+  return null;
+};
+
 //read networks keys of deployedAddress.json
 const readNetworks = function () {
   const deployedAddresses = JSON.parse(
@@ -116,6 +161,8 @@ function logCurrentFileName() {
 module.exports = {
   writeDeployedAddress,
   readLastDeployedAddress,
+  writeLastUsedNonce,
+  readLastUsedNonce,
   readNetworks,
   logCurrentFileName,
 };

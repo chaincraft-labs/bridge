@@ -37,7 +37,7 @@ async function main() {
   // Récupérer l'argument de la ligne de commande
   const signerOption = process.env.SIGNER_OPTION; //process.argv[2];
 
-  let userWallet, user1, user2; //signer
+  let userWallet, user1, user2, test1, test2; //signer
   switch (signerOption) {
     case "signer2":
       userWallet = new ethers.Wallet(
@@ -52,8 +52,16 @@ async function main() {
       );
       break;
     default:
+      console.log("ICCCCI");
+      const artest = await hre.ethers.getSigners();
+      console.log("artest", artest);
+
       [userWallet, user1, user2] = await hre.ethers.getSigners();
       console.log("User Wallet => ", userWallet.address);
+      [, test1] = await hre.ethers.getSigners();
+      [, , test2] = await hre.ethers.getSigners();
+      console.log("test1", test1.address);
+      console.log("test2", test2.address);
       // console.log("Other wallets ", user1.address, user2.address);
       // [userWallet, user1, user2] = await hre.network.acc
       // console.log("User Wallet => ", userWallet.address);
@@ -62,6 +70,11 @@ async function main() {
 
   console.log("User Wallet => ", userWallet.address);
   console.log("Other wallets ", user1.address, user2.address);
+
+  [, test1] = await hre.ethers.getSigners();
+  [, , test2] = await hre.ethers.getSigners();
+  console.log("test1", test1.address);
+  console.log("test2", test2.address);
   // command line argument
   // npx hardhat run scripts/deploy.js signer2 or 3 or nothing (default)
   // SIGNER_OPTION=signer2 npx hardhat run scripts/11_userAction_depositSepolia.js --network sepolia

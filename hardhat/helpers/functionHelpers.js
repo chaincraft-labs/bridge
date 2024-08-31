@@ -131,7 +131,53 @@ const batchWriteFunc = async (instance, funcName, params) => {
   });
 };
 
+/**
+ * Converts a parameter string into an array of arguments.
+ *
+ * @param {string} argsString - The parameter string, separated by commas.
+ * @returns {Array} - An array of converted arguments.
+ */
+const convertParamsStringToArray = (argsString) => {
+  // Split the parameters by commas and map each argument
+  let args = argsString.split(",").map((arg) => {
+    // Trim unnecessary spaces
+    arg = arg.trim();
+
+    // Return the argument as is if it starts with "0x"
+    if (arg.startsWith("0x")) return arg;
+
+    // Return BigInt if the argument is a BigInt (only digits followed by 'n')
+    if (/^\d+n$/.test(arg)) return BigInt(arg.slice(0, -1));
+
+    // Return integer if the argument is an integer
+    if (/^\d+$/.test(arg)) return parseInt(arg, 10);
+
+    // Return boolean if the argument is a boolean string
+    if (arg === "true") return true;
+    if (arg === "false") return false;
+
+    // Return number if the argument can be converted to a number
+    const num = parseFloat(arg);
+    if (!isNaN(num)) return num;
+
+    // Return null if the argument is an empty string
+    if (arg === "") return null;
+
+    // Return the argument as is if none of the above conditions are met
+    return arg;
+  });
+
+  // If the arguments array is empty or contains only null, return empty
+  if (args.length === 1 && args[0] === null) {
+    console.log("Args is empty");
+    return [];
+  }
+
+  return args;
+};
+
 module.exports = {
   deploymentCheck,
   deployAndSaveAddress,
+  convertParamsStringToArray,
 };

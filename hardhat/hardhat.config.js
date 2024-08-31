@@ -1,7 +1,9 @@
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
-require("./tasks/start-node"); // Importer la tâche
+require("./tasks/start-node");
+require("./tasks/call-writeFunc");
+require("./tasks/call-readFunc");
 const { forkPorts } = require("./constants/deploymentConfig");
 
 // @todo add checks for env var

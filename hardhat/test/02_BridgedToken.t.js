@@ -94,7 +94,9 @@ describe("BridgedToken", function () {
     it("Should mint 1000 tokens to owner", async function () {
       const { storage, factory, vault, owner, otherAccount, bridgedToken } =
         await loadFixture(deployBridgedTokenFixture);
-
+      // in case of real deployment
+      // should be the factory the owner (i.e. to test also)
+      // in case of unit test, set owner as token owner
       await bridgedToken.connect(owner).mint(otherAccount.address, 1000);
       expect(await bridgedToken.balanceOf(otherAccount.address)).to.equal(1000);
     });

@@ -9,6 +9,54 @@ import "./Vault.sol";
 import "./Utils.sol";
 import "hardhat/console.sol";
 
+//TODO
+//block step struct :RENAME + opti in one state + converter
+// bytes4 => uint64 (4 step in one uint256) / need reader...
+// or uint64 don't use pcking function let evm do the job
+
+// operator param => to specify h many fee to qich one...
+
+// Not store chainIdFrom in struct OperationParams=> we're on it... At initialization => Store immutable variable
+
+// hash op    /* state variables */
+//..??
+// No way to prove no collision between origin and destination with many chain...(it's only probability)
+// only sure things are the chainId and the nonce
+// So later modify for a mapping of chainId => nonce => Operation (with hash in it) or hashOperation & ref to nonce
+// chainId => nonce allows to have iterable list of operation. With index begin - end (actual)
+// possibility to prune the list after a certain time and update the index
+
+// load on ipfs ?
+
+// Naming
+
+// getter user op in progress (front/onchain fetch to continue/display)
+
+// DESTINATION
+
+// We should simulate operation to get the needed fees
+// these op will be server calling
+
+//In Later versions THIS WILL create a vote (or at the beginning on origin chain)
+// operator will act like bot for a vote
+// triggering status changes
+// some status trigger operation such as feesLock...
+// signature checks.. are done in the contract.
+// threshold reach trigger the final execution
+
+// USER HAS TO APPROVE THE RELAYER TO SPEND HIS TOKENS
+// first call to destination creating a new DestinationOperation
+
+// We don't check signature here cause we perhaps won't keep this function in the final version making
+// all the fees management in the first tx of origin chain
+
+error RelayerBase__CallerHasNotRole(string role);
+error RelayerBase__OperationAlreadyExists();
+error RelayerBase__InvalidOperationStatus();
+error RelayerBase__BlockConfirmationNotReached();
+error RelayerBase__UserOperationsEmpty();
+error RelayerBase__InvalidOperationHash();
+
 /**
  * @notice Base contract comunicating with the oracle/server
  * It's in charge to emit the bridge event to the oracle/server and maanage tx status
@@ -17,13 +65,19 @@ import "hardhat/console.sol";
  * @dev when these 2 conditions are met the bridge event is emitted
  */
 contract RelayerBase is Utils {
-    /* errors */
+    //****************************************************************** */
+    //
+    //              STRUCT/ENUM DECLARATIONS
+    //
+    //****************************************************************** */
+    // not used yet
     enum FeesType {
         PROTOCOL,
         OPERATION
     }
-    /* types declarations */
 
+    // Process steps on each side
+    // ORG: origin, DST: destination, OP: bridge tx, FEES: fees tx
     enum OperationStatus {
         NONE, //.................Step 0
         ORG_OP_CREATED, //.......Step 1 user deposited asking for bridge
@@ -32,17 +86,17 @@ contract RelayerBase is Utils {
         ORG_FEES_LOCKED, //......Step 4 org received the fees event from dst
         ORG_OP_READY, //.........Step 5 fees locked & confirmed and deposit confirmed (finalized) (=processing)
         DST_OP_RECEIVED, //......Step 6 dst received operation order with params
-        DST_OP_FINALIZED, // mkdir, //.....Step 7 dst tx is finalized
+        DST_OP_FINALIZED, //.....Step 7 dst tx is finalized
         ORG_OP_CLOSED, //........Step 8 org tx is closed after dst tx is finalized
         ORG_OP_CANCELED //.......Step x org tx is canceled
 
     }
 
-    // @todo refactor params
+    // Operation params are set on the origin and used on both side as is
     struct OperationParams {
         address from;
         address to;
-        uint256 chainIdFrom; // for signature but not necessary in memory (we're on the chain)
+        uint256 chainIdFrom;
         uint256 chainIdTo;
         string tokenName;
         uint256 amount;
@@ -50,25 +104,23 @@ contract RelayerBase is Utils {
         bytes signature;
     }
 
+    // not yet used
     struct OperatorParams {
         address operator;
         uint256 feesAmount;
     }
-    //RENAME
-    // bytes4 => uint64 (4 step in one uint256) / need reader...
-    // or uint64 don't use pcking function let evm do the job
 
     struct OriginBlockStep {
-        uint64 creationBlock; //.....Step 1
-        uint64 processingBlock; //...Step 5
-        uint64 closingBlock; //......Step 8
+        uint64 creationBlock; //.....Step 1 (init)
+        uint64 processingBlock; //...Step 5 (main event to destination)
+        uint64 closingBlock; //......Step 8 (received finalization status from destination)
     }
 
     struct DestinationBlockStep {
-        uint64 feesDeposit; //........Step 2
-        uint64 feesConfirmation; //...Step 3
-        uint64 receptionBlock; //.....Step 7
-        uint64 finalisationBlock; //..Step 8 ??
+        uint64 feesDeposit; //........Step 2 (fees deposit)
+        uint64 feesConfirmation; //...Step 3 (destination setup ready)
+        uint64 receptionBlock; //.....Step 6 (processing on destination)
+        uint64 finalisationBlock; //..Step 7 (done on destination)
     }
 
     struct OriginOperation {
@@ -84,114 +136,96 @@ contract RelayerBase is Utils {
         OperatorParams operator;
     }
 
-    /* state variables */
-    //..??
-    // No way to prove no collision between origin and destination with many chain...(it's only probability)
-    // only sure things are the chainId and the nonce
-    // So later modify for a mapping of chainId => nonce => Operation (with hash in it) or hashOperation & ref to nonce
-    // chainId => nonce allows to have iterable list of operation. With index begin - end (actual)
-    // possibility to prune the list after a certain time and update the index
-
-    //op as origin
+    //****************************************************************** */
+    //
+    //              STATE VARIABLES
+    //
+    //****************************************************************** */
+    address public s_storage;
+    // op states on origin
     mapping(bytes32 operationHash => OriginOperation) public s_originOperations;
-    // op as destination
+    // op states on destination
     mapping(bytes32 operationHash => DestinationOperation) public s_destinationOperations;
+    // user op in progress
+    mapping(address user => bytes32[] operations) public s_currentUserOperations;
+
     // to change :
     // temporary list of operations / not good to have a list of struct for op as the array can be too big quickly
     bytes32[] public s_originOperationsList;
     bytes32[] public s_destinationOperationsList;
 
-    // mapping(address => uint256) public s_userOriginNonce;
+    //****************************************************************** */
+    //
+    //              EVENTS
+    //
+    //****************************************************************** */
 
-    address public s_storage;
-    // add storage of the instance
-
-    /* events */
-
-    // event BridgeEvent(
-    //     address indexed from, address indexed to, uint256 chainId, address token, uint256 amount, uint256 nonce
-    // );
-    // event StatusChanged(uint256 operationHash, OperationStatus oldStatus, OperationStatus newStatus);
-
+    // 1. origin: intial event
+    event OperationCreated(bytes32 operationHash, OperationParams params, uint256 blockStep);
+    // 2. destination: fees deposited then confirmed
+    event FeesDeposited(bytes32 operationHash, OperationParams params, uint256 blockStep);
+    event FeesDepositConfirmed(bytes32 operationHash, OperationParams params, uint256 blockStep);
+    // 3. origin: received fees confirmation then deposit and fees OK (==ready to proceed)
+    event FeesLockedConfirmed(bytes32 operationHash, OperationParams params, uint256 blockStep);
+    event FeesLockedAndDepositConfirmed(bytes32 operationHash, OperationParams params, uint256 blockStep);
+    // 4. destination: operation received and processed
+    event OperationFinalized(bytes32 operationHash, OperationParams params, uint256 blockNumber);
+    // 5. origin: operation closed after receiving operation confirmation on destination
+    event OperationClosed(bytes32 operationHash, uint256 blockNumber);
+    // Cancel events (@todo to complete)
     event OperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockNumber);
     event SentOperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockNumber);
     event ReceveidOperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockNumber);
-    // As origin
-    // event OperationCreated(bytes32 operationHash, OperationParams params, uint256 blockNumber);
-    event OperationCreated(bytes32 operationHash, OperationParams params, uint256 blockStep);
 
-    // event FeesLockedConfirmed(bytes32 operationHash, OperationStatus status, uint256 blockNumber);
-    event FeesLockedConfirmed(bytes32 operationHash, OperationParams params, uint256 blockStep);
-
-    // event FeesLockedAndDepositConfirmed(
-    //     bytes32 operationHash, OperationParams params, uint256 initBlock, uint256 blockNumber
-    // );
-    event FeesLockedAndDepositConfirmed(bytes32 operationHash, OperationParams params, uint256 blockStep);
-    event OperationClosed(bytes32 operationHash, uint256 blockNumber);
-    // As destination
-    // event FeesDeposited(bytes32 operationHash, uint256 chainId);
-    event FeesDeposited(bytes32 operationHash, OperationParams params, uint256 blockStep);
-
-    // event FeesDepositConfirmed(bytes32 operationHash, uint256 chainId, uint256 blockNumber);
-    event FeesDepositConfirmed(bytes32 operationHash, OperationParams params, uint256 blockStep);
-
-    event OperationReceived(bytes32 operationHash, OperationParams params, uint256 blockNumber);
-    event OperationFinalized(bytes32 operationHash, OperationParams params, uint256 blockNumber);
-
-    /* modifiers */
-
-    modifier onlyBridge() {
-        if (!Storage(s_storage).isRole("bridge", msg.sender)) {
-            revert("only bridge");
+    //****************************************************************** */
+    //
+    //              MODIFIERS
+    //
+    //****************************************************************** */
+    modifier onlyRole(string memory role) {
+        if (!Storage(s_storage).isRole(role, msg.sender)) {
+            revert RelayerBase__CallerHasNotRole(role);
         }
         _;
     }
 
-    modifier onlyOracle() {
-        if (!Storage(s_storage).isRole("oracle", msg.sender)) {
-            revert("only oracle");
-        }
-        _;
-    }
+    //****************************************************************** */
+    //
+    //              CONSTRUCTOR / INITIALIZATION
+    //
+    //****************************************************************** */
 
-    /* constructor */
     constructor(address storageAddress) {
-        // first deployed is storage so admin of storage should be the admin of the factory and msg.sender
-
         s_storage = storageAddress;
+
         if (!Storage(s_storage).isRole("admin", msg.sender)) {
-            revert("TokenFactory: caller is not the admin");
+            revert RelayerBase__CallerHasNotRole("admin");
         }
     }
 
     /* receive / fallback */
 
-    /* external functions */
-    /**
-     * @notice register a new tx to be bridged
-     */
-
     //********************************************************************** */
     //
-    //     Function: register a new bridge operation (origin chain)
+    //             ORIGIN SIDE FUNCTIONS
     //
     //**********************************************************************
-
-    // event ReadyToBridge(
-    //     address from,
-    //     address to,
-    //     uint256 chainIdFrom,
-    //     uint256 chainIdTo,
-    //     address tokenFrom,
-    //     address tokenTo,
-    //     uint256 amount,
-    //     uint256 nonce,
-    //     bytes signature
-    // );
-    // the bridge contract will call this function // or prepareCrossMsg
-
-    // attention adddomain separator
-
+    /**
+     * @notice Main function to trigger crosschain op
+     * @notice Bridge calls it to emit firs event with the operation hash to init off-chain listening
+     *
+     * @dev status NONE -> ORG_OP_CREATED
+     * @dev emit OperationCreated(operationHash, params, block.number)
+     *
+     * @param from sender of the tokens
+     * @param to recipient
+     * @param chainIdFrom origin chain id
+     * @param chainIdTo destination chain id
+     * @param tokenName name of the token as referenced in Storage (official token name)
+     * @param amount token amount
+     * @param nonce new user nonce to be used on origin chain
+     * @param signature sig of the message containing previous params
+     */
     function createOperation(
         address from,
         address to,
@@ -201,14 +235,12 @@ contract RelayerBase is Utils {
         uint256 amount,
         uint256 nonce,
         bytes calldata signature
-    ) external onlyBridge {
-        // bytes32 operationHash = computeOperationHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
-        // bytes32 operationHash = getPrefixedMessageHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
+    ) external onlyRole("bridge") {
         bytes32 operationHash = getMessageHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
 
-        require(
-            s_originOperations[operationHash].status == OperationStatus.NONE, "RelayerBase: operation already exists"
-        );
+        if (s_originOperations[operationHash].status != OperationStatus.NONE) {
+            revert RelayerBase__OperationAlreadyExists();
+        }
 
         OperationParams memory params;
         params.from = from;
@@ -226,72 +258,47 @@ contract RelayerBase is Utils {
         operation.blockStep.creationBlock = uint64(block.number);
 
         s_originOperations[operationHash] = operation;
-        // console.log("RELAYERBASE / createOperation / operationHash:");
-        // console.logBytes32(operationHash);
-        // console.log("RELAYERBASE / createOperation / from: %s", from);
-        // console.log("RELAYERBASE / createOperation / relayer address %s:", address(this));
-        // console.log("RELAYERBASE / createOperation / bridge address %s:", Storage(s_storage).getOperator("bridge"));
+        s_currentUserOperations[from].push(operationHash);
+
         emit OperationCreated(operationHash, params, block.number);
     }
 
-    // @todo => fix naming ! prefer operation to order
-
-    // // the server call this function forwarding the fees event confirming FeesLocked
-    // function receiveFeesLockConfirmation(
-    //     bytes32 operationHash,
-    //     uint256 chainTo, // chain id of the destination chain making this call (to compare with hash)
-    //     address operator
-    // ) external onlyOracle {
-    //     OriginOperation storage operation = s_originOperations[operationHash];
-    //     uint8 status = uint8(operation.status);
-    //     console.log("ICICICICICICICICICICIICICIC operation.status: %s ", status);
-    //     // Quid if org : eth, dst : quick chain and:
-    //     // user deposit and fees tx at the beginning of the eth block => fees confirmation tx can
-    //     // be in the same block as the deposit tx on the dst chain (even before following tx org)
-    //     // Current solution => server should wait one block before calling this function
-    //     require(operation.status == OperationStatus.ORG_OP_CREATED, "RelayerBase: invalid status");
-    //     // require(status == OperationStatus.CONFIRMED || status == OperationStatus.CANCELED, "RelayerBase: invalid status");
-
-    //     // check of msg ??
-    //     // user sign msg on dst chain : hashOp, fees, chainIdTo
-    //     // ?? operator sign hash of msg => 2* check ?? or register operator and onlyOracle check
-    //     operation.status = OperationStatus.ORG_FEES_LOCKED;
-
-    //     emit FeesLockedConfirmed(operationHash, operation.status, block.number);
-    // }
-
-    // ADAPTATION to UML spec
-    // the server call this function forwarding the fees event confirming FeesLocked
-    function receiveFeesLockConfirmation(
-        bytes32 operationHash,
-        OperationParams calldata params, // chain id of the destination chain making this call (to compare with hash)
-        address operator
-    ) external onlyOracle {
+    /**
+     * @notice Server calls this function to specify fees deposit on destination
+     *
+     * @dev status: ORG_OP_CREATED -> ORG_FEES_LOCKED
+     * @dev emit: FeesLockedConfirmed(operationHash, params, block.number)
+     *
+     * @param operationHash hash id of the operation
+     * @param params operation params
+     * @param operator address of caller
+     */
+    function receiveFeesLockConfirmation(bytes32 operationHash, OperationParams calldata params, address operator)
+        external
+        onlyRole("oracle")
+    {
         uint256 chainIdTo = params.chainIdTo;
         OriginOperation storage operation = s_originOperations[operationHash];
-        uint8 status = uint8(operation.status);
-        // console.log("ICICICICICICICICICICIICICIC operation.status: %s ", status);
-        // Quid if org : eth, dst : quick chain and:
-        // user deposit and fees tx at the beginning of the eth block => fees confirmation tx can
-        // be in the same block as the deposit tx on the dst chain (even before following tx org)
-        // Current solution => server should wait one block before calling this function
-        require(operation.status == OperationStatus.ORG_OP_CREATED, "RelayerBase: invalid status");
-        // require(status == OperationStatus.CONFIRMED || status == OperationStatus.CANCELED, "RelayerBase: invalid status");
 
-        // check of msg ??
-        // user sign msg on dst chain : hashOp, fees, chainIdTo
-        // ?? operator sign hash of msg => 2* check ?? or register operator and onlyOracle check
+        if (operation.status != OperationStatus.ORG_OP_CREATED) {
+            revert RelayerBase__InvalidOperationStatus();
+        }
+
         operation.status = OperationStatus.ORG_FEES_LOCKED;
-
         emit FeesLockedConfirmed(operationHash, params, block.number);
     }
 
-    // emit the MAIN EVENT with params
-    // server set op as ready (2 conditions met: deposit, fees) to emit event with param to perform op on dst chain
-    // Could merge with the previous function. Function would check fees msg reverting if not fees locked
-    // conditions to emit the event:
-    // deposit tx should be confirmed
-    // fees tx should be confirmed
+    /**
+     * @notice Server calls this function to specify confirmation of deposit & fees deposit
+     * @notice It emit the main event to pass operation params to the destination in order to proceed
+     *
+     * @dev status: ORG_FEES_LOCKED -> ORG_OP_READY
+     * @dev emit: FeesLockedAndDepositConfirmed(operationHash, params, block.number)
+     *
+     * @param operationHash hash id of the operation
+     * @param params operation params
+     * @param blockStep tx block when last event was emitted on destination
+     */
     function confirmFeesLockedAndDepositConfirmed(
         bytes32 operationHash,
         OperationParams calldata params,
@@ -301,23 +308,33 @@ contract RelayerBase is Utils {
         uint256 blockToWait = Storage(s_storage).getUint(key);
         OriginOperation storage operation = s_originOperations[operationHash];
 
-        require(block.number >= operation.blockStep.creationBlock + blockToWait, "RelayerBase: block not reached");
-        require(operation.status == OperationStatus.ORG_FEES_LOCKED, "RelayerBase: invalid status");
+        if (block.number < operation.blockStep.creationBlock + blockToWait) {
+            revert RelayerBase__BlockConfirmationNotReached();
+        }
+        if (operation.status != OperationStatus.ORG_FEES_LOCKED) {
+            revert RelayerBase__InvalidOperationStatus();
+        }
 
         operation.status = OperationStatus.ORG_OP_READY;
         operation.blockStep.processingBlock = uint64(block.number);
 
-        // THE event!!
-        // emit FeesLockedAndDepositConfirmed(
-        //     operationHash, operation.params, operation.blockStep.creationBlock, block.number
-        // );
         emit FeesLockedAndDepositConfirmed(operationHash, operation.params, operation.blockStep.creationBlock);
-        // ADD SIGNATURE
     }
 
+    /**
+     * @notice Server calls this function to specify operation is done on destination
+     * @notice It closes the operation on origin chain
+     *
+     * @dev status: ORG_OP_READY -> ORG_OP_CLOSED
+     * @dev emit: OperationClosed(operationHash, params, block.number)
+     *
+     * @param operationHash hash id of the operation
+     * @param params operation params
+     * @param blockStep tx block when last event was emitted on destination
+     */
     function receivedFinalizedOperation(bytes32 operationHash, OperationParams calldata params, uint256 blockStep)
         external
-        onlyOracle
+        onlyRole("oracle")
     {
         OriginOperation storage operation = s_originOperations[operationHash];
         require(operation.status == OperationStatus.ORG_OP_READY, "RelayerBase: invalid status");
@@ -329,43 +346,67 @@ contract RelayerBase is Utils {
             Storage(s_storage).getTokenAddressByChainId(operation.params.tokenName, operation.params.chainIdFrom);
         BridgeBase bridge = BridgeBase(Storage(s_storage).getOperator("bridge"));
         bridge.finalizeBridgeDeposit(operation.params.from, tokenFrom, operation.params.amount);
+
+        _removeUserOperation(operation.params.from, operationHash);
+
         emit OperationClosed(operationHash, block.number);
     }
 
-    // MAKE CONSTANT FOR VARIABLE NAME AND TAG !!!
-    // ADD MARGIN TO THE FEES in case of volatility !!
+    /**
+     * @notice Server calls this function to cancel operation in case of error to allows user to redeem deposit
+     *
+     * @dev It calls Bridge to forward cancel to Vault
+     * @dev status: ANY -> ORG_OP_CANCELED
+     * @dev emit: OperationFinalized(operationHash, params, block.number)
+     *
+     * @param operationHash hash id of the operation
+     * @param chainIdFrom oringin chain Id
+     */
+    function receiveCancelOperation(bytes32 operationHash, uint256 chainIdFrom) external onlyRole("oracle") {
+        OriginOperation storage operation = s_originOperations[operationHash];
+
+        if (operation.status == OperationStatus.ORG_OP_CLOSED || operation.status == OperationStatus.NONE) {
+            revert RelayerBase__InvalidOperationStatus();
+        }
+
+        operation.status = OperationStatus.ORG_OP_CANCELED;
+        operation.blockStep.closingBlock = uint64(block.number);
+        address tokenFrom =
+            Storage(s_storage).getTokenAddressByChainId(operation.params.tokenName, operation.params.chainIdFrom);
+
+        BridgeBase bridge = BridgeBase(Storage(s_storage).getOperator("bridge"));
+        bridge.cancelBridgeDeposit(operation.params.from, tokenFrom, operation.params.amount);
+
+        _removeUserOperation(operation.params.from, operationHash);
+
+        emit ReceveidOperationCanceled(operationHash, chainIdFrom, block.number);
+    }
 
     //********************************************************************** */
     //
-    //     Function: fees management and liquidity check (destination chain)
+    //      DESTINATION SIDE FUNCTIONS
     //
     //**********************************************************************
 
-    // We should simulate operation to get the needed fees
-    // these op will be server calling
-
-    //In Later versions THIS WILL create a vote (or at the beginning on origin chain)
-    // operator will act like bot for a vote
-    // triggering status changes
-    // some status trigger operation such as feesLock...
-    // signature checks.. are done in the contract.
-    // threshold reach trigger the final execution
-
-    // USER HAS TO APPROVE THE RELAYER TO SPEND HIS TOKENS
-    // first call to destination creating a new DestinationOperation
-
-    // We don't check signature here cause we perhaps won't keep this function in the final version making
-    // all the fees management in the first tx of origin chain
-    function lockDestinationFees(
-        bytes32 operationHash,
-        // OperationParams calldata operationParams,
-        uint256 chainIdFrom, // if we change the storage to have the chainId as first key,
-        uint256 chainIdTo
-    ) external payable onlyBridge {
-        require(
-            s_destinationOperations[operationHash].status == OperationStatus.NONE,
-            "RelayerBase: operation already exists"
-        );
+    /**
+     * @notice Bridge calls this function to specify deposit of fees on destination
+     * @notice It init off-chain listening on destination
+     *
+     * @dev status: NONE -> DST_FEES_DEPOSITED
+     * @dev emit: FeesDeposited(operationHash, params, block.number)
+     *
+     * @param operationHash hash id of the operation
+     * @param chainIdFrom origin chain Id of the operation
+     * @param chainIdTo destination chain Id of the operation (this one)
+     */
+    function lockDestinationFees(bytes32 operationHash, uint256 chainIdFrom, uint256 chainIdTo)
+        external
+        payable
+        onlyRole("bridge")
+    {
+        if (s_destinationOperations[operationHash].status != OperationStatus.NONE) {
+            revert RelayerBase__OperationAlreadyExists();
+        }
 
         DestinationOperation memory newOperation;
         DestinationBlockStep memory blockStep;
@@ -375,97 +416,72 @@ contract RelayerBase is Utils {
         newOperation.params.chainIdTo = chainIdTo;
         newOperation.status = OperationStatus.DST_FEES_DEPOSITED;
 
-        // emit FeesDeposited(operationHash, chainIdFrom); // event name //c chainIdTo pour lr rappeler// block.number
-        // HCKTON add for uml server spec
-        OperationParams memory params = newOperation.params;
+        // OperationParams memory params = newOperation.params;
 
-        emit FeesDeposited(operationHash, params, block.number);
         s_destinationOperations[operationHash] = newOperation;
         s_destinationOperationsList.push(operationHash);
+
+        emit FeesDeposited(operationHash, newOperation.params, block.number); // params
     }
 
-    // server check block confirmation for feesLock if finality is reached then call this function to emit the event and
-    // forward to origin chain
-    // ADd chainID for operation
+    /**
+     * @notice Server calls this function to specify fees confirmation on destination
+     *
+     * @dev status: DST_FEES_DEPOSITED -> DST_FEES_CONFIRMED
+     * @dev emit: FeesDeposited(operationHash, params, block.number)
+     *
+     * @param operationHash hash id of the operation
+     * @param params operation params
+     * @param blockStep tx block when last event was emitted on destination
+     */
     function sendFeesLockConfirmation(bytes32 operationHash, OperationParams calldata params, uint256 blockStep)
         external
-        onlyOracle
+        onlyRole("oracle")
     {
         DestinationOperation storage operation = s_destinationOperations[operationHash];
-        require(operation.status == OperationStatus.DST_FEES_DEPOSITED, "RelayerBase: invalid status");
-        require(
-            block.number - operation.blockStep.feesDeposit
-                > Storage(s_storage).getUint(Storage(s_storage).getKey("blockToWait", operation.params.chainIdTo)),
-            "RelayerBase: block not reached"
-        );
+        bytes32 key = Storage(s_storage).getKey("blockToWait", operation.params.chainIdTo);
+        uint256 blockToWait = Storage(s_storage).getUint(key);
+
+        if (block.number - operation.blockStep.feesDeposit > blockToWait) {
+            revert RelayerBase__BlockConfirmationNotReached();
+        }
+        if (operation.status != OperationStatus.DST_FEES_DEPOSITED) {
+            revert RelayerBase__InvalidOperationStatus();
+        }
 
         operation.status = OperationStatus.DST_FEES_CONFIRMED;
         operation.blockStep.feesConfirmation = uint64(block.number);
 
-        // emit FeesDepositConfirmed(operationHash, operation.params.chainIdFrom, block.number);
         emit FeesDepositConfirmed(operationHash, params, block.number);
     }
 
-    // function completeOperation(
-    //     address from,
-    //     address to,
-    //     uint256 chainIdFrom,
-    //     uint256 chainIdTo,
-    //     string memory tokenName,
-    //     uint256 amount,
-    //     uint256 nonce,
-    //     bytes memory signature
-    // ) external onlyOracle {
-    //     // check block (signature checked at creation)
-    //     // check status not CANCELED
-    //     // bytes32 operationHash = getPrefixedMessageHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
-    //     bytes32 operationHash = getMessageHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
-
-    //     console.log(
-    //         "RELAYERBASE / completeOperartion / operationStatus: %s",
-    //         uint8(s_destinationOperations[operationHash].status)
-    //     );
-    //     require(
-    //         s_destinationOperations[operationHash].status == OperationStatus.DST_FEES_CONFIRMED,
-    //         "RelayerBase: invalid status"
-    //     );
-
-    //     DestinationOperation storage operation = s_destinationOperations[operationHash];
-    //     // require(operation.status == OperationStatus.RECEIVED, "RelayerBase: invalid status");
-
-    //     operation.status = OperationStatus.DST_OP_FINALIZED;
-    //     operation.blockStep.receptionBlock = uint64(block.number);
-
-    //     BridgeBase bridge = BridgeBase(Storage(s_storage).getOperator("bridge"));
-    //     bridge.completeBridgeOperation(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce, signature);
-
-    //     emit OperationFinalized(operationHash, operation.params, block.number);
-    // }
-
-    // ADD FOR UML SERVER SPEC
-
-    function completeOperation(bytes32 _operationHash, OperationParams calldata params, uint256 blockStep)
+    /**
+     * @notice Server calls this function to process the bridge operation on destination
+     * @notice This call contains all necessary params (sent in event from origin)
+     *
+     * @dev It calls Bridge to forward operation to Vault
+     * @dev status: DST_FEES_CONFIRMED -> DST_OP_FINALIZED
+     * @dev emit: OperationFinalized(operationHash, params, block.number)
+     *
+     * @param operationHash hash id of the operation
+     * @param params operation params
+     * @param blockStep tx block when last event was emitted on destination
+     */
+    function completeOperation(bytes32 operationHash, OperationParams calldata params, uint256 blockStep)
         external
-        onlyOracle
+        onlyRole("oracle")
     {
-        // check block (signature checked at creation)
-        // check status not CANCELED
-        // bytes32 operationHash = getPrefixedMessageHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
-        bytes32 operationHash = getMessageHash(
+        bytes32 computedHash = getMessageHash(
             params.from, params.to, params.chainIdFrom, params.chainIdTo, params.tokenName, params.amount, params.nonce
         );
+        if (computedHash != operationHash) {
+            revert RelayerBase__InvalidOperationHash();
+        }
+        if (s_destinationOperations[computedHash].status != OperationStatus.DST_FEES_CONFIRMED) {
+            revert RelayerBase__InvalidOperationStatus();
+        }
 
-        // console.log(
-        //     "RELAYERBASE / completeOperartion / operationStatus: %s",
-        //     uint8(s_destinationOperations[operationHash].status)
-        // );
-        require(
-            s_destinationOperations[operationHash].status == OperationStatus.DST_FEES_CONFIRMED,
-            "RelayerBase: invalid status"
-        );
-
-        DestinationOperation storage operation = s_destinationOperations[operationHash];
-        // require(operation.status == OperationStatus.RECEIVED, "RelayerBase: invalid status");
+        DestinationOperation storage operation = s_destinationOperations[computedHash];
 
         operation.status = OperationStatus.DST_OP_FINALIZED;
         operation.blockStep.receptionBlock = uint64(block.number);
@@ -482,72 +498,54 @@ contract RelayerBase is Utils {
             params.signature
         );
 
-        emit OperationFinalized(operationHash, operation.params, block.number);
+        emit OperationFinalized(computedHash, operation.params, block.number);
     }
 
-    //////////////////////
-    // CANCEL OPERATION //
-    //////////////////////
-
-    // ORGN SIDE
-    function receiveCancelOperation(bytes32 operationHash, uint256 chainIdFrom) external onlyOracle {
-        OriginOperation storage operation = s_originOperations[operationHash];
-        require(
-            operation.status != OperationStatus.ORG_OP_CLOSED && operation.status != OperationStatus.NONE,
-            "RelayerBase: invalid status"
-        );
-
-        operation.status = OperationStatus.ORG_OP_CANCELED;
-        operation.blockStep.closingBlock = uint64(block.number);
-        address tokenFrom =
-            Storage(s_storage).getTokenAddressByChainId(operation.params.tokenName, operation.params.chainIdTo);
-        // BRDIGE => VAULT => free the user balance
-        BridgeBase bridge = BridgeBase(Storage(s_storage).getOperator("bridge"));
-        bridge.cancelBridgeDeposit(operation.params.from, tokenFrom, operation.params.amount);
-
-        emit ReceveidOperationCanceled(operationHash, chainIdFrom, block.number);
-    }
-
-    function emitCancelOperation(bytes32 operationHash, uint256 chainIdFrom, uint256 chainIdTo) external onlyBridge {
+    /**
+     * @notice Bridge calls this function to cancel operation in case of error to allows user to redeem deposit
+     *
+     * @dev status: ANY -> ORG_OP_CANCELED
+     * @dev emit: SentOperationCanceled(operationHash, params, block.number)
+     *
+     * @param operationHash hash id of the operation
+     * @param chainIdFrom oringin chain Id
+     * @param chainIdTo destionation chain Id
+     */
+    function emitCancelOperation(bytes32 operationHash, uint256 chainIdFrom, uint256 chainIdTo)
+        external
+        onlyRole("bridge")
+    {
         DestinationOperation storage operation = s_destinationOperations[operationHash];
-        require(
-            operation.status != OperationStatus.DST_OP_FINALIZED && operation.status != OperationStatus.NONE,
-            "RelayerBase: invalid status"
-        );
+        if (operation.status == OperationStatus.DST_OP_FINALIZED || operation.status == OperationStatus.NONE) {
+            revert RelayerBase__InvalidOperationStatus();
+        }
 
-        // operation.params.chainIdFrom = chainIdFrom;
         operation.status = OperationStatus.ORG_OP_CANCELED;
         operation.blockStep.finalisationBlock = uint64(block.number);
 
         emit SentOperationCanceled(operationHash, chainIdFrom, block.number);
     }
-    /* public functions */
 
-    /* internal functions */
+    //****************************************************************** */
+    //
+    //              GETTERS / HELPERS
+    //
+    //****************************************************************** */
 
-    /* pure functions */
-
-    /* view functions */
-    function getDestinationOperationStatus(bytes32 operationHash) external view returns (OperationStatus) {
-        return s_destinationOperations[operationHash].status;
-    }
-
-    function isDestinationOperationExist(bytes32 operationHash) external view returns (bool) {
-        return s_destinationOperations[operationHash].status != OperationStatus.NONE;
-    }
-
-    function isOriginOperationExist(bytes32 operationHash) external view returns (bool) {
-        return s_originOperations[operationHash].status != OperationStatus.NONE;
-    }
-
-    function isOriginOperationCanceled(bytes32 operationHash) external view returns (bool) {
-        return s_originOperations[operationHash].status == OperationStatus.ORG_OP_CANCELED;
-    }
-
+    /// @notice It returns the status of the operation on origin
+    /// @param operationHash hash Id of the operation
     function getOriginOperationStatus(bytes32 operationHash) external view returns (OperationStatus) {
         return s_originOperations[operationHash].status;
     }
 
+    /// @notice It returns the status of the operation on destination
+    /// @param operationHash hash Id of the operation
+    function getDestinationOperationStatus(bytes32 operationHash) external view returns (OperationStatus) {
+        return s_destinationOperations[operationHash].status;
+    }
+
+    /// @notice It returns all params of the operation on origin
+    /// @param operationHash hash Id of the operation
     function getDetailedOriginOperation(bytes32 operationHash)
         external
         view
@@ -556,11 +554,53 @@ contract RelayerBase is Utils {
         return s_originOperations[operationHash];
     }
 
+    /// @notice It returns all params of the operation on destination
+    /// @param operationHash hash Id of the operation
     function getDetailedDestinationOperation(bytes32 operationHash)
         external
         view
         returns (DestinationOperation memory operation)
     {
         return s_destinationOperations[operationHash];
+    }
+
+    /// @notice It returns operationHash array of the user operations in progress on origin
+    /// @param user address of the user
+    function getUserOperations(address user) external view returns (bytes32[] memory) {
+        return s_currentUserOperations[user];
+    }
+
+    //****************************************************************** */
+    //
+    //              PRIVATE FUNCTIONS
+    //
+    //****************************************************************** */
+    /**
+     * @notice It removes an operationHash from current user operations (in progress)
+     * @notice It's used when on op is closed or canceled on the origin
+     *
+     * @param user address of the user
+     * @param operationHash hash to remove
+     */
+    function _removeUserOperation(address user, bytes32 operationHash) private {
+        bytes32[] storage userOperations = s_currentUserOperations[user];
+        uint256 operationsCount = userOperations.length;
+        if (operationsCount == 0) {
+            revert RelayerBase__UserOperationsEmpty();
+        }
+
+        if (operationsCount > 1) {
+            for (uint256 i; i < operationsCount;) {
+                if (userOperations[i] == operationHash) {
+                    userOperations[i] = userOperations[operationsCount - 1];
+                    break;
+                }
+                unchecked {
+                    i++;
+                }
+            }
+        }
+
+        userOperations.pop();
     }
 }

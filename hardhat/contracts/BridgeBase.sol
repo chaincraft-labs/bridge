@@ -91,10 +91,12 @@ error BridgeBase__UnlockFailed(string message);
 
 /**
  * @title BridgeBase
+ *
  * @notice Users interact with this contract only
  * @notice It forwards calls to vault and relayer
  * @notice IMPORTANT: Approvals should be done by the user before calling the bridge function !!
  * @notice It is responsible for receiving and transfering tokens
+ *
  * @dev bridge mechanism:
  * - token/native -> bridgedToken => lock token/native -> mint bridged token
  * - bridgedtoken -> token/native => burn bridged token -> unlock token/native
@@ -248,7 +250,7 @@ contract BridgeBase is Utils {
 
         Storage store = Storage(s_storage);
         address tokenFrom = store.getTokenAddressByChainId(tokenName, chainIdFrom);
-        address tokenTo = store.getTokenAddressByChainId(tokenName, chainIdTo);
+        // address tokenTo = store.getTokenAddressByChainId(tokenName, chainIdTo);
         address vault = store.getOperator("vault");
         address relayer = store.getOperator("relayer");
 
@@ -283,12 +285,10 @@ contract BridgeBase is Utils {
                 Vault(vault).depositToken(msg.sender, tokenFrom, amount);
             } else {
                 // bridged token
-                Vault(vault).burn(tokenFrom, msg.sender, amount);
+                Vault(vault).burn(msg.sender, tokenFrom, amount);
             }
         }
-        RelayerBase(relayer).createOperation(
-            msg.sender, msg.sender, chainIdFrom, chainIdTo, tokenName, amount, nonce, signature
-        );
+        RelayerBase(relayer).createOperation(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce, signature);
     }
 
     /**
@@ -331,13 +331,16 @@ contract BridgeBase is Utils {
      *
      * @dev It transfer fees to the Vault
      * @dev It emits the de event to be forwarded by the server
+     *
      * @param operationHash id of the operation (hash of the operation params used in create function)
      * @param chainIdFrom origin chain id
      * @param chainIdTo destination chain id
      */
     function depositFees(bytes32 operationHash, uint256 chainIdFrom, uint256 chainIdTo) external payable {
         address relayer = Storage(s_storage).getOperator("relayer");
-        if (RelayerBase(relayer).isDestinationOperationExist(operationHash)) {
+
+        uint8 operationStatus = uint8(RelayerBase(relayer).getDestinationOperationStatus(operationHash));
+        if (operationStatus != 0) {
             revert BridgeBase__FeesDepositFailed("Operation already exists");
         }
 

@@ -9,6 +9,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 error Vault__CallerHasNotRole(string role);
 error Vault__TransferFailed();
 error Vault__InsufficientBalance(string message);
+error Vault__InvalidFeesParams(string message);
 // ADD event!!!!
 
 // This contract is a placeholder for the actual vault contract
@@ -42,6 +43,11 @@ error Vault__InsufficientBalance(string message);
  * @dev or to 's_usersAmountToRedeem' if the operation is canceled to be redeemable
  */
 contract Vault {
+    enum FeesType {
+        PROTOCOL,
+        OPERATION
+    }
+
     //****************************************************************** */
     //
     //              STATE VARIABLES
@@ -53,23 +59,14 @@ contract Vault {
     address public s_storage;
 
     mapping(address => uint256) public s_vaultBalance;
-    // should be add by admin with storage setting authorized tokens (not remove if unauthorized !!)
-    // balance should be given to vault WHEN op is finalized
-    // userBalance is redeemable if op is CANCELED
-    // Mapping of user/operator => token => balance
-    // find better memory management (struct position ?)
+    // User balance of deposited tokens BEFORE operation is finalized
     mapping(address user => mapping(address token => uint256 balance) tokenBalance) public s_usersDeposits;
+    // User balance of token deposited redeemable AFTER operation is canceled
     mapping(address user => mapping(address token => uint256 balance) tokenBalance) public s_usersAmountToRedeem;
-
-    // Mapping of the fees for each token (only one relayer, orcale... but later
-    // should be adjust to manage list of oracles... and amount due to each)
-    // later struct totXTokenFees and mapping operator amountToReddem
-    mapping(address token => uint256) public s_feesBalance;
-    // opFees are meant for the tx fees of the operators reumbursment
-    mapping(address token => uint256) public s_opFeesBalance;
-
-    // Mapping of minted tokens (bridged) // or bunr and mint with mint >= burn
-    mapping(address token => uint256) public s_mintedBalance;
+    // protocolFees: team, protocol.. fees
+    mapping(address token => uint256) public s_protocolFeesBalance;
+    // operationFees: tx reimbursement and reward for server
+    mapping(address token => uint256) public s_operationFeesBalance;
 
     address[] public s_tokensInVault;
 
@@ -137,20 +134,26 @@ contract Vault {
             revert Vault__TransferFailed();
         }
     }
+
+    // @todo remove commented line (quick fix)
     /**
-     * @notice Function to deposit tokens
+     * @notice Function to deposit bridged tokens
      * @dev usersDeposit balance is updated not yet vaultBalance
+     * @param owner sender
+     * @param token address of the token deposited
+     * @param amount amount to deposit
+     */
+    function burn(address owner, address token, uint256 amount) external onlyRole("bridge") {
+        // s_usersDeposits[owner][token] -= amount;
+        BridgedToken(token).burn(owner, amount);
+    }
+
+    /**
+     * @notice It finalizes deposit: transitory userDeposit balance is updated to vaultBalance
      * @param from sender
      * @param token address of the token deposited
      * @param amount amount to deposit
      */
-
-    function burn(address token, address owner, uint256 amount) external onlyRole("bridge") {
-        s_mintedBalance[token] -= amount;
-        s_usersDeposits[owner][token] -= amount;
-        BridgedToken(token).burn(owner, amount);
-    }
-
     function finalizeDeposit(address from, address token, uint256 amount) external onlyRole("bridge") {
         if (amount > s_usersDeposits[from][token]) {
             revert Vault__InsufficientBalance("Amount greater than deposit");
@@ -158,16 +161,39 @@ contract Vault {
         s_usersDeposits[from][token] -= amount;
         s_vaultBalance[token] += amount;
     }
+
+    /**
+     * @notice It transfers balance from usersDeposit to usersAmountToRedeem to make funds redeemable
+     * @param from user
+     * @param token address of the token to unlock
+     * @param amount amount to unlock
+     */
+    function cancelDeposit(address from, address token, uint256 amount) external onlyRole("bridge") {
+        if (amount > s_usersDeposits[from][token]) {
+            revert Vault__InsufficientBalance("Amount greater than deposit");
+        }
+        s_usersDeposits[from][token] -= amount;
+        s_usersAmountToRedeem[from][token] += amount;
+    }
     //**************************** TRANSFER DESTINATION SIDE *********************************/
 
-    // BRIDGED TOKENS
-    // SEE bridge : Vault is the owner
+    // @todo remove commented line
+    /**
+     * @notice It mints bridged token to user
+     * @param to recipient
+     * @param token address of the token to mint
+     * @param amount amount to mint
+     */
     function mint(address to, address token, uint256 amount) external onlyRole("bridge") {
-        s_mintedBalance[token] += amount;
-        s_usersDeposits[to][token] += amount;
+        // s_usersDeposits[to][token] += amount;
         BridgedToken(token).mint(to, amount);
     }
 
+    /**
+     * @notice It unlocks native coin and transfers it to user
+     * @param to recipient
+     * @param amount amount to mint
+     */
     function unlockNative(address to, uint256 amount) external onlyRole("bridge") {
         if (amount > s_vaultBalance[MAX_ADDRESS]) {
             revert Vault__InsufficientBalance("Insufficient vault balance");
@@ -177,6 +203,12 @@ contract Vault {
         payable(to).transfer(amount);
     }
 
+    /**
+     * @notice It unlocks token and transfers it to user
+     * @param to recipient
+     * @param token address of the token to unlock
+     * @param amount amount to unlock
+     */
     function unlockToken(address to, address token, uint256 amount) external onlyRole("bridge") {
         if (amount > s_vaultBalance[token]) {
             revert Vault__InsufficientBalance("Insufficient vault balance");
@@ -189,36 +221,11 @@ contract Vault {
         }
     }
 
-    //**************************** CANCELING *********************************/
-
-    function cancelDeposit(address from, address token, uint256 amount) external onlyRole("bridge") {
-        if (amount > s_usersDeposits[from][token]) {
-            revert Vault__InsufficientBalance("Amount greater than deposit");
-        }
-        s_usersDeposits[from][token] -= amount;
-        s_usersAmountToRedeem[from][token] += amount;
-    }
-
-    // FEES MANAGEMENT
-    // function depositFeesNative() external payable {
-    //     s_feesBalance[address(0)] += msg.value;
-    // }
-
-    // function depositFeesToken(address token, uint256 amount) external {
-    //     // transfer token to the vault
-    //     // add to the fees balance
-    //     bool res = ERC20(token).transferFrom(msg.sender, address(this), amount);
-
-    //     if (!res) {
-    //         revert("transfer failed");
-    //     }
-    //     s_feesBalance[token] += amount;
-    // }
-
-    enum FeesType {
-        PROTOCOL,
-        OPERATION
-    }
+    //****************************************************************** */
+    //
+    //              FEES MANAGEMENT
+    //
+    //****************************************************************** */
 
     // function depositFees(address token, uint256 amount, uint8 u8FeesType) external payable {
     //     FeesType feesType = FeesType(u8FeesType);
@@ -237,94 +244,117 @@ contract Vault {
     //         }
     //     }
     //     if (feesType == FeesType.PROTOCOL) {
-    //         s_feesBalance[token] += amount;
+    //         s_protocolFeesBalance[token] += amount;
     //     } else {
-    //         s_opFeesBalance[token] += amount;
+    //         s_operationFeesBalance[token] += amount;
     //     }
     // }
 
+    /**
+     * @notice It handles deposit of operation fees (native coin) on destination
+     */
     function depositOperationFee() external payable {
         if (msg.value == 0) {
-            revert("Vault: msg.value is 0");
+            revert Vault__InvalidFeesParams("Msg.value is 0");
         }
-        s_opFeesBalance[MAX_ADDRESS] += msg.value;
+        s_operationFeesBalance[MAX_ADDRESS] += msg.value;
     }
 
+    /**
+     * @notice It handles deposit of protocol fees (% of token deposited) on origin
+     * @param token address of the token to unlock
+     * @param amount amount to unlock
+     */
     function depositProtocolFee(address token, uint256 amount) external {
         if (amount == 0) {
-            revert("Vault: amount is 0");
+            revert Vault__InvalidFeesParams("Amount is 0");
         }
-        s_feesBalance[token] += amount;
+        s_protocolFeesBalance[token] += amount;
 
         bool res = ERC20(token).transferFrom(msg.sender, address(this), amount);
         if (!res) {
-            revert("transfer failed");
+            revert Vault__TransferFailed();
         }
     }
 
-    // Admin withdrawal (urgence // add check pause status... later), admin can withdraw all
+    //****************************************************************** */
+    //
+    //              WITHDRAWALS
+    //
+    //****************************************************************** */
+
+    /**
+     * @notice It allows urgence withdrawal (case of hacks..)
+     * @notice @todo To be removed / or add a very strong key managt/vote to authorize this
+     * @param token address of the token to withdraw
+     * @param amount amount to withdraw
+     */
     function adminUrgenceWithdrawal(address token, uint256 amount) external onlyRole("admin") {
         if (token == MAX_ADDRESS) {
             if (amount > address(this).balance) {
-                revert("Vault: amount is greater than the balance");
+                revert Vault__InsufficientBalance("Insufficient vault balance");
             }
             payable(msg.sender).transfer(amount);
         } else {
             if (amount > s_vaultBalance[token]) {
-                revert("Vault: amount is greater than the balance");
+                revert Vault__InsufficientBalance("Insufficient vault balance");
             }
             bool res = ERC20(token).transfer(msg.sender, amount);
             if (!res) {
-                revert("transfer failed");
+                revert Vault__TransferFailed();
             }
         }
         s_vaultBalance[token] -= amount;
     }
 
-    // Admin regular withdrawal (only protocol fees)
+    /**
+     * @notice Allows Admin to redeem protocol fees
+     * @param token address of the token to withdraw
+     * @param amount amount to withdraw
+     */
     function adminOpFeesWithdrawal(address token, uint256 amount) external onlyRole("admin") {
-        // check fee balance
-        if (amount > s_feesBalance[token]) {
-            revert("Vault: amount is greater than the balance");
+        if (amount > s_protocolFeesBalance[token]) {
+            revert Vault__InsufficientBalance("Insufficient vault balance");
         }
         if (token == MAX_ADDRESS) {
             payable(msg.sender).transfer(amount);
         } else {
             bool res = ERC20(token).transfer(msg.sender, amount);
             if (!res) {
-                revert("transfer failed");
+                revert Vault__TransferFailed();
             }
         }
-        // update the fees balance
-        s_feesBalance[token] -= amount;
+        s_protocolFeesBalance[token] -= amount;
     }
 
-    // Operator redeem (add check mapping its actions to correspondant fees)
+    /**
+     * @notice Allows Server to redeem operator fees
+     * @param token address of the token to withdraw
+     * @param amount amount to withdraw
+     */
     function operatorRedeem(address token, uint256 amount) external onlyRole("oracle") {
-        // check op fees balance
-        // check ad is operator
-        // later mapping operators => feesRedeemable
-        if (amount > s_opFeesBalance[token]) {
-            revert("Vault: amount is greater than the balance");
+        if (amount > s_operationFeesBalance[token]) {
+            revert Vault__InsufficientBalance("Insufficient vault balance");
         }
         if (token == MAX_ADDRESS) {
             payable(msg.sender).transfer(amount);
         } else {
             bool res = ERC20(token).transfer(msg.sender, amount);
             if (!res) {
-                revert("transfer failed");
+                revert Vault__TransferFailed();
             }
         }
-        // update the fees balance
-        s_opFeesBalance[token] -= amount;
+        s_operationFeesBalance[token] -= amount;
     }
 
-    // user withdrawal (only his balance / add later check with relayer ONLY if op is CANCELED)
+    /**
+     * @notice Allows user to redeem funds in case of operation canceled
+     * @param token address of the token to withdraw
+     * @param amount amount to withdraw
+     */
     function redeemUserDeposit(address token, uint256 amount) external {
-        // ADD CHECK OP CANCELED
-        // check user balance
         if (amount > s_usersAmountToRedeem[msg.sender][token]) {
-            revert("Vault: amount is greater than the balance");
+            revert Vault__InsufficientBalance("Insufficient vault balance");
         }
         s_usersAmountToRedeem[msg.sender][token] -= amount;
         if (token == MAX_ADDRESS) {
@@ -332,26 +362,22 @@ contract Vault {
         } else {
             bool res = ERC20(token).transfer(msg.sender, amount);
             if (!res) {
-                revert("transfer failed");
+                revert Vault__TransferFailed();
             }
         }
-        // update the user balance
         s_usersDeposits[msg.sender][token] -= amount;
     }
 
-    // update balance of the vault
-    // called by relayer : op FINALIZED => balance is transfered to the vault from user
-    function updateVaultBalance(address user, address token, uint256 amount) external onlyRole("relayer") {
-        s_vaultBalance[token] += amount;
-        s_usersDeposits[user][token] -= amount;
-    }
-
-    // getters
+    //****************************************************************** */
+    //
+    //              GETTERS / HELPERS
+    //
+    //****************************************************************** */
     function getTokenUserBalance(address user, address token) external view returns (uint256) {
         return s_usersDeposits[user][token];
     }
 
     function getOpFeesBalance(address token) external view returns (uint256) {
-        return s_opFeesBalance[token];
+        return s_operationFeesBalance[token];
     }
 }

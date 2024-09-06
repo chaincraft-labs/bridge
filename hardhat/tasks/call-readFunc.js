@@ -1,10 +1,11 @@
-const { task } = require("hardhat/config");
+// const { task } = require("hardhat/config");
+require("@nomicfoundation/hardhat-toolbox");
 const { spawn } = require("child_process");
 const { forkPorts } = require("../constants/deploymentConfig");
 const { readLastDeployedAddress } = require("../helpers/fileHelpers");
 const { convertParamsStringToArray } = require("../helpers/functionHelpers");
 
-task("read", "send a read transaction to the contract")
+task("call-readFunc", "send a read transaction to the contract")
   .addParam("contract", "The contract to interact with")
   .addParam("method", "The method to call")
   .addParam("args", "The arguments to pass to the method, comma separated")
@@ -41,5 +42,5 @@ task("read", "send a read transaction to the contract")
 
 // npx hardhat start-node --network-to-fork "sepolia"
 
-// npx hardhat write --contract "BridgeBase" --method "createBridgeOperation" --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90,0xbfae728Cf6D20DFba443c5A297dC9b344108de90,11155111,441,ethereum,10000000000000000n,2,0x77b8f24e3f8b594f12312f4eaffddd0db3ab411da930be97feb683a80d206cb3" --network sepolia
-// npx hardhat read --contract "Storage" --method "getChainIdsList" --args "" --network sepolia
+// npx hardhat call-writeFunc --contract "BridgeBase" --method "createBridgeOperation" --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90,0xbfae728Cf6D20DFba443c5A297dC9b344108de90,11155111,441,ethereum,10000000000000000n,2,0x77b8f24e3f8b594f12312f4eaffddd0db3ab411da930be97feb683a80d206cb3" --network sepolia
+// npx hardhat call-readFunc --contract "Storage" --method "getChainIdsList" --args "" --network sepolia

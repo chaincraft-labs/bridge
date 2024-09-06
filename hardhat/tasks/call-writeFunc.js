@@ -1,4 +1,5 @@
-const { task } = require("hardhat/config");
+// const { task } = require("hardhat/config");
+require("@nomicfoundation/hardhat-toolbox");
 const { spawn } = require("child_process");
 const { forkPorts } = require("../constants/deploymentConfig");
 const { readLastDeployedAddress } = require("../helpers/fileHelpers");

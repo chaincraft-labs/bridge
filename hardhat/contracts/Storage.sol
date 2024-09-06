@@ -549,7 +549,7 @@ contract Storage {
         return getAddress(getKey(role));
     }
 
-    function getOperators(string[] calldata roles) public view returns (address[] memory) {
+    function getOperators(string[] memory roles) public view returns (address[] memory) {
         address[] memory operators = new address[](roles.length);
         for (uint256 i; i < roles.length;) {
             operators[i] = getOperator(roles[i]);

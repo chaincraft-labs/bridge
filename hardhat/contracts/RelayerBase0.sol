@@ -8,6 +8,8 @@
 // import "./Vault.sol";
 // import "./Utils.sol";
 
+// @todo REMOVE
+
 // /**
 //  * @notice Base contract comunicating with the oracle/server
 //  * It's in charge to emit the bridge event to the oracle/server and maanage tx status

@@ -4,6 +4,8 @@ pragma solidity ^0.8.20;
 
 import "./BridgedToken.sol";
 
+// @todo REMOVE
+
 /**
  * ETH token on Aft tesnet
  */

@@ -62,7 +62,7 @@ contract Utils {
         uint256 chainIdTo,
         // address tokenFrom,
         // address tokenTo,
-        string memory tokenName,
+        string memory tokenName, // bytes and fixed size avoid collision due to encodedPacked
         uint256 amount,
         uint256 nonce
     ) public pure returns (bytes32) {

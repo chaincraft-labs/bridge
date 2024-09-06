@@ -14,7 +14,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * Renaming => owner / admin / minter
  */
 
-error BridgedToken__OnlyOwner(string message);
+error BridgedToken__CallerNotOwner();
 
 /**
  * @title BridgedToken
@@ -29,7 +29,7 @@ contract BridgedToken is ERC20 {
 
     modifier onlyOwner() {
         if (msg.sender != s_owner) {
-            revert BridgedToken__OnlyOwner("caller not the owner");
+            revert BridgedToken__CallerNotOwner();
         }
         _;
     }

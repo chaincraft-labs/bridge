@@ -18,7 +18,7 @@ contract BridgedDai is BridgedToken {
 
     //when transfer emit a custom event
     function transfer(address to, uint256 amount) public override returns (bool) {
-        emit CustomTransfer(msg.sender, to, amount);
+        // emit CustomTransfer(msg.sender, to, amount);
         bool res = super.transfer(to, amount);
         return res;
     }

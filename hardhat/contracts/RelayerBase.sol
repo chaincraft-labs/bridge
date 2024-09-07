@@ -271,9 +271,9 @@ contract RelayerBase is Utils {
      *
      * @param operationHash hash id of the operation
      * @param params operation params
-     * @param operator address of caller
+     * @param blockStep tx block when last event was emitted on destination
      */
-    function receiveFeesLockConfirmation(bytes32 operationHash, OperationParams calldata params, address operator)
+    function receiveFeesLockConfirmation(bytes32 operationHash, OperationParams calldata params, uint256 blockStep)
         external
         onlyRole("oracle")
     {
@@ -297,7 +297,7 @@ contract RelayerBase is Utils {
      *
      * @param operationHash hash id of the operation
      * @param params operation params
-     * @param blockStep tx block when last event was emitted on destination
+     * @param blockStep tx block when last event was emitted
      */
     function confirmFeesLockedAndDepositConfirmed(
         bytes32 operationHash,
@@ -396,10 +396,9 @@ contract RelayerBase is Utils {
      * @dev emit: FeesDeposited(operationHash, params, block.number)
      *
      * @param operationHash hash id of the operation
-     * @param chainIdFrom origin chain Id of the operation
-     * @param chainIdTo destination chain Id of the operation (this one)
+     * @param params operation params
      */
-    function lockDestinationFees(bytes32 operationHash, uint256 chainIdFrom, uint256 chainIdTo)
+    function lockDestinationFees(bytes32 operationHash, OperationParams calldata params)
         external
         payable
         onlyRole("bridge")
@@ -409,13 +408,13 @@ contract RelayerBase is Utils {
         }
 
         DestinationOperation memory newOperation;
-        DestinationBlockStep memory blockStep;
-        blockStep.feesDeposit = uint64(block.number);
+        DestinationBlockStep memory newBlockStep;
+        newBlockStep.feesDeposit = uint64(block.number);
 
-        newOperation.params.chainIdFrom = chainIdFrom;
-        newOperation.params.chainIdTo = chainIdTo;
+        newOperation.params.chainIdFrom = params.chainIdFrom;
+        newOperation.params.chainIdTo = params.chainIdTo;
         newOperation.status = OperationStatus.DST_FEES_DEPOSITED;
-
+        newOperation.blockStep = newBlockStep;
         // OperationParams memory params = newOperation.params;
 
         s_destinationOperations[operationHash] = newOperation;

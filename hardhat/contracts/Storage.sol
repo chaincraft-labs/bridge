@@ -98,7 +98,7 @@ contract Storage {
     event Storage__ChainIdAdded(uint256 chainId);
 
     event Storage__TokenAddressSet(string tokenName, uint256 chainId, address tokenAddress);
-    event Storage__TokenAddressSet(string tokenName, uint256 chainId, address newAddress, address oldAddress);
+    // event Storage__TokenAddressSet(string tokenName, uint256 chainId, address newAddress, address oldAddress);
 
     event Storage__UintDataChanged(bytes32 key, uint256 newValue);
     event Storage__AddressDataChanged(bytes32 key, address newValue);
@@ -142,40 +142,12 @@ contract Storage {
 
         addNewTokenAddressByChainId(nativeTokenName, nativeChainId, MAX_ADDRESS);
         // set initial values
-        setInitialValues();
-    }
-
-    //  @todo ADD separate setters
-    /**
-     * @notice Sets the initial values
-     *
-     * @dev set default params (fees, block confimration..)
-     * @dev TO REFACTOR when block checks, fees management implemented
-     */
-    function setInitialValues() public {
-        // blockToWait for confirmation on chainId
-        setUint(getKey("blockToWait", 1), 6); // eth
-        setUint(getKey("blockToWait", 11155111), 6); // sepolia
-        setUint(getKey("blockToWait", 441), 2); // allfeat
-        setUint(getKey("blockToWait", 31337), 2); // hardhat
-        // operational fees on chainId
-        uint256 opFees = 0.001 ether;
-        setUint(getKey("opFees", 1), opFees); // eth
-        setUint(getKey("opFees", 11155111), opFees); // sepolia
-        setUint(getKey("opFees", 441), opFees); // allfeat
-        setUint(getKey("opFees", 31337), opFees); // hardhat
-
-        // protocol fees
-        uint256 protocolPercentFees = 1000; // 0.1%
-        setUint(getKey("protocolPercentFees", 1), protocolPercentFees); // eth
-        setUint(getKey("protocolPercentFees", 11155111), protocolPercentFees); // sepolia
-        setUint(getKey("protocolPercentFees", 441), protocolPercentFees); // allfeat
-        setUint(getKey("protocolPercentFees", 31337), protocolPercentFees); // hardhat
+        _setInitialValues();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
-    //                              Key generators
+    //                              KEY GENERATORS
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     function getKey(string memory key) public pure returns (bytes32) {
@@ -231,15 +203,27 @@ contract Storage {
         return s_stringArrayStorage[key];
     }
 
+    function getUintArrayValue(bytes32 key, uint256 index) public view returns (uint256) {
+        return s_uintArrayStorage[key][index];
+    }
+
+    function getAddressArrayValue(bytes32 key, uint256 index) public view returns (address) {
+        return s_addressArrayStorage[key][index];
+    }
+
+    function getStringArrayValue(bytes32 key, uint256 index) public view returns (string memory) {
+        return s_stringArrayStorage[key][index];
+    }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
-    //                              Data setters by types
+    //                              DATA SETTERS BY TYPE
+    //                          ONLY admin can access setters
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // only Admin can access setters (later : access role)
+    /* *****************SIMPLE VALUE ************************** */
     function setAddress(bytes32 key, address value) public {
-        if (!isAdmin() && !isFactory()) {
+        if (!_isAdmin() && !_isFactory()) {
             revert Storage__NotAdmin();
         }
         s_addressStorage[key] = value;
@@ -247,137 +231,110 @@ contract Storage {
     }
 
     function setUint(bytes32 key, uint256 value) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         s_uintStorage[key] = value;
         emit Storage__UintDataChanged(key, value);
     }
 
     function setBool(bytes32 key, bool value) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         s_boolStorage[key] = value;
         emit Storage__BoolDataChanged(key, value);
     }
 
     function setBytes(bytes32 key, bytes memory value) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         s_bytesStorage[key] = value;
         emit Storage__BytesDataChanged(key, value);
     }
 
     function setString(bytes32 key, string memory value) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         s_stringStorage[key] = value;
         emit Storage__StringDataChanged(key, value);
     }
 
     function setBytes32(bytes32 key, bytes32 value) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         s_bytes32Storage[key] = value;
         emit Storage__Bytes32_DataChanged(key, value);
     }
-    ////////////////////////////// ARRAYS /////////////////////////////////
-    // @todo complete array methods
-    // @note memory instead of calldat cause of compilation error (copy nested calldata to storage "not implemented in old code generator")
+    /* ***************** ARRAYS ************************** */
 
     function setUintArray(bytes32 key, uint256[] memory array) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         s_uintArrayStorage[key] = array;
         emit Storage__UintArrayChanged(key, array);
     }
 
     function setAddressArray(bytes32 key, address[] memory array) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         s_addressArrayStorage[key] = array;
         emit Storage__AddressArrayChanged(key, array);
     }
 
     function setStringArray(bytes32 key, string[] memory array) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         s_stringArrayStorage[key] = array;
         emit Storage__StringArrayChanged(key, array);
     }
 
-    ///////////////////////// ARRAYS VALUES ADDING //////////////////////////
-    // @todo
+    /* *****************ARRAY VALUE ************************** */
     function addToUintArray(bytes32 key, uint256 value) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         uint256[] storage array = s_uintArrayStorage[key];
         array.push(value);
         emit Storage__UintArrayDataChanged(key, array.length - 1, value);
     }
 
     function addToAddressArray(bytes32 key, address value) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         address[] storage array = s_addressArrayStorage[key];
         array.push(value);
         emit Storage__AddressArrayDataChanged(key, array.length - 1, value);
     }
 
     function addToStringArray(bytes32 key, string calldata value) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         string[] storage array = s_stringArrayStorage[key];
         array.push(value);
         emit Storage__StringArrayDataChanged(key, array.length - 1, value);
     }
 
     function updateUintArray(bytes32 key, uint256 index, uint256 value) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         s_uintArrayStorage[key][index] = value;
         emit Storage__UintArrayDataChanged(key, index, value);
     }
 
     function updateAddressArray(bytes32 key, uint256 index, address value) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         s_addressArrayStorage[key][index] = value;
         emit Storage__AddressArrayDataChanged(key, index, value);
     }
 
     function updateStringArray(bytes32 key, uint256 index, string calldata value) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         s_stringArrayStorage[key][index] = value;
         emit Storage__StringArrayDataChanged(key, index, value);
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
-    //                              ROLES HELPERS (to avoid errors when calling with specialized setters/getters)
+    //                              ROLES HELPERS
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // @todo is it necessary ? => setter for role label => need to update an existing label
+    /**
+     * @notice update address of an operator (role)
+     */
     function updateOperator(string calldata role, address newOperator) public {
         setAddress(getKey(role), newOperator);
     }
 
-    // function updateOperators(string[] calldata roles, address[] calldata newOperators) public {
+    /**
+     * @notice update the addresses of a set of operators
+     */
     function batchUpdateOperators(string[] calldata roles, address[] calldata newOperators) public {
         if (roles.length != newOperators.length) {
             revert Storage__InvalidArrayLengthInParams("updatOperators");
@@ -390,10 +347,16 @@ contract Storage {
         }
     }
 
+    /**
+     * @notice get the addresses of an operator
+     */
     function getOperator(string memory role) public view returns (address) {
         return getAddress(getKey(role));
     }
 
+    /**
+     * @notice Get the addresses of a set of operators
+     */
     function getOperators(string[] memory roles) public view returns (address[] memory) {
         address[] memory operators = new address[](roles.length);
         for (uint256 i; i < roles.length;) {
@@ -405,10 +368,16 @@ contract Storage {
         return operators;
     }
 
+    /**
+     * @notice Check that 'role' is assigned to 'address'
+     */
     function isRole(string calldata role, address addr) public view returns (bool) {
         return getOperator(role) == addr;
     }
 
+    /**
+     * @notice Check that 'roles' are assigned to operators addresses
+     */
     function checkOperators(string[] memory roles, address[] memory operators) public view returns (bool) {
         if (roles.length != operators.length) {
             revert Storage__InvalidArrayLengthInParams("checkOperators");
@@ -421,28 +390,22 @@ contract Storage {
         return true;
     }
 
-    // @todo : move at the end, prefix with '_'
-    function isAdmin() private view returns (bool) {
-        return getOperator("admin") == msg.sender;
-    }
-
-    function isFactory() private view returns (bool) {
-        return getOperator("factory") == msg.sender;
-    }
-
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
-    //                              NETWORKS AND TOKENS LISTs
+    //                              TOKEN NAMES AND CHAIN IDS
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // Security (2* action) need to had the tokenName before to set its address to avoid setting add form not listed tokens
-    // and allows front to fetch tokenName used to access its data
-    // @todo  Later pack data ( symbol - address) and a utilities to extract it
+    /*
+     * This functions have security purpose by forcing 2 step actions when adding a token
+     * @todo REMOVE as not responsability of the contract
+     */
+
+    /**
+     * @notice add a token name to the list of authorized tokens
+     */
     function addTokenNameToList(string memory tokenName) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         if (isTokenNameInList(tokenName)) {
             revert Storage__TokenAlreadyInList(tokenName);
         }
@@ -452,6 +415,9 @@ contract Storage {
         emit Storage__TokenNameAdded(tokenName);
     }
 
+    /**
+     * @notice add a batch of token name to the list of authorized tokens
+     */
     function batchAddTokenNamesToList(string[] calldata tokenNames) external {
         for (uint256 i; i < tokenNames.length;) {
             addTokenNameToList(tokenNames[i]);
@@ -461,11 +427,16 @@ contract Storage {
         }
     }
 
+    /**
+     * @notice get the list of authorized tokens
+     */
     function getTokenNamesList() public view returns (string[] memory) {
         return getStringArray(getKey("tokenNamesList"));
     }
 
-    // BAD HAVE a mapping in //  (in case of large list)
+    /**
+     * @notice check if token is in the list of authorized tokens
+     */
     function isTokenNameInList(string memory tokenName) public view returns (bool) {
         string[] memory list = getStringArray(getKey("tokenNamesList"));
         for (uint256 i = 0; i < list.length; i++) {
@@ -476,12 +447,11 @@ contract Storage {
         return false;
     }
 
-    // same principe as tokenName (2* action)
-    // and allows front to fetch cahinId used to access its data
+    /**
+     * @notice add a chainId to the list of authorized chains
+     */
     function addChainIdToList(uint256 chainId) public {
-        if (!isAdmin()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         if (isChainIdInList(chainId)) {
             revert Storage__ChainIdAlreadyInList(chainId);
         }
@@ -491,7 +461,9 @@ contract Storage {
         emit Storage__ChainIdAdded(chainId);
     }
 
-    // @ todo have 2 entry points (regular/batch) with checks and one private function without checks
+    /**
+     * @notice add a batch of chainId to the list of authorized chains
+     */
     function batchAddChainIdsToList(uint256[] calldata chainIds) external {
         for (uint256 i; i < chainIds.length;) {
             addChainIdToList(chainIds[i]);
@@ -501,10 +473,16 @@ contract Storage {
         }
     }
 
+    /**
+     * @notice get the list of authorized chain
+     */
     function getChainIdsList() public view returns (uint256[] memory) {
         return getUintArray(getKey("chainIdsList"));
     }
 
+    /**
+     * @notice check if the chainId is in the list of authorized chain
+     */
     function isChainIdInList(uint256 chainId) public view returns (bool) {
         uint256[] memory list = getUintArray(getKey("chainIdsList"));
         for (uint256 i = 0; i < list.length; i++) {
@@ -515,44 +493,32 @@ contract Storage {
         return false;
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //                              TOKENS DATA HELPERS
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // @todo Remove => replace by flag in token data
-
-    // Token is Authorized on ChainID if tokenaddress is != add(0)
-    // Native token address are address.max == 0xffffffffffffffffffffffffffffffffffffffff
-
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //
-    //                      TOKEN ADDRESS BY CHAIN ID BY SYMBOL
+    //                              TOKENS MANAGEMENT
     //
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    // SECURITY admin should add first tokenName to tokenList and chainId to chainIdsList
-    // token mapping : eq : mapping(string memory tokenName => mapping(uint256 chainId => address tokenAddress))
-    // used to add address and remove by resetting it to address(0)
-    // address(0) = unauthorized token
-    // address.max = native token
+    /*
+     * Native coin are set with MAX_ADDRESS
+     * Authorized tokens have address != address(0)
+     * Storage of tokens representation: mapping(hash(tokenName,chainId) => address)
+     *
+     * @todo modification with packing: status(up/down),tokenSymbol,...,address
+     * and func to extract with bit shifting
+     * @todo manage new versin of token => having 2 addresses for the same token (old/new)
+     */
 
-    // ?? instead of address ?? => bytes32 status-address => status : up, down, paused ??
-    // in this case function extract address or status from data stored with bit shifting
-
-    // @todo reorg pub, ext, private
-    // // manage case of new version of token => ?? arrays of address, last is valid ??
-    // function _setTokenAddressByChainId(string memory tokenName, uint256 chainId, address tokenAddress) private {
-    //     setAddress(getKey(tokenName, chainId), tokenAddress);
-
-    //     emit Storage__TokenAddressSet(tokenName, chainId, tokenAddress);
-    // }
-
-    //essai
+    /**
+     * @notice get the address of 'tokenName' on 'chainId'
+     */
     function getTokenAddressByChainId(string memory tokenName, uint256 chainId) public view returns (address) {
         return getAddress(getKey(tokenName, chainId));
     }
 
+    /**
+     * @notice get the addresses of 'tokenName' on origin and destination 'chainId'
+     */
     function getTokenAddressesBychainIds(string memory tokenName, uint256 originChainId, uint256 destinationChainId)
         public
         view
@@ -562,7 +528,10 @@ contract Storage {
         destinationChainAddress = getTokenAddressByChainId(tokenName, destinationChainId);
     }
 
-    // explicit function to avoid misuse (adding instead of updating)
+    /**
+     * @notice add a new address and chainId for 'tokenName'
+     * @dev address shouldn't exist before
+     */
     function addNewTokenAddressByChainId(string memory tokenName, uint256 chainId, address tokenAddress) public {
         if (!isTokenNameInList(tokenName)) {
             revert Storage__TokenNotInList(tokenName);
@@ -576,6 +545,10 @@ contract Storage {
         _setTokenAddressByChainId(tokenName, chainId, tokenAddress);
     }
 
+    /**
+     * @notice update the address of 'tokenName' on 'chainId'
+     * @dev address should exist before
+     */
     function updateTokenAddressByChainId(string memory tokenName, uint256 chainId, address tokenAddress) public {
         address oldAddress = getTokenAddressByChainId(tokenName, chainId);
         if (!isTokenNameInList(tokenName)) {
@@ -590,12 +563,16 @@ contract Storage {
         _setTokenAddressByChainId(tokenName, chainId, tokenAddress);
     }
 
+    /**
+     * @notice add a set of new addresses and chainIds for 'tokenNames'
+     * @dev addresses shouldn't exist before
+     */
     function batchAddNewTokensAddressesByChainId(
         string[] memory tokenNames,
         uint256[] memory chainIds,
         address[] memory tokenAddresses
     ) public returns (string memory) {
-        if (!isAdmin() && !isFactory()) {
+        if (!_isAdmin() && !_isFactory()) {
             revert Storage__NotAdmin();
         }
         if (tokenNames.length != chainIds.length || chainIds.length != tokenAddresses.length) {
@@ -610,14 +587,12 @@ contract Storage {
         }
     }
 
+    /**
+     * @notice check if tokenName on chainId is authorized
+     * @dev address shouldn't exist before
+     */
     function isAuthorizedTokenByChainId(string memory tokenName, uint256 chainId) public view returns (bool) {
         return getTokenAddressByChainId(tokenName, chainId) != address(0);
-    }
-
-    // @todo REMOVE call factory to have result
-    function isBridgedToken(address tokenAddress) public view returns (bool) {
-        TokenFactory tf = TokenFactory(getOperator("factory"));
-        return tf.isBridgedToken(tokenAddress);
     }
 
     //****************************************************************** */
@@ -625,6 +600,57 @@ contract Storage {
     //              PRIVATE FUNCTIONS
     //
     //****************************************************************** */
+
+    // @todo ADD separate setters
+    /**
+     * @notice Sets the initial values. Draft version to ease dev/test
+     *
+     * @dev set default params (fees, block confimration..)
+     * @dev TO REFACTOR when block checks, fees management implemented
+     */
+    function _setInitialValues() private {
+        // blockToWait for confirmation on chainId
+        setUint(getKey("blockToWait", 1), 6); //........... eth
+        setUint(getKey("blockToWait", 11155111), 6); //.... sepolia
+        setUint(getKey("blockToWait", 441), 2); //......... allfeat
+        setUint(getKey("blockToWait", 31337), 2); //....... hardhat
+        // operational fees on chainId
+        uint256 opFees = 0.001 ether;
+        setUint(getKey("opFees", 1), opFees); //........... eth
+        setUint(getKey("opFees", 11155111), opFees); //.... sepolia
+        setUint(getKey("opFees", 441), opFees); //......... allfeat
+        setUint(getKey("opFees", 31337), opFees); //....... hardhat
+
+        // protocol fees
+        uint256 protocolPercentFees = 1000; // 0.1%
+        setUint(getKey("protocolPercentFees", 1), protocolPercentFees); //....... eth
+        setUint(getKey("protocolPercentFees", 11155111), protocolPercentFees); // sepolia
+        setUint(getKey("protocolPercentFees", 441), protocolPercentFees); //..... allfeat
+        setUint(getKey("protocolPercentFees", 31337), protocolPercentFees); //... hardhat
+    }
+
+    /**
+     * @notice checks sender is the admin
+     */
+    function _isAdmin() private view returns (bool) {
+        return getOperator("admin") == msg.sender;
+    }
+
+    /**
+     * @notice checks sender is the factory
+     */
+    function _isFactory() private view returns (bool) {
+        return getOperator("factory") == msg.sender;
+    }
+
+    /**
+     * @notice checks sender is admin
+     */
+    function _checkAccess() private view {
+        if (!_isAdmin()) {
+            revert Storage__NotAdmin();
+        }
+    }
 
     function _setTokenAddressByChainId(string memory tokenName, uint256 chainId, address tokenAddress) private {
         setAddress(getKey(tokenName, chainId), tokenAddress);

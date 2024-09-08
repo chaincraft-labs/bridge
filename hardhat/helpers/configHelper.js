@@ -1,9 +1,8 @@
 const hre = require("hardhat");
 
-// @todo move functions in appropriate helper
+// @todo RENAMING nativeToken => nativeCoin or Currency, Asset
+// @todo RENAME in scripts allfeat => harmonie
 
-// @todo ntaiveToken => nativeAsset/Coin/Currency
-// @todo change allfeat for harmony (testnet) and add real allfeat chainId
 const networkParams = {
   localhost: {
     chainId: 31337,
@@ -32,16 +31,16 @@ const networkParams = {
   },
   allfeatLocal: {
     chainId: 440,
-    nativeToken: { name: "allfeat", symbol: "AFT" },
+    nativeToken: { name: "allfeat", symbol: "HMY" },
     deployedTokens: [],
   },
-  harmonie: {
-    chainId: 441,
-    nativeToken: { name: "harmonie", symbol: "HMY" },
-    deployedTokens: [],
-  },
-  // @todo CHANGE NAME IN SCRIPT tp harmonie testnet and get real mainnet id
+  // harmonie: {
+  //   chainId: 441,
+  //   nativeToken: { name: "harmonie", symbol: "HMY" },
+  //   deployedTokens: [],
+  // },
   allfeat: {
+    // current harmonie testnet
     chainId: 441,
     nativeToken: { name: "allfeat", symbol: "AFT" },
     deployedTokens: [],
@@ -97,12 +96,12 @@ const networkParams = {
     deployedTokens: [],
   },
 };
-// to complete
-const tokenSymbols = {
-  ethereum: "ETH",
-  allfeat: "AFT",
-  dai: "DAI",
-};
+// // to complete
+// const tokenSymbols = {
+//   ethereum: "ETH",
+//   allfeat: "AFT",
+//   dai: "DAI",
+// };
 
 const tokenParams = {
   ethereum: {

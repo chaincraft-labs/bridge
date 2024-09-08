@@ -106,7 +106,7 @@ const deployAndSaveAddress = async (network, contractName, params) => {
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-//                GENERIC FUNCTIONS
+//                GENERIC FUNCTIONS => replaced by tasks
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -115,21 +115,21 @@ const deployAndSaveAddress = async (network, contractName, params) => {
 // executes batch call of funcName on instance
 // each element of the array are params of one call
 // ex: batchWriteFunc(storage, "addChainIdsToLis", ["ethereum", "allfeat"])
-const batchWriteFunc = async (instance, funcName, params) => {
-  await Promise.all(
-    params.map(async (param) => {
-      const tx = await instance[funcName](param);
-      await tx.wait();
-      console.log(`executed func ${funcName} with param: ${param}`);
-    })
-  ).catch((err) => {
-    console.log(
-      `${toStyle.error("Error: ")} calling func ${funcName} on ${
-        instance.target
-      } with params: ${params}\n${err}`
-    );
-  });
-};
+// const batchWriteFunc = async (instance, funcName, params) => {
+//   await Promise.all(
+//     params.map(async (param) => {
+//       const tx = await instance[funcName](param);
+//       await tx.wait();
+//       console.log(`executed func ${funcName} with param: ${param}`);
+//     })
+//   ).catch((err) => {
+//     console.log(
+//       `${toStyle.error("Error: ")} calling func ${funcName} on ${
+//         instance.target
+//       } with params: ${params}\n${err}`
+//     );
+//   });
+// };
 
 /**
  * Converts a parameter string into an array of arguments.

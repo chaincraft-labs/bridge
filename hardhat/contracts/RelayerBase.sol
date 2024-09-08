@@ -396,9 +396,10 @@ contract RelayerBase is Utils {
      * @dev emit: FeesDeposited(operationHash, params, block.number)
      *
      * @param operationHash hash id of the operation
-     * @param params operation params
+     * @param chainIdFrom origin chain Id
+     * @param chainIdTo destination chain Id
      */
-    function lockDestinationFees(bytes32 operationHash, OperationParams calldata params)
+    function lockDestinationFees(bytes32 operationHash, uint256 chainIdFrom, uint256 chainIdTo)
         external
         payable
         onlyRole("bridge")
@@ -411,8 +412,8 @@ contract RelayerBase is Utils {
         DestinationBlockStep memory newBlockStep;
         newBlockStep.feesDeposit = uint64(block.number);
 
-        newOperation.params.chainIdFrom = params.chainIdFrom;
-        newOperation.params.chainIdTo = params.chainIdTo;
+        newOperation.params.chainIdFrom = chainIdFrom;
+        newOperation.params.chainIdTo = chainIdTo;
         newOperation.status = OperationStatus.DST_FEES_DEPOSITED;
         newOperation.blockStep = newBlockStep;
         // OperationParams memory params = newOperation.params;

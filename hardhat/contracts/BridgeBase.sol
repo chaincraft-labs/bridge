@@ -253,6 +253,7 @@ contract BridgeBase is Utils {
         // address tokenTo = store.getTokenAddressByChainId(tokenName, chainIdTo);
         address vault = store.getOperator("vault");
         address relayer = store.getOperator("relayer");
+        address factory = store.getOperator("factory");
 
         if (!store.isAuthorizedTokenByChainId(tokenName, chainIdFrom)) {
             revert BridgeBase__DepositFailed("unauthorized token");
@@ -280,7 +281,7 @@ contract BridgeBase is Utils {
                 revert BridgeBase__DepositFailed("Initial allowance failed");
             }
 
-            if (!store.isBridgedToken(tokenFrom)) {
+            if (!TokenFactory(factory).isBridgedToken(tokenFrom)) {
                 // ERC20
                 Vault(vault).depositToken(msg.sender, tokenFrom, amount);
             } else {

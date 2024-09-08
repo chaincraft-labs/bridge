@@ -10,6 +10,12 @@ const DEPLOYED_ADDRESSES_FILE_PATH = path.join(
 const LAST_NONCE_FILE = "nonceRecord.json";
 const LAST_NONCE_FILE_PATH = path.join(CONSTANTS_DIR, LAST_NONCE_FILE);
 
+///////////////////////////////////////////////////////////////////////////////
+//
+//                WRITE / READ LAST DEPLOYED ADDRESSES
+//
+///////////////////////////////////////////////////////////////////////////////
+
 // @todo add error if writing flow is not complete
 /**
  * @description - Logs in constants/... .json addresses of deployed contracts
@@ -22,6 +28,9 @@ const LAST_NONCE_FILE_PATH = path.join(CONSTANTS_DIR, LAST_NONCE_FILE);
  *       },
  *   },
  * }
+ * @param { string } network The network to read.
+ * @param { string } contractName The name of the contract to get the address
+ * @param { string } tokenSymbol Optional. If Contract is a token specify its symbol
  */
 const writeDeployedAddress = function (
   network,
@@ -68,7 +77,21 @@ const writeDeployedAddress = function (
   );
 };
 
-//read last deployed address of token according to network
+/**
+ * @description read last deployed address of token according to network
+ * @description - Format:
+ * {
+ *  "networkName": {
+ *      "ContractName": [addresses],
+ *      "MockedToken" | "BridgedToken":{
+ *          "tokenSymbol": [addresses]
+ *       },
+ *   },
+ * }
+ * @param { string } network The network to read.
+ * @param { string } contractName The name of the contract to get the address
+ * @param { string } tokenSymbol Optional. If Contract is a token specify its symbol
+ */
 const readLastDeployedAddress = function (
   network,
   contractName,
@@ -97,11 +120,20 @@ const readLastDeployedAddress = function (
   return null;
 };
 
-// write nonce in constants/nonceRecord.json
-// format:
-// {
-//   "lastOriginNonce": { "sepolia": 0, "allfeat": 0 }
-// }
+///////////////////////////////////////////////////////////////////////////////
+//
+//                WRITE / READ NONCE USED ON NETWORKS
+//
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @description Update nonce used on network to used on destination
+ * @description - Format: "lastOriginNonce": { "sepolia": 0, "allfeat": 0 }
+ * @description Used by deposit scripts
+ *
+ * @param { string } network The network to read.
+ * @param { number } nonce The current nonce used.
+ */
 const writeLastUsedNonce = function (network, nonce) {
   // file and path checks
   if (!fs.existsSync(CONSTANTS_DIR)) {
@@ -125,7 +157,13 @@ const writeLastUsedNonce = function (network, nonce) {
   fs.writeFileSync(LAST_NONCE_FILE_PATH, JSON.stringify(lastNonce, null, 2));
 };
 
-// read last used nonce of network
+/**
+ * @description Read nonce used on origin network to used on destination
+ * @description - Format: "lastOriginNonce": { "sepolia": 0, "allfeat": 0 }
+ * @description Used by depositFees scripts
+ *
+ * @param { string } network The origin network to read.
+ */
 const readLastUsedNonce = function (network) {
   const lastNonce = JSON.parse(fs.readFileSync(LAST_NONCE_FILE_PATH));
 
@@ -140,7 +178,9 @@ const readLastUsedNonce = function (network) {
   return null;
 };
 
-//read networks keys of deployedAddress.json
+/**
+ * @description Get networks used for previous deployments
+ */
 const readNetworks = function () {
   const deployedAddresses = JSON.parse(
     fs.readFileSync(DEPLOYED_ADDRESSES_FILE_PATH)
@@ -148,6 +188,9 @@ const readNetworks = function () {
   return Object.keys(deployedAddresses);
 };
 
+/**
+ * @description Get current file executing a call
+ */
 function logCurrentFileName() {
   const stack = new Error().stack;
   // extract the name of the file

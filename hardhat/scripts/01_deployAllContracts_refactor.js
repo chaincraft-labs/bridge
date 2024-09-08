@@ -73,7 +73,7 @@ async function main() {
 
   const bridge = await deployAndSaveAddress(context.network, "BridgeBase", [
     storage.target,
-    relayer.target,
+    // relayer.target,
   ]);
 
   ///////////////////////////////////////////////////////////////////////////////

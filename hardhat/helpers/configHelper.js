@@ -1,5 +1,11 @@
 const hre = require("hardhat");
 
+///////////////////////////////////////////////////////////////////////////////
+//
+//                DESCRIPTION OF NETWORKS: chainId, native token info, deployed tokens
+//
+///////////////////////////////////////////////////////////////////////////////
+
 // @todo RENAMING nativeToken => nativeCoin or Currency, Asset
 // @todo RENAME in scripts allfeat => harmonie
 
@@ -10,6 +16,7 @@ const networkParams = {
     deployedTokens: [{ name: "mockedDai", symbol: "DAI" }],
   },
   hardhat: {
+    // to complete (used for forks)
     chainId: 31337,
     nativeToken: { name: "ethereum", symbol: "ETH" },
     deployedTokens: [{ name: "mockedDai", symbol: "DAI" }],
@@ -103,6 +110,12 @@ const networkParams = {
 //   dai: "DAI",
 // };
 
+///////////////////////////////////////////////////////////////////////////////
+//
+//                DESCRIPTION OF TOKENS
+//
+///////////////////////////////////////////////////////////////////////////////
+
 const tokenParams = {
   ethereum: {
     tokenName: "ethereum",
@@ -136,38 +149,45 @@ const tokenParams = {
   },
 };
 
-const tokenList = [
-  {
-    tokenName: "ethereum",
-    symbols: [
-      { chainId: 1, symbol: "ETH" },
-      { chainId: 137, symbol: "ETH" },
-      { chainId: 441, symbol: "abETH" },
-      { chainId: 31337, symbol: "ETH" },
-      { chainId: 11155111, symbol: "ETH" },
-    ],
-  },
-  {
-    tokenName: "dai",
-    symbols: [
-      { chainId: 1, symbol: "DAI" },
-      { chainId: 137, symbol: "DAI" },
-      { chainId: 441, symbol: "abDAI" },
-      { chainId: 31337, symbol: "DAI" },
-      { chainId: 11155111, symbol: "DAI" },
-    ],
-  },
-  {
-    tokenName: "allfeat",
-    symbols: [
-      { chainId: 1, symbol: "ebAFT" },
-      { chainId: 137, symbol: "pbAFT" },
-      { chainId: 441, symbol: "AFT" },
-      { chainId: 31337, symbol: "hbAFT" },
-      { chainId: 11155111, symbol: "sbAFT" },
-    ],
-  },
-];
+// @todo REMOVE
+// const tokenList = [
+//   {
+//     tokenName: "ethereum",
+//     symbols: [
+//       { chainId: 1, symbol: "ETH" },
+//       { chainId: 137, symbol: "ETH" },
+//       { chainId: 441, symbol: "abETH" },
+//       { chainId: 31337, symbol: "ETH" },
+//       { chainId: 11155111, symbol: "ETH" },
+//     ],
+//   },
+//   {
+//     tokenName: "dai",
+//     symbols: [
+//       { chainId: 1, symbol: "DAI" },
+//       { chainId: 137, symbol: "DAI" },
+//       { chainId: 441, symbol: "abDAI" },
+//       { chainId: 31337, symbol: "DAI" },
+//       { chainId: 11155111, symbol: "DAI" },
+//     ],
+//   },
+//   {
+//     tokenName: "allfeat",
+//     symbols: [
+//       { chainId: 1, symbol: "ebAFT" },
+//       { chainId: 137, symbol: "pbAFT" },
+//       { chainId: 441, symbol: "AFT" },
+//       { chainId: 31337, symbol: "hbAFT" },
+//       { chainId: 11155111, symbol: "sbAFT" },
+//     ],
+//   },
+// ];
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//                NETWORK HELPERS
+//
+///////////////////////////////////////////////////////////////////////////////
 
 const getChainIdByNetworkName = (name) => {
   return networkParams[name].chainId;
@@ -180,12 +200,29 @@ const getNetworkNameByChainId = (chainId) => {
   return networkEntry ? networkEntry[0] : null;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+//
+//                SYMBOL HELPERS
+//
+///////////////////////////////////////////////////////////////////////////////
+
 const computeTokenSymbol = (network, symbol) => {
   // nbSSS => n for network, b for bridge, SSS for symbol
   const firstLetter = network.charAt(0).toLowerCase();
   return `${firstLetter}b${symbol}`;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+//
+//                CONTEXT HELPERS
+//
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @description Get context info
+ * @returns { Object } format:
+ * { network, chainId, nativeTokenName, nativeTokenSymbol, accounts }
+ */
 const getContext = async () => {
   const network = hre.network.name;
   return {
@@ -199,13 +236,11 @@ const getContext = async () => {
 
 module.exports = {
   networkParams,
-  tokenList,
+  // tokenList,
   getChainIdByNetworkName,
   getNetworkNameByChainId,
   computeTokenSymbol,
-  // usedNetworks,
-  // usedTokens,
-  tokenSymbols,
+  // tokenSymbols,
   tokenParams,
   getContext,
 };

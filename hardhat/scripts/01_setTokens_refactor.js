@@ -68,6 +68,7 @@ async function main() {
         // Native token on chainIdToSet
         if (tokenParams[tokenToSet].isNative) {
           tokensDataToSet.addresses.push(getMaxAddress());
+
           continue;
         }
         // Mocked token on chainIdToSet
@@ -77,6 +78,7 @@ async function main() {
           tokenParams[tokenToSet].tokenSymbol
         );
         tokensDataToSet.addresses.push(address);
+
         continue;
       }
       // Else it's a bridged token on chainIdToSet

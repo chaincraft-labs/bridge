@@ -8,8 +8,9 @@ const {
   tokenParams,
   getChainIdByNetworkName,
   networkParams,
-  getContext,
+  // getContext,
 } = require("../helpers/configHelper");
+const { getContext } = require("../helpers/contextHelper");
 const {
   deploymentCheck,
   deployAndSaveAddress,

@@ -146,7 +146,7 @@ const getSigner = async (signerOption, networkName) => {
   // return userWallet;
 };
 
-// paramsOption format: null | "chainIdFrom,chainIdTo,tokenName,amount"
+// paramsOption format: null | "chainIdFrom,chainIdTo,tokenName,amount(in ethers)"
 // simulationOption format: null | "name,chain"
 const getOperationParams = (paramsOption, simulationOption) => {
   if (paramsOption) {

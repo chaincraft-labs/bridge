@@ -45,16 +45,16 @@ describe("Storage", function () {
     await storage.addChainIdToList(441);
     expect(await storage.getChainIdsList()).to.include(441n);
   });
-  it("Should authorized name for chainId", async function () {
-    const { storage, owner, otherAccount } = await loadFixture(
-      deployStorageFixture
-    );
-    await storage.addToAuthorizedTokenNamesListByChainId("DAI token", 441);
+  // it("Should authorized name for chainId", async function () {
+  //   const { storage, owner, otherAccount } = await loadFixture(
+  //     deployStorageFixture
+  //   );
+  //   await storage.addToAuthorizedTokenNamesListByChainId("DAI token", 441);
 
-    expect(await storage.getAuthorizedTokenNamesListByChainId(441)).to.include(
-      "DAI token"
-    );
-  });
+  //   expect(await storage.getAuthorizedTokenNamesListByChainId(441)).to.include(
+  //     "DAI token"
+  //   );
+  // });
 
   // @todo => symbol will change to name
   // data fetched will be packed => name-address
@@ -67,7 +67,7 @@ describe("Storage", function () {
     tx = await storage.addChainIdToList(441);
     // tx.wait();
     const fakeAddress20bytes = "0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1";
-    tx = await storage.setTokenAddressByChainId(
+    tx = await storage.addNewTokenAddressByChainId(
       "DAI token",
       441,
       fakeAddress20bytes
@@ -76,6 +76,74 @@ describe("Storage", function () {
     expect(await storage.getTokenAddressByChainId("DAI token", 441)).to.equal(
       fakeAddress20bytes
     );
+  });
+
+  it("Should revert adding new address address if token exists", async function () {
+    const { storage, owner, otherAccount } = await loadFixture(
+      deployStorageFixture
+    );
+    let tx = await storage.addTokenNameToList("DAI token");
+    // tx.wait();
+    tx = await storage.addChainIdToList(441);
+    // tx.wait();
+    const fakeAddress20bytes = "0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1";
+    tx = await storage.addNewTokenAddressByChainId(
+      "DAI token",
+      441,
+      fakeAddress20bytes
+    );
+    tx.wait();
+    const fakeAddress20bytes2 = "0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF";
+    await expect(
+      storage.addNewTokenAddressByChainId("DAI token", 441, fakeAddress20bytes2)
+    ).to.be.revertedWithCustomError(storage, "Storage__TokenAddressAlreadySet");
+  });
+
+  it("Should update token address", async function () {
+    const { storage, owner, otherAccount } = await loadFixture(
+      deployStorageFixture
+    );
+    let tx = await storage.addTokenNameToList("DAI token");
+    // tx.wait();
+    tx = await storage.addChainIdToList(441);
+    // tx.wait();
+    const fakeAddress20bytes = "0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1";
+    tx = await storage.addNewTokenAddressByChainId(
+      "DAI token",
+      441,
+      fakeAddress20bytes
+    );
+    tx.wait();
+    expect(await storage.getTokenAddressByChainId("DAI token", 441)).to.equal(
+      fakeAddress20bytes
+    );
+    const fakeAddress20bytes2 = "0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF";
+    tx = await storage.updateTokenAddressByChainId(
+      "DAI token",
+      441,
+      fakeAddress20bytes2
+    );
+    tx.wait();
+    expect(await storage.getTokenAddressByChainId("DAI token", 441)).to.equal(
+      fakeAddress20bytes2
+    );
+  });
+
+  it("Should revert updating address if token does not exist", async function () {
+    const { storage, owner, otherAccount } = await loadFixture(
+      deployStorageFixture
+    );
+    let tx = await storage.addTokenNameToList("DAI token");
+    // tx.wait();
+    tx = await storage.addChainIdToList(441);
+    // tx.wait();
+    const fakeAddress20bytes = "0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1";
+
+    await expect(
+      storage.updateTokenAddressByChainId("DAI token", 441, fakeAddress20bytes)
+    )
+      .to.be.revertedWithCustomError(storage, "Storage__TokenAddressNotSet")
+      .withArgs("DAI token", 441);
   });
 
   it("Should set new tokens addresses", async function () {
@@ -87,26 +155,20 @@ describe("Storage", function () {
     tx = await storage.addChainIdToList(441);
     //    tx = await storage.addTokenNameToList("bDAI token");
     // tx.wait();
-    tx = await storage.addChainIdToList(31337);
+    tx = await storage.addChainIdToList(11155111);
     // tx.wait();
     const fakeAddress20bytes = "0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1";
-    tx = await storage.setTokenAddressByChainId(
-      "DAI token",
-      441,
-      fakeAddress20bytes
-    );
-    tx.wait();
-    tx = await storage.setTokenAddressByChainId(
-      "DAI token",
-      31337,
-      fakeAddress20bytes
+    tx = await storage.batchAddNewTokensAddressesByChainId(
+      ["DAI token", "DAI token"],
+      [441, 11155111],
+      [fakeAddress20bytes, fakeAddress20bytes]
     );
     tx.wait();
 
-    const [add1, add2] = await storage.getTokenAddressesBychainIds(
+    const [add1, add2] = await storage.getTokenAddressesByChainIds(
       "DAI token",
       441,
-      31337
+      11155111
     );
     console.log("add1", add1);
     console.log("add2", add2);

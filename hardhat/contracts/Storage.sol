@@ -519,7 +519,7 @@ contract Storage {
     /**
      * @notice get the addresses of 'tokenName' on origin and destination 'chainId'
      */
-    function getTokenAddressesBychainIds(string memory tokenName, uint256 originChainId, uint256 destinationChainId)
+    function getTokenAddressesByChainIds(string memory tokenName, uint256 originChainId, uint256 destinationChainId)
         public
         view
         returns (address originChainAddress, address destinationChainAddress)
@@ -571,7 +571,7 @@ contract Storage {
         string[] memory tokenNames,
         uint256[] memory chainIds,
         address[] memory tokenAddresses
-    ) public returns (string memory) {
+    ) public {
         if (!_isAdmin() && !_isFactory()) {
             revert Storage__NotAdmin();
         }

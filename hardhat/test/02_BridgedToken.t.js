@@ -113,14 +113,20 @@ describe("BridgedToken", function () {
         await loadFixture(deployBridgedTokenFixture);
       await expect(
         bridgedToken.connect(otherAccount).mint(otherAccount.address, 1000)
-      ).to.be.revertedWith("only admin owner");
+      ).to.be.revertedWithCustomError(
+        bridgedToken,
+        "BridgedToken__CallerNotOwner"
+      );
     });
     it("Should revert when burner is not the owner", async function () {
       const { storage, factory, vault, owner, otherAccount, bridgedToken } =
         await loadFixture(deployBridgedTokenFixture);
       await expect(
         bridgedToken.connect(otherAccount).burn(otherAccount.address, 1000)
-      ).to.be.revertedWith("only admin owner");
+      ).to.be.revertedWithCustomError(
+        bridgedToken,
+        "BridgedToken__CallerNotOwner"
+      );
     });
     it("Should revert when burner has not enough tokens", async function () {
       const { storage, factory, vault, owner, otherAccount, bridgedToken } =

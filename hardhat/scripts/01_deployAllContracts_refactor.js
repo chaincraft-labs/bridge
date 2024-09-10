@@ -3,8 +3,9 @@ const hre = require("hardhat");
 const { getMaxAddress, computeTokenSymbol } = require("../utils/addressUtil");
 const {
   getChainIdByNetworkName,
-  getContext,
+  // getContext,
 } = require("../helpers/configHelper");
+const { getContext } = require("../helpers/contextHelper");
 const {
   writeDeployedAddress,
   logCurrentFileName,

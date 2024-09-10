@@ -15,3 +15,8 @@ $ cd scripts && ./tryDeployAll.sh && cd -
 npx hardhat node --fork https://<url-nœud-pour-la-chaine2> --port 8546
 
 puis pour le script : npx..run ... --network un reseau de config pour ce fork avec le même port
+
+TASK
+npx hardhat start-node --network-to-fork sepolia
+
+npx hardhat call-readFunc --contract "Storage" --method "getChainIdsList" --args "" --network sepolia

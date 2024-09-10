@@ -1,11 +1,12 @@
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-toolbox");
+require("solidity-coverage");
 require("dotenv").config();
 // const { task } = require("hardhat/config");
 
 // ERROR with hh compile (import module of hardhat when initializing)
 require("./tasks/start-node");
-// require("./tasks/call-writeFunc");
+require("./tasks/call-writeFunc");
 require("./tasks/call-readFunc");
 // require("./tasks/test.js");
 

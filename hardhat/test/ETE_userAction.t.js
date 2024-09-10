@@ -31,7 +31,7 @@ describe("EndToEnd behavior", function () {
     // set addresses in bridge
 
     // 1. deploy storage
-    const storage = await hre.ethers.deployContract("Storage", ["ETH"]);
+    const storage = await hre.ethers.deployContract("Storage", ["ethereum"]);
     await storage.waitForDeployment();
 
     console.log("Storage deployed to:", storage.target);
@@ -58,7 +58,6 @@ describe("EndToEnd behavior", function () {
     // 4. deploy bridge
     const bridge = await hre.ethers.deployContract("BridgeBase", [
       storage.target,
-      relayer.target,
     ]);
     await bridge.waitForDeployment();
     console.log("Bridge deployed to:", bridge.target);
@@ -80,13 +79,13 @@ describe("EndToEnd behavior", function () {
     // address 0 = 0x
     // const zeroAddress = "0x" + "0".repeat(40);
     // deploy BridgeTokenAft via factory and set vault as owner
-    let tx0 = await storage.addChainIdToList(31337);
-    await tx0.wait();
+    // let tx0 = await storage.addChainIdToList(31337);
+    // await tx0.wait();
     const chainIdBN = 441;
     tx0 = await storage.addChainIdToList(chainIdBN);
     await tx0.wait();
-    tx0 = await storage.addTokenNameToList("allfeat token");
-    await tx0.wait();
+    // tx0 = await storage.addTokenNameToList("allfeat token");
+    // await tx0.wait();
     tx0 = await storage.addTokenNameToList("allfeat token");
     await tx0.wait();
 
@@ -192,10 +191,10 @@ describe("EndToEnd behavior", function () {
     // const theamount = ethers.utils.parseEther("10");
     const nonce = await bridge.getNewUserNonce(user);
 
-    await storage.addChainIdToList(31337);
+    // await storage.addChainIdToList(31337);
     // await storage.addChainIdToList(11155111);
 
-    await storage.addChainIdToList(441);
+    // await storage.addChainIdToList(441);
     await storage.addTokenNameToList("BridgedEth2");
     // await storage.addTokenSymbolToList("bETH2");
     // const zeroAddress2 = "0x" + "0".repeat(40);
@@ -205,7 +204,7 @@ describe("EndToEnd behavior", function () {
     //   maxAddress
     // );
 
-    await storage.setTokenAddressByChainId("BridgedEth2", 441, maxAddress);
+    await storage.addNewTokenAddressByChainId("BridgedEth2", 441, maxAddress);
     await factory.createToken("BridgedEth2", "bETH2");
     const tokenAddres = await factory.getTokenAddress("bETH2");
     console.log("tokenAddres: ", tokenAddres);
@@ -221,12 +220,12 @@ describe("EndToEnd behavior", function () {
     const tokenInstance = await tokenContract.attach(tokenAddres);
     console.log("tokenInstance: ", tokenInstance);
     // TESTING
-    const testowner = await tokenInstance.getOwner();
-    console.log("testowner: ", testowner);
+    // const testowner = await tokenInstance.getOwner();
+    // console.log("testowner: ", testowner);
     console.log("user: ", user);
     console.log("theamount: ", theamount);
-    await tokenInstance.minttest(user, theamount + theamount);
-    await bridge.mintOnlyTEST(user, tokenAddres, theamount + theamount);
+    // await tokenInstance.minttest(user, theamount + theamount);
+    // await bridge.mintOnlyTEST(user, tokenAddres, theamount + theamount);
     // await storage.batchAddNewTokenAddressByChainId(
     //   ["ETH2", "bETH2"],
     //   [31337, 441],
@@ -239,7 +238,7 @@ describe("EndToEnd behavior", function () {
       user,
       31337,
       441,
-      "BridgedEth2",
+      "ethereum",
       theamount,
       nonce
     );
@@ -272,7 +271,7 @@ describe("EndToEnd behavior", function () {
       user,
       31337,
       441,
-      "BridgedEth2",
+      "ethereum",
       theamount,
       nonce
     );
@@ -306,16 +305,20 @@ describe("EndToEnd behavior", function () {
       //   31337,
       31337,
       441,
-      "BridgedEth2",
+      "ethereum",
       theamount,
       nonce,
-      signature
-      // { value: theamount }
+      signature,
+      { value: theamount }
+    );
+    const tokAddress = await storage.getTokenAddressByChainId(
+      "ethereum",
+      31337
     );
     // convert 0 to address(0)
     // const zeroAddress = "0x" + "0".repeat(40);
     //check vault user balance
-    const userEthBalance = await vault.getTokenUserBalance(user, tokenAddres); // no question of AFT now
+    const userEthBalance = await vault.getTokenUserBalance(user, tokAddress); // no question of AFT now
     console.log("userEthBalance: ", userEthBalance);
     console.log("theamount: ", theamount);
     // expect(userEthBalance).to.equal(theamount);
@@ -356,13 +359,13 @@ describe("EndToEnd behavior", function () {
       //   const accounts = await hre.ethers.getSigners();
       //   console.log("accounts: ", accounts);
       //owner of the 2 contracts should the one who deployed them
-      const storageOwner = await storage.getOwner();
-      const factoryOwner = await factory.getOwner();
+      const storageOwner = await storage.getOperator("admin");
+      // const factoryOwner = await factory.getOwner();
 
       console.log("storageOwner: ", storageOwner);
-      console.log("factoryOwner: ", factoryOwner);
+      // console.log("factoryOwner: ", factoryOwner);
       console.log("owner.address: ", owner.address);
-      expect(storageOwner).to.equal(factoryOwner);
+      // expect(storageOwner).to.equal(factoryOwner);
       expect(storageOwner).to.equal(owner.address);
     });
 
@@ -394,10 +397,10 @@ describe("EndToEnd behavior", function () {
       // const theamount = ethers.utils.parseEther("10");
       const nonce = await bridge.getNewUserNonce(user);
 
-      await storage.addChainIdToList(31337);
+      // await storage.addChainIdToList(31337);
       // await storage.addChainIdToList(11155111);
 
-      await storage.addChainIdToList(441);
+      // await storage.addChainIdToList(441);
       await storage.addTokenNameToList("BridgedEth2");
       // await storage.addTokenSymbolToList("bETH2");
       // const zeroAddress2 = "0x" + "0".repeat(40);
@@ -406,7 +409,7 @@ describe("EndToEnd behavior", function () {
       //   11155111,
       //   maxAddress
       // );
-      await storage.setTokenAddressByChainId("BridgedEth2", 441, maxAddress);
+      await storage.addNewTokenAddressByChainId("BridgedEth2", 441, maxAddress);
       await factory.createToken("BridgedEth2", "bETH2");
       const tokenAddres = await factory.getTokenAddress("bETH2");
       console.log("tokenAddres: ", tokenAddres);
@@ -422,12 +425,12 @@ describe("EndToEnd behavior", function () {
       const tokenInstance = await tokenContract.attach(tokenAddres);
       console.log("tokenInstance: ", tokenInstance);
       // TESTING
-      const testowner = await tokenInstance.getOwner();
-      console.log("testowner: ", testowner);
+      // const testowner = await tokenInstance.getOwner();
+      // console.log("testowner: ", testowner);
       console.log("user: ", user);
       console.log("theamount: ", theamount);
-      await tokenInstance.minttest(user, theamount + theamount);
-      await bridge.mintOnlyTEST(user, tokenAddres, theamount + theamount);
+      // await tokenInstance.minttest(user, theamount + theamount);
+      // await bridge.mintOnlyTEST(user, tokenAddres, theamount + theamount);
       // await storage.batchAddNewTokenAddressByChainId(
       //   ["ETH2", "bETH2"],
       //   [31337, 441],
@@ -439,7 +442,7 @@ describe("EndToEnd behavior", function () {
         user,
         31337,
         441,
-        "BridgedEth2",
+        "ethereum",
         theamount,
         nonce
       );
@@ -459,7 +462,7 @@ describe("EndToEnd behavior", function () {
         user,
         31337,
         441,
-        "BridgedEth2",
+        "ethereum",
         theamount,
         nonce
       );
@@ -494,16 +497,20 @@ describe("EndToEnd behavior", function () {
         //   31337,
         31337,
         441,
-        "BridgedEth2",
+        "ethereum",
         theamount,
         nonce,
-        signature
-        // { value: theamount }
+        signature,
+        { value: theamount }
+      );
+      const tokAddress = await storage.getTokenAddressByChainId(
+        "ethereum",
+        31337
       );
       // convert 0 to address(0)
       // const zeroAddress = "0x" + "0".repeat(40);
       //check vault user balance
-      const userEthBalance = await vault.getTokenUserBalance(user, tokenAddres); // no question of AFT now
+      const userEthBalance = await vault.getTokenUserBalance(user, tokAddress); // no question of AFT now
       console.log("userEthBalance: ", userEthBalance);
       console.log("theamount: ", theamount);
       expect(userEthBalance).to.equal(theamount);
@@ -519,7 +526,7 @@ describe("EndToEnd behavior", function () {
       const opTokenName = opParams[4];
       const opSignature = opParams[7];
       expect(opUser).to.equal(user);
-      expect(opTokenName).to.equal("BridgedEth2");
+      expect(opTokenName).to.equal("ethereum");
       expect(opSignature).to.equal(signature);
     });
   });
@@ -552,10 +559,10 @@ describe("EndToEnd behavior", function () {
     // const theamount = ethers.utils.parseEther("10");
     const nonce = await bridge.getNewUserNonce(user);
 
-    await storage.addChainIdToList(31337);
+    // await storage.addChainIdToList(31337);
     // await storage.addChainIdToList(11155111);
 
-    await storage.addChainIdToList(441);
+    // await storage.addChainIdToList(441);
     await storage.addTokenNameToList("BridgedEth2");
     // await storage.addTokenSymbolToList("bETH2");
     // const zeroAddress2 = "0x" + "0".repeat(40);
@@ -564,9 +571,10 @@ describe("EndToEnd behavior", function () {
     //   11155111,
     //   maxAddress
     // );
-    await storage.setTokenAddressByChainId("BridgedEth2", 441, maxAddress);
+    await storage.addNewTokenAddressByChainId("BridgedEth2", 441, maxAddress);
     await factory.createToken("BridgedEth2", "bETH2");
-    const tokenAddres = await factory.getTokenAddress("bETH2");
+    let tokenAddres = await factory.getTokenAddress("bETH2");
+    tokenAddres = await storage.getTokenAddressByChainId("ethereum", 31337);
     console.log("tokenAddres: ", tokenAddres);
     // const tokenInstance = await hre.ethers.getContractAt(
     //   "BridgedToken",
@@ -580,12 +588,12 @@ describe("EndToEnd behavior", function () {
     const tokenInstance = await tokenContract.attach(tokenAddres);
     console.log("tokenInstance: ", tokenInstance);
     // TESTING
-    const testowner = await tokenInstance.getOwner();
-    console.log("testowner: ", testowner);
+    // const testowner = await tokenInstance.getOwner();
+    // console.log("testowner: ", testowner);
     console.log("user: ", user);
     console.log("theamount: ", theamount);
-    await tokenInstance.minttest(user, theamount + theamount);
-    await bridge.mintOnlyTEST(user, tokenAddres, theamount + theamount);
+    // await tokenInstance.minttest(user, theamount + theamount);
+    // await bridge.mintOnlyTEST(user, tokenAddres, theamount + theamount);
     // await storage.batchAddNewTokenAddressByChainId(
     //   ["ETH2", "bETH2"],
     //   [31337, 441],
@@ -597,7 +605,7 @@ describe("EndToEnd behavior", function () {
       user,
       31337,
       441,
-      "BridgedEth2",
+      "ethereum",
       theamount,
       nonce
     );
@@ -618,7 +626,7 @@ describe("EndToEnd behavior", function () {
       user,
       31337,
       441,
-      "BridgedEth2",
+      "ethereum",
       theamount,
       nonce
     );
@@ -661,15 +669,7 @@ describe("EndToEnd behavior", function () {
     //   signature
     //   // { value: theamount }
     // );
-    const prepParams = [
-      user,
-      user,
-      31337,
-      441,
-      "BridgedEth2",
-      theamount,
-      nonce,
-    ];
+    const prepParams = [user, user, 31337, 441, "ethereum", theamount, nonce];
     const currentblock = await ethers.provider.getBlockNumber();
     // expect realyer emit event when bridge create operation
     expect(
@@ -680,10 +680,11 @@ describe("EndToEnd behavior", function () {
           user,
           31337,
           441,
-          "BridgedEth2",
+          "ethereum",
           theamount,
           nonce,
-          signature
+          signature,
+          { value: theamount }
         )
     )
       .to.emit(relayer, "OperationCreated")
@@ -714,7 +715,7 @@ describe("EndToEnd behavior", function () {
     const opTokenName = opParams[4];
     const opSignature = opParams[7];
     expect(opUser).to.equal(user);
-    expect(opTokenName).to.equal("BridgedEth2");
+    expect(opTokenName).to.equal("ethereum");
     expect(opSignature).to.equal(signature);
   });
 
@@ -963,7 +964,7 @@ describe("EndToEnd behavior", function () {
     const vaultBalanceBefore = await hre.ethers.provider.getBalance(
       vault.target
     );
-    await bridge.depositFees(hash, 31337, { value: opFees });
+    await bridge.depositFees(hash, 31337, 441, { value: opFees });
 
     // expect vault balance to be equal to fees  and opFeesBalance(add max) too
     const vaultBalanceAfter = await hre.ethers.provider.getBalance(
@@ -1000,9 +1001,11 @@ describe("EndToEnd behavior", function () {
       vault.target
     );
     const chainIdFrom = detailedOp[0][2];
-    expect(await bridge.depositFees(hash, 31337, { value: opFees }))
+
+    console.log("ICI MKER\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    expect(await bridge.depositFees(hash, 31337, 441, { value: opFees }))
       .to.emit(relayer, "FeesDeposited")
-      .withArgs(hash, chainIdFrom);
+      .withArgs(hash, [...detailedOp[0]], chainIdFrom);
     // await bridge.depositFees(hash, 31337, { value: opFees });
 
     // expect vault balance to be equal to fees  and opFeesBalance(add max) too
@@ -1041,9 +1044,11 @@ describe("EndToEnd behavior", function () {
       vault.target
     );
     const chainIdFrom = detailedOp[0][2];
-    expect(await bridge.depositFees(hash, 31337, { value: opFees }))
+    console.log("ICI MKER\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
+    expect(await bridge.depositFees(hash, 31337, 441, { value: opFees }))
       .to.emit(relayer, "FeesDeposited")
-      .withArgs(hash, chainIdFrom);
+      .withArgs(hash, [...detailedOp[0]], chainIdFrom);
     // await bridge.depositFees(hash, 31337, { value: opFees });
 
     // expect vault balance to be equal to fees  and opFeesBalance(add max) too
@@ -1057,7 +1062,35 @@ describe("EndToEnd behavior", function () {
 
     await storage.updateOperator("oracle", owner.address);
     const blockNumber = await ethers.provider.getBlockNumber();
-    expect(await relayer.sendFeesLockConfirmation(hash))
+    // solidity struct:
+    //     struct OperationParams {
+    //     address from;
+    //     address to;
+    //     uint256 chainIdFrom;
+    //     uint256 chainIdTo;
+    //     string tokenName;
+    //     uint256 amount;
+    //     uint256 nonce;
+    //     bytes signature;
+    // }
+    // const opParams = [
+    //   "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    //   "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    //   31337n,
+    //   441n,
+    //   "ethereum",
+    //   10000000000000000000n,
+    //   0n,
+    //   "0xd3cd939962243b004e8d60c2a2392d99ad81c48ee170371b29c37f362e791352763900203f91c78f235e5245d142006e7dbd727d59118b32a0e97db0fbfc4b101b",
+    // ];
+    // const opParams = { }
+    expect(
+      await relayer.sendFeesLockConfirmation(
+        hash,
+        [...detailedOp[0]],
+        blockNumber
+      )
+    )
       .to.emit(relayer, "FeesDepositConfirmed")
       .withArgs(hash, detailedOp[0][2], blockNumber);
   });
@@ -1118,7 +1151,11 @@ describe("EndToEnd behavior", function () {
     expect(statusFixture).to.equal(statusRelayer);
     // should emit event FeesLockConfirmed(hash, status, block number)
     expect(
-      await relayer.receiveFeesLockConfirmation(hash, chainIdTo, fakeServer)
+      await relayer.receiveFeesLockConfirmation(
+        hash,
+        [...detailedOp[0]],
+        blockNumber
+      )
     )
       .to.emit(relayer, "FeesLockConfirmed")
       .withArgs(hash, 2n, blockNumber);
@@ -1184,7 +1221,11 @@ describe("EndToEnd behavior", function () {
     expect(statusFixture).to.equal(statusRelayer);
     // should emit event FeesLockConfirmed(hash, status, block number)
     expect(
-      await relayer.receiveFeesLockConfirmation(hash, chainIdTo, fakeServer)
+      await relayer.receiveFeesLockConfirmation(
+        hash,
+        [...detailedOp[0]],
+        blockNumber
+      )
     )
       .to.emit(relayer, "FeesLockConfirmed")
       .withArgs(hash, 2n, blockNumber);
@@ -1195,7 +1236,13 @@ describe("EndToEnd behavior", function () {
 
     const creationBlock = detailedOp[2][0];
     // ?? pb detailesOp passe le test devrait être opParams donc detailedOp[0]
-    expect(await relayer.confirmFeesLockedAndDepositConfirmed(hash))
+    expect(
+      await relayer.confirmFeesLockedAndDepositConfirmed(
+        hash,
+        [...detailedOp[0]],
+        blockNumber
+      )
+    )
       .to.emit(relayer, "FeesLockedAndDepositConfirmed")
       .withArgs(hash, detailedOp[0], creationBlock, blockNumber);
 
@@ -1238,9 +1285,9 @@ describe("EndToEnd behavior", function () {
     console.log("ETE / LINE 1233 : ORIGIN opStatus : ", otestStatus);
     let dtestStatus = await relayer.getDestinationOperationStatus(hash);
     console.log("ETE / LINE 1233 : DESTINATION opStatus : ", dtestStatus);
-    expect(await bridge.depositFees(hash, 31337, { value: opFees }))
+    expect(await bridge.depositFees(hash, 31337, 441, { value: opFees }))
       .to.emit(relayer, "FeesDeposited")
-      .withArgs(hash, chainIdFrom);
+      .withArgs(hash, [...detailedOp[0]], chainIdFrom);
     // await bridge.depositFees(hash, 31337, { value: opFees });
 
     // expect vault balance to be equal to fees  and opFeesBalance(add max) too
@@ -1259,9 +1306,15 @@ describe("EndToEnd behavior", function () {
     console.log("ETE / LINE 1233 : ORIGIN opStatus : ", otestStatus);
     dtestStatus = await relayer.getDestinationOperationStatus(hash);
     console.log("ETE / LINE 1233 : DESTINATION opStatus : ", dtestStatus);
-    expect(await relayer.sendFeesLockConfirmation(hash))
+    expect(
+      await relayer.sendFeesLockConfirmation(
+        hash,
+        [...detailedOp[0]],
+        blockNumber
+      )
+    )
       .to.emit(relayer, "FeesDepositConfirmed")
-      .withArgs(hash, detailedOp[0][2], blockNumber);
+      .withArgs(hash, [...detailedOp[0]], blockNumber);
 
     const userFrom = detailedOp[0][0];
     const userTo = detailedOp[0][1];
@@ -1276,19 +1329,44 @@ describe("EndToEnd behavior", function () {
     console.log("ETE / LINE 1233 : ORIGIN opStatus : ", otestStatus);
     dtestStatus = await relayer.getDestinationOperationStatus(hash);
     console.log("ETE / LINE 1233 : DESTINATION opStatus : ", dtestStatus);
+    // expect(
+    //   await relayer.completeOperation(
+    //     userFrom,
+    //     userTo,
+    //     chainFrom,
+    //     chainTo,
+    //     tokenName,
+    //     amount,
+    //     nonce,
+    //     signature
+    //   )
+    // )
+    //   .to.emit(relayer, "OperationFinalized")
+    //   .withArgs(hash, [...detailedOp[0]], blockNumber);
+
+    // invert scenar as params for eth(hh) to aft
+    // depositfees on HH implie to init on AFT
+    // and so we get eth unlock on HH
+    // test with
+
+    const maxAddress2 = 0xfffffffffffffffffffffffffffffffffffffffffff;
+    await storage.addNewTokenAddressByChainId("ethereum", 441, maxAddress);
+    //    await factory.createToken("BridgedEth2", "bETH2");
+    //    const tokenAddres = await factory.getTokenAddress("bETH2");
+    // console.log("tokenAddres: ", tokenAddres);
+
+    // to prank we assign owner as bridge to be admin of contracts and ownr of bridged tokens
+    const txdeposit = await vault
+      .connect(bridge)
+      .depositNative(detailedOp[0][0], {
+        value: ethers.parseEther("20"),
+      });
+    txdeposit.wait(1);
+
     expect(
-      await relayer.completeOperation(
-        userFrom,
-        userTo,
-        chainFrom,
-        chainTo,
-        tokenName,
-        amount,
-        nonce,
-        signature
-      )
+      await relayer.completeOperation(hash, [...detailedOp[0]], blockNumber)
     )
       .to.emit(relayer, "OperationFinalized")
-      .withArgs(hash, detailedOp[0], blockNumber);
+      .withArgs(hash, [...detailedOp[0]], blockNumber);
   });
 });

@@ -389,7 +389,7 @@ contract BridgeBase is Utils {
         }
 
         (address tokenFrom, address tokenTo) =
-            Storage(s_storage).getTokenAddressesBychainIds(tokenName, chainIdFrom, chainIdTo);
+            Storage(s_storage).getTokenAddressesByChainIds(tokenName, chainIdFrom, chainIdTo);
 
         // too avoid stack too deep
         // {

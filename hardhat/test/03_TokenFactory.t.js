@@ -12,7 +12,7 @@ describe("TokenFactory", function () {
   // deployment fixture :
   async function deployOtherContractsFixture() {
     const [owner, otherAccount] = await ethers.getSigners();
-    const storage = await hre.ethers.deployContract("Storage", ["ETH"]);
+    const storage = await hre.ethers.deployContract("Storage", ["ethereum"]);
     await storage.waitForDeployment();
     console.log("Storage deployed to:", storage.target);
 
@@ -65,7 +65,11 @@ describe("TokenFactory", function () {
   // fixture to deploy MockedDai
   async function deployMockedDaiFixture() {
     const [owner, otherAccount] = await ethers.getSigners();
-    const mockedDai = await hre.ethers.deployContract("MockedDai");
+    const mockedDai = await hre.ethers.deployContract("MockedToken", [
+      owner.address,
+      "MockedDai",
+      "DAI",
+    ]);
     await mockedDai.waitForDeployment();
     console.log("MockedDai deployed to:", mockedDai.target);
     return { mockedDai, owner, otherAccount };
@@ -78,11 +82,11 @@ describe("TokenFactory", function () {
       expect(await storage.getOperator("factory")).to.equal(factory.target);
     });
 
-    it("Should have owner as TokenFactory owner", async function () {
-      const { storage, factory, vault, owner, otherAccount } =
-        await loadFixture(deployTokenFactoryFixture);
-      expect(await factory.getOwner()).to.equal(owner.address);
-    });
+    // it("Should have owner as TokenFactory owner", async function () {
+    //   const { storage, factory, vault, owner, otherAccount } =
+    //     await loadFixture(deployTokenFactoryFixture);
+    //   expect(await factory.getOwner()).to.equal(owner.address);
+    // });
     // it("Should get TokenFactory owner", async function () {
     //   const { storage, factory, vault, owner, otherAccount } =
     //     await loadFixture(deployTokenFactoryFixture);
@@ -153,9 +157,12 @@ describe("TokenFactory", function () {
         // zeroAddress
       );
       await tx.wait();
-      await expect(
-        factory.createToken("ETH BridgedToken", "bETH")
-      ).to.be.revertedWith("TokenFactory: token symbol already exists");
+      await expect(factory.createToken("ETH BridgedToken", "bETH"))
+        .to.be.revertedWithCustomError(
+          factory,
+          "TokenFactory__TokenCreationFailed"
+        )
+        .withArgs("Token symbol already exists");
     });
   });
   it("Should create MockedDai BridgedToken", async function () {

@@ -131,7 +131,7 @@ async function main() {
   );
   // 0.01 ether
   // let amount = ethers.utils.parseEther("0.01"); // == 10000000000000000
-  let amount = 1_000_000_000_000_000n;
+  let amount = 10_000_000_000_000_000n;
 
   // get deployed Utils
   // @todo CODE GET NONCE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

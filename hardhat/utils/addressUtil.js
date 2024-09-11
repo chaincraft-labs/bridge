@@ -1,6 +1,11 @@
 const getRandomAddress = () => {
   return ethers.Wallet.createRandom().address;
 };
+// const getRandomAddress = () => {
+//   return ethers.utils.getAddress(
+//     ethers.utils.hexlify(ethers.utils.randomBytes(20))
+//   );
+// };
 
 const toChecksumAddress = (address) => {
   return ethers.getAddress(address);
@@ -13,6 +18,20 @@ const getZeroAddress = () => {
 const getMaxAddress = () => {
   return toChecksumAddress("0x" + "f".repeat(40));
 };
+
+// get a random bytes32
+const getRandomBytes = (length = 32) => {
+  // return ethers.formatBytes32String(Math.random().toString());
+  return ethers.zeroPadValue(
+    ethers.toUtf8Bytes(Math.random().toString()),
+    length
+  );
+};
+
+// const amount = ethers.BigNumber.from(1);
+// ethers.utils.hexZeroPad(amount.toHexString(), 32);
+
+// ethers.utils.hexZeroPad(ethers.utils.toUtf8Bytes("hello"), 32);
 
 const computeTokenSymbol = (network, symbol) => {
   // nbSSS => n for network, b for bridge, SSS for symbol
@@ -36,4 +55,5 @@ module.exports = {
   computeTokenSymbol,
   numToHex,
   hexToNum,
+  getRandomBytes,
 };

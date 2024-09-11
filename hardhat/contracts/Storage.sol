@@ -303,18 +303,27 @@ contract Storage {
 
     function updateUintArray(bytes32 key, uint256 index, uint256 value) public {
         _checkAccess();
+        if (index >= s_uintArrayStorage[key].length) {
+            revert Storage__InvalidArrayLengthInParams("updateUintArray");
+        }
         s_uintArrayStorage[key][index] = value;
         emit Storage__UintArrayDataChanged(key, index, value);
     }
 
     function updateAddressArray(bytes32 key, uint256 index, address value) public {
         _checkAccess();
+        if (index >= s_uintArrayStorage[key].length) {
+            revert Storage__InvalidArrayLengthInParams("updateUintArray");
+        }
         s_addressArrayStorage[key][index] = value;
         emit Storage__AddressArrayDataChanged(key, index, value);
     }
 
     function updateStringArray(bytes32 key, uint256 index, string calldata value) public {
         _checkAccess();
+        if (index >= s_uintArrayStorage[key].length) {
+            revert Storage__InvalidArrayLengthInParams("updateUintArray");
+        }
         s_stringArrayStorage[key][index] = value;
         emit Storage__StringArrayDataChanged(key, index, value);
     }

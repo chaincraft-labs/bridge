@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 
 import {Storage} from "./Storage.sol";
 import {BridgedToken} from "./BridgedToken.sol";
+import {TokenFactory} from "./TokenFactory.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 error Vault__CallerHasNotRole(string role);
@@ -29,6 +30,8 @@ error Vault__InvalidFeesParams(string message);
 // and up/down // ready (if all role are set in storage)
 
 // @todo custom errors !!!
+
+// @todo IMPORTANT non reentrance with withdraw...
 
 /**
  * @title Vault
@@ -144,7 +147,7 @@ contract Vault {
      * @param amount amount to deposit
      */
     function burn(address owner, address token, uint256 amount) external onlyRole("bridge") {
-        // s_usersDeposits[owner][token] -= amount;
+        s_usersDeposits[owner][token] += amount;
         BridgedToken(token).burn(owner, amount);
     }
 
@@ -159,7 +162,12 @@ contract Vault {
             revert Vault__InsufficientBalance("Amount greater than deposit");
         }
         s_usersDeposits[from][token] -= amount;
-        s_vaultBalance[token] += amount;
+
+        TokenFactory factory = TokenFactory(Storage(s_storage).getOperator("factory"));
+
+        if (!factory.isBridgedToken(token)) {
+            s_vaultBalance[token] += amount;
+        }
     }
 
     /**
@@ -375,6 +383,10 @@ contract Vault {
     //****************************************************************** */
     function getTokenUserBalance(address user, address token) external view returns (uint256) {
         return s_usersDeposits[user][token];
+    }
+
+    function getVaultBalance(address token) external view returns (uint256) {
+        return s_vaultBalance[token];
     }
 
     function getOpFeesBalance(address token) external view returns (uint256) {

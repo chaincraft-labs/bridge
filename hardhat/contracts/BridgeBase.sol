@@ -74,6 +74,8 @@ import "hardhat/console.sol";
 
 // deopsit & coplete => struct for params ?
 
+// @todo add checks for chainID... (i.e chainIdTo != current chain if createOperation ...)
+
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./BridgedToken.sol";
 import "./RelayerBase.sol";

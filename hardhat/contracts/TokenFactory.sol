@@ -103,4 +103,8 @@ contract TokenFactory {
     function getTokenAddress(string memory symbol) external view returns (address) {
         return s_symbolToAddress[symbol];
     }
+
+    function getStorageAddress() external view returns (address) {
+        return s_storageAddress;
+    }
 }

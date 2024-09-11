@@ -31,15 +31,15 @@ describe("Storage", function () {
       expect(await storage.getOperator("admin")).to.equal(owner.address);
     });
 
-    it("Souhld have a default value for a non init key->address", async function () {
+    it("should have a default value for a non init key->address", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
-      const key = await storage["getKey(string)"]("testYOLO");
-      const result = await storage.getAddress(key);
+      const key = await storage["getKey(string)"]("test");
+      const result = await storage.getAddr(key);
       expect(result).to.equal(getZeroAddress());
     });
-    it("Souhld have a default value for a non init key->uint", async function () {
+    it("should have a default value for a non init key->uint", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
-      const key = await storage["getKey(string)"]("testYOLO");
+      const key = await storage["getKey(string)"]("test");
       const result = await storage.getUint(key);
       expect(result).to.equal(0);
     });
@@ -47,7 +47,7 @@ describe("Storage", function () {
   });
 
   describe("Access - only admin", function () {
-    it("Should revert if NON admin tries to call setAddress", async function () {
+    it("should revert if NON admin tries to call setAddress", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -58,7 +58,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call setUint", async function () {
+    it("should revert if NON admin tries to call setUint", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -67,7 +67,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call setBool", async function () {
+    it("should revert if NON admin tries to call setBool", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -75,7 +75,7 @@ describe("Storage", function () {
         storage.connect(otherAccount).setBool(getRandomBytes(), false)
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
-    it("Should revert if NON admin tries to call setString", async function () {
+    it("should revert if NON admin tries to call setString", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -84,7 +84,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call setBytes", async function () {
+    it("should revert if NON admin tries to call setBytes", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -95,7 +95,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call setBytes32", async function () {
+    it("should revert if NON admin tries to call setBytes32", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -106,7 +106,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call setUintArray", async function () {
+    it("should revert if NON admin tries to call setUintArray", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -115,7 +115,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call setAddressArray", async function () {
+    it("should revert if NON admin tries to call setAddressArray", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -126,7 +126,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call setStringArray", async function () {
+    it("should revert if NON admin tries to call setStringArray", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -135,7 +135,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call addToUintArray", async function () {
+    it("should revert if NON admin tries to call addToUintArray", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -144,7 +144,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call addToAddressArray", async function () {
+    it("should revert if NON admin tries to call addToAddressArray", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -155,7 +155,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call addToStringArray", async function () {
+    it("should revert if NON admin tries to call addToStringArray", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -164,7 +164,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call updateUintArray", async function () {
+    it("should revert if NON admin tries to call updateUintArray", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -174,7 +174,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call updateAddressArray", async function () {
+    it("should revert if NON admin tries to call updateAddressArray", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -186,7 +186,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call updateStringArray", async function () {
+    it("should revert if NON admin tries to call updateStringArray", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -198,7 +198,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call updateOperator", async function () {
+    it("should revert if NON admin tries to call updateOperator", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -209,7 +209,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call batchUpdateOperators", async function () {
+    it("should revert if NON admin tries to call batchUpdateOperators", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -220,7 +220,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
 
-    it("Should revert if NON admin tries to call addTokenNameToList", async function () {
+    it("should revert if NON admin tries to call addTokenNameToList", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -228,7 +228,7 @@ describe("Storage", function () {
         .be.reverted;
     });
 
-    it("Should revert if NON admin tries to call addChainIdToList", async function () {
+    it("should revert if NON admin tries to call addChainIdToList", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -236,7 +236,7 @@ describe("Storage", function () {
         .reverted;
     });
 
-    it("Should revert if NON admin tries to call batchAddTokenNamesToList", async function () {
+    it("should revert if NON admin tries to call batchAddTokenNamesToList", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -245,7 +245,7 @@ describe("Storage", function () {
       ).to.be.reverted;
     });
 
-    it("Should revert if NON admin tries to call addChainIdToList", async function () {
+    it("should revert if NON admin tries to call addChainIdToList", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -253,7 +253,7 @@ describe("Storage", function () {
         .reverted;
     });
 
-    it("Should revert if NON admin tries to call batchAddChainIdsToList", async function () {
+    it("should revert if NON admin tries to call batchAddChainIdsToList", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -261,7 +261,7 @@ describe("Storage", function () {
         .be.reverted;
     });
 
-    it("Should revert if NON admin tries to call addNewTokenAddressByChainId", async function () {
+    it("should revert if NON admin tries to call addNewTokenAddressByChainId", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -272,7 +272,7 @@ describe("Storage", function () {
       ).to.be.reverted;
     });
 
-    it("Should revert if NON admin tries to call updateTokenAddressByChainId", async function () {
+    it("should revert if NON admin tries to call updateTokenAddressByChainId", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -283,7 +283,7 @@ describe("Storage", function () {
       ).to.be.reverted;
     });
 
-    it("Should revert if NON admin tries to call batchAddNewTokensAddressesByChainId", async function () {
+    it("should revert if NON admin tries to call batchAddNewTokensAddressesByChainId", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -300,7 +300,7 @@ describe("Storage", function () {
   });
 
   describe("Key generator", function () {
-    it("Should generate a key from a string", async function () {
+    it("should generate a key from a string", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const key = await storage.getKey("test");
 
@@ -309,7 +309,7 @@ describe("Storage", function () {
       expect(key).to.equal(ethersKey);
     });
 
-    it("Should generate a key from a string & an address", async function () {
+    it("should generate a key from a string & an address", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const preparedAddress = getRandomAddress();
 
@@ -326,7 +326,7 @@ describe("Storage", function () {
       expect(key).to.equal(ethersKey);
     });
 
-    it("Should generate a key from a string & a number", async function () {
+    it("should generate a key from a string & a number", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const preparedNumber = 1;
 
@@ -346,32 +346,30 @@ describe("Storage", function () {
 
   // @todo => add basic setters tests
   describe("Basic setters", function () {
-    it("Should set a new address", async function () {
+    it("should set a new address", async function () {
       const { storage, owner } = await loadFixture(fixtures.deployStorage);
       const preparedAddress = getRandomAddress();
-      // const preparedKey = getRandomBytes();
-      // await storage.connect(owner).setAddress(preparedKey, preparedAddress);
-      const key = await storage["getKey(string)"]("testYOLO");
-
-      const ethersKey = ethers.solidityPackedKeccak256(
+      // const preparedKey = await storage["getKey(string)"]("testKey");
+      const preparedKey = ethers.solidityPackedKeccak256(
         ["string"],
-        ["testYOLO"]
+        ["testKey"]
       );
 
-      console.log("key", key);
-      console.log("ethersKey", ethersKey);
-      const result0 = (await storage.getAddress(key)).toString();
-      console.log("result0", result0);
-      const tx = await storage.setAddress(key, preparedAddress);
-      tx.wait(1);
-      const result = await storage.getAddress(key);
+      // THIS CAUSE CONFLICT with ethers 'getAddress()'
+      // const result = await storage.getAddress(preparedKey);
+      const resultBeforeSet = await storage.getAddr(
+        ethers.getBytes(preparedKey)
+      );
+      expect(resultBeforeSet).to.equal(getZeroAddress());
 
-      console.log("result", result);
-      console.log("preparedAddress", preparedAddress);
-      expect(result).to.equal(preparedAddress);
+      const tx = await storage.setAddress(preparedKey, preparedAddress);
+      tx.wait();
+      const resultAfterSet = await storage.getAddr(preparedKey);
+
+      expect(resultAfterSet).to.equal(preparedAddress);
     });
 
-    it("Should emit DataChanged event when setting a new address", async function () {
+    it("should emit DataChanged event when setting a new address", async function () {
       const { storage, owner } = await loadFixture(fixtures.deployStorage);
       const preparedAddress = getRandomAddress();
       const preparedKey = getRandomBytes();
@@ -382,7 +380,7 @@ describe("Storage", function () {
         .withArgs(preparedKey, preparedAddress);
     });
 
-    it("Should set a new uint", async function () {
+    it("should set a new uint", async function () {
       const { storage, owner } = await loadFixture(fixtures.deployStorage);
       const preparedUint = 1;
       const preparedKey = getRandomBytes();
@@ -393,7 +391,7 @@ describe("Storage", function () {
       expect(result).to.equal(preparedUint);
     });
 
-    it("Should emit DataChanged event when setting a new uint", async function () {
+    it("should emit DataChanged event when setting a new uint", async function () {
       const { storage, owner } = await loadFixture(fixtures.deployStorage);
       const preparedUint = 1;
       const preparedKey = getRandomBytes();
@@ -406,7 +404,7 @@ describe("Storage", function () {
   // @todo => add basic getters tests
 
   describe("Operator/Role management", function () {
-    it("Should add a new operator", async function () {
+    it("should add a new operator", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -418,7 +416,7 @@ describe("Storage", function () {
   });
 
   describe("Authorized token name & chain id lists", function () {
-    it("Should add new token name to list", async function () {
+    it("should add new token name to list", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       await storage.addTokenNameToList(mockedTokenName);
       expect(await storage.getTokenNamesList()).to.include(mockedTokenName);
@@ -426,7 +424,7 @@ describe("Storage", function () {
 
     // @todo => complete token name tests
 
-    it("Should add new chain to list to authorize it", async function () {
+    it("should add new chain to list to authorize it", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       await storage.addChainIdToList(mockedChainId1);
       expect(await storage.getChainIdsList()).to.include(mockedChainIdBN);
@@ -436,14 +434,14 @@ describe("Storage", function () {
   });
 
   describe("Token address management", function () {
-    it("Should get the token address of the native token", async function () {
+    it("should get the token address of the native token", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       expect(
         await storage.getTokenAddressByChainId(nativeTokenName, nativeChainId)
       ).to.equal(nativeTokenAddress);
     });
 
-    it("Should set new token address", async function () {
+    it("should set new token address", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       let tx = await storage.addTokenNameToList(mockedTokenName);
       // tx.wait();
@@ -460,7 +458,7 @@ describe("Storage", function () {
       ).to.equal(mockedTokenAddress);
     });
 
-    it("Should revert adding new address address if token exists", async function () {
+    it("should revert adding new address address if token exists", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const preparedTokenAddress = getRandomAddress();
 
@@ -488,7 +486,7 @@ describe("Storage", function () {
       );
     });
 
-    it("Should update token address", async function () {
+    it("should update token address", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const preparedTokenAddress = getRandomAddress();
 
@@ -519,7 +517,7 @@ describe("Storage", function () {
       ).to.equal(preparedTokenAddress);
     });
 
-    it("Should revert updating address if token does not exist", async function () {
+    it("should revert updating address if token does not exist", async function () {
       const { storage, owner, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
@@ -541,7 +539,7 @@ describe("Storage", function () {
         .withArgs(mockedTokenName, mockedChainId1);
     });
 
-    it("Should set new tokens addresses", async function () {
+    it("should set new tokens addresses", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const mockedTokenAddress2 = getRandomAddress();
 
@@ -571,7 +569,7 @@ describe("Storage", function () {
       expect(add2).to.equal(mockedTokenAddress2);
     });
 
-    it("Should revert setting new tokens addresses if arrays length mismatch", async function () {
+    it("should revert setting new tokens addresses if arrays length mismatch", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const mockedTokenAddress2 = getRandomAddress();
 
@@ -594,7 +592,7 @@ describe("Storage", function () {
       );
     });
 
-    it("Should revert setting new tokens addresses if token already exists", async function () {
+    it("should revert setting new tokens addresses if token already exists", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const mockedTokenAddress2 = getRandomAddress();
 
@@ -623,7 +621,7 @@ describe("Storage", function () {
       );
     });
 
-    it("Should revert setting new tokens addresses if chainId is not authorized", async function () {
+    it("should revert setting new tokens addresses if chainId is not authorized", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const mockedTokenAddress2 = getRandomAddress();
 
@@ -640,7 +638,7 @@ describe("Storage", function () {
         )
       ).to.be.revertedWithCustomError(storage, "Storage__ChainIdNotInList");
     });
-    it("Should revert setting new tokens addresses if token name is not authorized", async function () {
+    it("should revert setting new tokens addresses if token name is not authorized", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const mockedTokenAddress2 = getRandomAddress();
 
@@ -658,7 +656,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__TokenNotInList");
     });
 
-    it("Should get token addresses by chainIds", async function () {
+    it("should get token addresses by chainIds", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const mockedTokenAddress2 = getRandomAddress();
 

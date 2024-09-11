@@ -175,6 +175,11 @@ contract Storage {
         return s_addressStorage[key];
     }
 
+    // test - name conflict with ethers 'getAddress()' see tests/units/01_Storage.t.js
+    function getAddr(bytes32 key) public view returns (address) {
+        return getAddress(key);
+    }
+
     function getBool(bytes32 key) public view returns (bool) {
         return s_boolStorage[key];
     }

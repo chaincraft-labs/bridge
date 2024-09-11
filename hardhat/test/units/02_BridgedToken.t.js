@@ -1,126 +1,99 @@
 const {
-  time,
   loadFixture,
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
-const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
-const hre = require("hardhat");
-const { ethers } = hre;
+// const hre = require("hardhat");
+const { mocked, fixtures } = require("../helper_fixture");
 
-// Test of the bridge token
-// Fixtures used : deployment of storage, factory and vault
-// Vault is the owner of the bridge token at the end of the deployment
-// classic ERC20 tests + minting and burning and ownership transfer
 describe("BridgedToken", function () {
-  // deployment fixture :
-  async function deployOtherContractsFixture() {
-    const [owner, otherAccount] = await ethers.getSigners();
-    const storage = await hre.ethers.deployContract("Storage", ["ETH"]);
-    await storage.waitForDeployment();
-    console.log("Storage deployed to:", storage.target);
-
-    // owner address:
-    console.log("owner address:", owner.address);
-    // get admin address in storage:
-    console.log(
-      "admin address in storage:",
-      await storage.getOperator("admin")
-    );
-
-    const factory = await hre.ethers.deployContract("TokenFactory", [
-      storage.target,
-    ]);
-    await factory.waitForDeployment();
-    console.log("factory deployed to:", factory.target);
-
-    const vault = await hre.ethers.deployContract("Vault", [storage.target]);
-    await vault.waitForDeployment();
-
-    console.log("vault deployed to:", vault.target);
-
-    // const BridgeBase = await ethers.getContractFactory("BridgeBase");
-    // const bridge = await BridgeBase.deploy(storage.target, vault.target);
-    // await bridge.deployed();
-    // console.log("Bridge deployed to:", bridge.target);
-    await storage.updateOperator("factory", factory.target);
-    await storage.updateOperator("vault", vault.target);
-    // await storage.updateOperator("bridge", bridge.target);
-    return { storage, factory, vault, owner, otherAccount };
-  }
-
-  async function deployBridgedTokenFixture() {
-    const { storage, factory, vault, owner, otherAccount } = await loadFixture(
-      deployOtherContractsFixture
-    );
-    const bridgedToken = await hre.ethers.deployContract("BridgedToken", [
-      "BridgedToken",
-      "BTK",
-    ]);
-    await bridgedToken.waitForDeployment();
-    console.log("bridgedToken deployed to:", bridgedToken.target);
-    return { storage, factory, vault, owner, otherAccount, bridgedToken };
-  }
+  const mockedTokenName = mocked.bridgedTokenName;
+  const mockedTokenSymbol = mocked.bridgedTokenSymbol;
+  const mockedAmount = 10000;
 
   describe("BridgedToken Deployment", function () {
-    it("Should have BridgedToken as name and BTK as symbol", async function () {
-      const { storage, factory, vault, owner, otherAccount, bridgedToken } =
-        await loadFixture(deployBridgedTokenFixture);
-      console.log("bridgedToken", bridgedToken);
-
-      expect(await bridgedToken.name()).to.equal("BridgedToken");
-      expect(await bridgedToken.symbol()).to.equal("BTK");
+    it(`Should have ${mockedTokenName} as name and ${mockedTokenSymbol} as symbol`, async function () {
+      const { bridgedToken } = await loadFixture(fixtures.deployBridgedToken);
+      expect(await bridgedToken.name()).to.equal(mockedTokenName);
+      expect(await bridgedToken.symbol()).to.equal(mockedTokenSymbol);
     });
+
+    // @todo rename deployer, admin, owner... unify across contracts
     it("Should have admin as owner", async function () {
-      const { storage, factory, vault, owner, otherAccount, bridgedToken } =
-        await loadFixture(deployBridgedTokenFixture);
+      const { bridgedToken, owner } = await loadFixture(
+        fixtures.deployBridgedToken
+      );
 
       expect(await bridgedToken.getOwner()).to.equal(owner.address);
     });
-    it("Should transfer ownership to vault", async function () {
-      const { storage, factory, vault, owner, otherAccount, bridgedToken } =
-        await loadFixture(deployBridgedTokenFixture);
-      await bridgedToken.updateAdmin(vault.target);
-      expect(await bridgedToken.getOwner()).to.equal(vault.target);
+    it("Should transfer ownership to otherAccount", async function () {
+      const { bridgedToken, otherAccount } = await loadFixture(
+        fixtures.deployBridgedToken
+      );
+      expect(await bridgedToken.getOwner()).to.not.equal(otherAccount.address);
+
+      await bridgedToken.updateAdmin(otherAccount.address);
+      expect(await bridgedToken.getOwner()).to.equal(otherAccount.address);
     });
     it("Should emit OwnershipTransferred event", async function () {
-      const { storage, factory, vault, owner, otherAccount, bridgedToken } =
-        await loadFixture(deployBridgedTokenFixture);
-      await expect(bridgedToken.updateAdmin(vault.target))
+      const { bridgedToken, otherAccount } = await loadFixture(
+        fixtures.deployBridgedToken
+      );
+      expect(await bridgedToken.getOwner()).to.not.equal(otherAccount.address);
+
+      await expect(await bridgedToken.updateAdmin(otherAccount.address))
         .to.emit(bridgedToken, "OwnerUpdated")
-        .withArgs(bridgedToken.name(), vault.target);
+        .withArgs(bridgedToken.name(), otherAccount.address);
     });
   });
   describe("BridgedToken minting and burning", function () {
-    it("Should mint 1000 tokens to owner", async function () {
-      const { storage, factory, vault, owner, otherAccount, bridgedToken } =
-        await loadFixture(deployBridgedTokenFixture);
-      // in case of real deployment
-      // should be the factory the owner (i.e. to test also)
-      // in case of unit test, set owner as token owner
-      await bridgedToken.connect(owner).mint(otherAccount.address, 1000);
-      expect(await bridgedToken.balanceOf(otherAccount.address)).to.equal(1000);
-    });
-    it("Should burn 1000 tokens from owner", async function () {
-      const { storage, factory, vault, owner, otherAccount, bridgedToken } =
-        await loadFixture(deployBridgedTokenFixture);
+    it(`Should mint ${mockedAmount} tokens to otherAccount`, async function () {
+      const { bridgedToken, owner, otherAccount } = await loadFixture(
+        fixtures.deployBridgedToken
+      );
 
-      await bridgedToken.connect(owner).mint(otherAccount.address, 1000);
-      await bridgedToken.connect(owner).burn(otherAccount.address, 1000);
+      expect(await bridgedToken.balanceOf(otherAccount.address)).to.equal(0);
+
+      await bridgedToken
+        .connect(owner)
+        .mint(otherAccount.address, mockedAmount);
+      expect(await bridgedToken.balanceOf(otherAccount.address)).to.equal(
+        mockedAmount
+      );
+    });
+    it(`Should burn ${mockedAmount} tokens from otherAccount`, async function () {
+      const { bridgedToken, owner, otherAccount } = await loadFixture(
+        fixtures.deployBridgedToken
+      );
+
+      await bridgedToken
+        .connect(owner)
+        .mint(otherAccount.address, mockedAmount);
+      expect(await bridgedToken.balanceOf(otherAccount.address)).to.equal(
+        mockedAmount
+      );
+
+      await bridgedToken
+        .connect(owner)
+        .burn(otherAccount.address, mockedAmount);
       expect(await bridgedToken.balanceOf(otherAccount.address)).to.equal(0);
     });
     it("Should revert when minter is not the owner", async function () {
-      const { storage, factory, vault, owner, otherAccount, bridgedToken } =
-        await loadFixture(deployBridgedTokenFixture);
+      const { bridgedToken, otherAccount } = await loadFixture(
+        fixtures.deployBridgedToken
+      );
       await expect(
-        bridgedToken.connect(otherAccount).mint(otherAccount.address, 1000)
+        bridgedToken
+          .connect(otherAccount)
+          .mint(otherAccount.address, mockedAmount)
       ).to.be.revertedWithCustomError(
         bridgedToken,
         "BridgedToken__CallerNotOwner"
       );
     });
     it("Should revert when burner is not the owner", async function () {
-      const { storage, factory, vault, owner, otherAccount, bridgedToken } =
-        await loadFixture(deployBridgedTokenFixture);
+      const { bridgedToken, otherAccount } = await loadFixture(
+        fixtures.deployBridgedToken
+      );
       await expect(
         bridgedToken.connect(otherAccount).burn(otherAccount.address, 1000)
       ).to.be.revertedWithCustomError(
@@ -129,15 +102,17 @@ describe("BridgedToken", function () {
       );
     });
     it("Should revert when burner has not enough tokens", async function () {
-      const { storage, factory, vault, owner, otherAccount, bridgedToken } =
-        await loadFixture(deployBridgedTokenFixture);
+      const { bridgedToken, owner, otherAccount } = await loadFixture(
+        fixtures.deployBridgedToken
+      );
       const otherAccountBalance = await bridgedToken.balanceOf(
         otherAccount.address
       );
-      await expect(bridgedToken.connect(owner).burn(otherAccount.address, 1000))
+      await expect(
+        bridgedToken.connect(owner).burn(otherAccount.address, mockedAmount)
+      )
         .to.be.revertedWithCustomError(bridgedToken, "ERC20InsufficientBalance")
-        .withArgs(otherAccount.address, otherAccountBalance, 1000);
+        .withArgs(otherAccount.address, otherAccountBalance, mockedAmount);
     });
   });
-  // TODO classic ERC20 tests
 });

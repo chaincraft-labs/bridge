@@ -7,6 +7,19 @@ const mocked = {
   mockedTokenSymbol: "MCT",
   mockedTokenSupply: 1_000_000_000_000_000_000_000_000n, // 1_000_000 * 10 ** 18 wei
   amountToDeposit: 1_000_000_000_000_000_000n, // 1 * 10 ** 18 wei // 1 ether
+  //   originParams: async function () {
+  //     const [owner, user] = await ethers.getSigners();
+  //     const originParamsObject = {
+  //      address from: owner,
+  //         address to: user
+  //         uint256 chainIdFrom,
+  //         uint256 chainIdTo,
+  //         string memory tokenName,
+  //         uint256 amount,
+  //         uint256 nonce,
+  //         bytes calldata signature
+  // }
+  //   }
 };
 
 const fixtures = {
@@ -151,7 +164,7 @@ const fixtures = {
 
   deployBridge: async function () {
     const [owner, otherAccount] = await ethers.getSigners();
-    const storage = await hre.ethers.deployContract("Storage", ["ETH"]);
+    const storage = await hre.ethers.deployContract("Storage", ["ethereum"]);
     await storage.waitForDeployment();
     // console.log("Storage deployed to:", storage.target);
 
@@ -171,16 +184,29 @@ const fixtures = {
     await bridge.waitForDeployment();
     // console.log("bridge deployed to:", bridge.target);
 
+    const relayer = await hre.ethers.deployContract("RelayerBase", [
+      storage.target,
+    ]);
+    await relayer.waitForDeployment();
+    // console.log("relayer deployed to:", relayer.target);
+
     await storage.updateOperator("factory", factory.target);
     await storage.updateOperator("vault", vault.target);
     await storage.updateOperator("bridge", bridge.target);
+    await storage.updateOperator("relayer", relayer.target);
 
+    await storage.addTokenNameToList(mocked.mockedTokenName);
     const mockedToken = await hre.ethers.deployContract("MockedToken", [
       owner.address,
       mocked.mockedTokenName,
       mocked.mockedTokenSymbol,
     ]);
     await mockedToken.waitForDeployment();
+    await storage.addNewTokenAddressByChainId(
+      mocked.mockedTokenName,
+      31337,
+      mockedToken.target
+    );
     // console.log("mockedToken deployed to:", mockedToken.target);
 
     await storage.addTokenNameToList(mocked.bridgedTokenName);
@@ -200,6 +226,7 @@ const fixtures = {
       factory,
       vault,
       bridge,
+      relayer,
       mockedToken,
       bridgedToken,
       bridgedTokenAddress,

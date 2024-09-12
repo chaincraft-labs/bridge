@@ -212,6 +212,7 @@ contract BridgeBase is Utils {
     //
     //****************************************************************** */
 
+    // @todo add sig check
     /**
      * @notice Entry point to deposit tokens to the bridge (origin side)
      *
@@ -251,45 +252,17 @@ contract BridgeBase is Utils {
         s_nextUserNonce[from]++;
 
         Storage store = Storage(s_storage);
-        address tokenFrom = store.getTokenAddressByChainId(tokenName, chainIdFrom);
-        // address tokenTo = store.getTokenAddressByChainId(tokenName, chainIdTo);
-        address vault = store.getOperator("vault");
         address relayer = store.getOperator("relayer");
-        address factory = store.getOperator("factory");
+        address tokenFrom = store.getTokenAddressByChainId(tokenName, chainIdFrom);
 
         if (!store.isAuthorizedTokenByChainId(tokenName, chainIdFrom)) {
             revert BridgeBase__DepositFailed("unauthorized token");
         }
 
         if (tokenFrom == MAX_ADDRESS) {
-            // native coin
-            if (msg.value == 0) {
-                revert BridgeBase__DepositFailed("Native needs non zero value");
-            }
-            if (msg.sender.balance < msg.value) {
-                revert BridgeBase__DepositFailed("Insufficient balance");
-            }
-            Vault(vault).depositNative{value: msg.value}(msg.sender);
+            _depositNative();
         } else {
-            // erc20 token
-            if (msg.value > 0) {
-                revert BridgeBase__DepositFailed("Token needs zero value");
-            }
-            if (ERC20(tokenFrom).balanceOf(msg.sender) < amount) {
-                revert BridgeBase__DepositFailed("Insufficient balance");
-            }
-            bool res = ERC20(tokenFrom).approve(vault, amount);
-            if (!res) {
-                revert BridgeBase__DepositFailed("Initial allowance failed");
-            }
-
-            if (!TokenFactory(factory).isBridgedToken(tokenFrom)) {
-                // ERC20
-                Vault(vault).depositToken(msg.sender, tokenFrom, amount);
-            } else {
-                // bridged token
-                Vault(vault).burn(msg.sender, tokenFrom, amount);
-            }
+            _depositToken(tokenFrom, amount);
         }
         RelayerBase(relayer).createOperation(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce, signature);
     }
@@ -443,5 +416,81 @@ contract BridgeBase is Utils {
 
     function getNewUserNonce(address user) external view returns (uint256) {
         return s_nextUserNonce[user];
+    }
+
+    //****************************************************************** */
+    //
+    //              PRIVATE FUNCTIONS
+    //
+    //****************************************************************** */
+
+    /**
+     * @notice returns instance of Vault contract
+     */
+    function _vault() private view returns (Vault) {
+        Storage store = Storage(s_storage);
+        address vault = store.getOperator("vault");
+        return Vault(vault);
+    }
+
+    /**
+     * @notice returns instance of Vault contract and its address
+     */
+    function _getVaultData() private view returns (Vault, address) {
+        Storage store = Storage(s_storage);
+        address vault = store.getOperator("vault");
+        return (Vault(vault), vault);
+    }
+
+    /**
+     * @notice returns instance of TokenFactory contract
+     */
+    function _factory() private view returns (TokenFactory) {
+        Storage store = Storage(s_storage);
+        address factory = store.getOperator("factory");
+        return TokenFactory(factory);
+    }
+
+    /**
+     * @notice Helper for native coin deposit
+     * @dev It transfers msg.value to vault
+     * @dev Require: msg.value > 0
+     */
+    function _depositNative() private {
+        if (msg.value == 0) {
+            revert BridgeBase__DepositFailed("Native needs non zero value");
+        }
+        //
+        if (msg.sender.balance < msg.value) {
+            revert BridgeBase__DepositFailed("Insufficient balance");
+        }
+        _vault().depositNative{value: msg.value}(msg.sender);
+    }
+
+    /**
+     * @notice Helper for token deposit
+     * @dev It transfers msg.value to vault
+     * @dev Require: msg.value == 0
+     * @dev Require: allowance for vault >= amount prior to call
+     */
+    function _depositToken(address tokenFrom, uint256 amount) private {
+        (Vault vault, address vaultAddress) = _getVaultData();
+
+        if (msg.value > 0) {
+            revert BridgeBase__DepositFailed("Token needs zero value");
+        }
+        if (ERC20(tokenFrom).balanceOf(msg.sender) < amount) {
+            revert BridgeBase__DepositFailed("Insufficient balance");
+        }
+
+        if (ERC20(tokenFrom).allowance(msg.sender, vaultAddress) < amount) {
+            revert BridgeBase__DepositFailed("Initial allowance failed");
+        }
+
+        if (!_factory().isBridgedToken(tokenFrom)) {
+            vault.depositToken(msg.sender, tokenFrom, amount);
+        } else {
+            vault.burn(msg.sender, tokenFrom, amount);
+        }
     }
 }

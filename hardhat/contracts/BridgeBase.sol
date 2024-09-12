@@ -252,7 +252,6 @@ contract BridgeBase is Utils {
         s_nextUserNonce[from]++;
 
         Storage store = Storage(s_storage);
-        address relayer = store.getOperator("relayer");
         address tokenFrom = store.getTokenAddressByChainId(tokenName, chainIdFrom);
 
         if (!store.isAuthorizedTokenByChainId(tokenName, chainIdFrom)) {
@@ -264,7 +263,7 @@ contract BridgeBase is Utils {
         } else {
             _depositToken(tokenFrom, amount);
         }
-        RelayerBase(relayer).createOperation(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce, signature);
+        _relayer().createOperation(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce, signature);
     }
 
     /**
@@ -280,8 +279,7 @@ contract BridgeBase is Utils {
         external
         onlyRoles("admin", "bridge")
     {
-        Vault vault = Vault(Storage(s_storage).getOperator("vault"));
-        vault.finalizeDeposit(user, tokenFrom, amount);
+        _vault().finalizeDeposit(user, tokenFrom, amount);
     }
 
     //****************************************************************** */
@@ -313,9 +311,9 @@ contract BridgeBase is Utils {
      * @param chainIdTo destination chain id
      */
     function depositFees(bytes32 operationHash, uint256 chainIdFrom, uint256 chainIdTo) external payable {
-        address relayer = Storage(s_storage).getOperator("relayer");
+        RelayerBase relayer = _relayer();
 
-        uint8 operationStatus = uint8(RelayerBase(relayer).getDestinationOperationStatus(operationHash));
+        uint8 operationStatus = uint8(relayer.getDestinationOperationStatus(operationHash));
         if (operationStatus != 0) {
             revert BridgeBase__FeesDepositFailed("Operation already exists");
         }
@@ -324,11 +322,10 @@ contract BridgeBase is Utils {
             revert BridgeBase__FeesDepositFailed("Invalid fees amount");
         }
 
-        Vault vault = Vault(Storage(s_storage).getOperator("vault"));
-        try vault.depositOperationFee{value: msg.value}() {
-            RelayerBase(relayer).lockDestinationFees(operationHash, chainIdFrom, chainIdTo);
+        try _vault().depositOperationFee{value: msg.value}() {
+            relayer.lockDestinationFees(operationHash, chainIdFrom, chainIdTo);
         } catch {
-            RelayerBase(relayer).emitCancelOperation(operationHash, chainIdFrom, chainIdTo);
+            relayer.emitCancelOperation(operationHash, chainIdFrom, chainIdTo);
         }
     }
 
@@ -371,9 +368,6 @@ contract BridgeBase is Utils {
         s_destinationNonces[from][chainIdTo][nonce] = true;
         //}
 
-        Vault vault = Vault(Storage(s_storage).getOperator("vault"));
-        TokenFactory factory = TokenFactory(Storage(s_storage).getOperator("factory"));
-
         if (!Storage(s_storage).isAuthorizedTokenByChainId(tokenName, chainIdTo)) {
             revert BridgeBase__DepositFailed("unauthorized token");
         }
@@ -386,14 +380,14 @@ contract BridgeBase is Utils {
 
         if (tokenTo == MAX_ADDRESS) {
             // native coin
-            vault.unlockNative(to, amount);
+            _vault().unlockNative(to, amount);
         } else {
-            if (!TokenFactory(factory).isBridgedToken(tokenTo)) {
+            if (!_factory().isBridgedToken(tokenTo)) {
                 // erc20
-                vault.unlockToken(to, tokenFrom, amount);
+                _vault().unlockToken(to, tokenFrom, amount);
             } else {
                 // bridged token
-                vault.mint(to, tokenTo, amount);
+                _vault().mint(to, tokenTo, amount);
             }
         }
     }
@@ -404,8 +398,7 @@ contract BridgeBase is Utils {
         external
         onlyRoles("admin", "bridge")
     {
-        Vault vault = Vault(Storage(s_storage).getOperator("vault"));
-        vault.cancelDeposit(user, tokenFrom, amount);
+        _vault().cancelDeposit(user, tokenFrom, amount);
     }
 
     //****************************************************************** */
@@ -423,6 +416,15 @@ contract BridgeBase is Utils {
     //              PRIVATE FUNCTIONS
     //
     //****************************************************************** */
+
+    /**
+     * @notice returns instance of Vault contract
+     */
+    function _relayer() private view returns (RelayerBase) {
+        Storage store = Storage(s_storage);
+        address relayer = store.getOperator("relayer");
+        return RelayerBase(relayer);
+    }
 
     /**
      * @notice returns instance of Vault contract

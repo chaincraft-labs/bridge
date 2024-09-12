@@ -13,16 +13,7 @@ const { getMaxAddress } = require("../../utils/addressUtil");
  * as these features are in progress
  */
 
-/*
- * IMPORTANT - SETTINGS
- * (see helper_fixture.js::fixtures::deployVault)
- * bridge operator in Storage contract is mocked with 'owner' address
- * in order to access functions called by bridge
- */
-
-// @todo when implemented test reentrance
-
-// @todo test transfer fail case during deposit
+// @todo network config to adapt test to different networks
 
 const nativeAddressInStorage = getMaxAddress();
 const startNonce = 0;
@@ -37,23 +28,11 @@ const paramsTypes = [
   "uint",
 ];
 
-const originParams = [];
-// const originParamsObject = {
-//      address from,
-//         address to,
-//         uint256 chainIdFrom,
-//         uint256 chainIdTo,
-//         string memory tokenName,
-//         uint256 amount,
-//         uint256 nonce,
-//         bytes calldata signature
-// }
-
 // describe.only("BridgeBase", function () {
 describe("BridgeBase", function () {
   describe("Bridge deployment", function () {
     it("Should store the admin at deployment", async function () {
-      const { storage, owner } = await loadFixture(fixtures.deployBridge);
+      const { storage, owner } = await loadFixture(fixtures.deployAllContracts);
       expect(await storage.getOperator("admin")).to.equal(owner.address);
     });
 
@@ -69,7 +48,7 @@ describe("BridgeBase", function () {
   describe("getters", function () {
     it("Should get the initial nonce", async function () {
       const { storage, bridge, owner, otherAccount } = await loadFixture(
-        fixtures.deployBridge
+        fixtures.deployAllContracts
       );
 
       const initialNonce = await bridge.getNewUserNonce(otherAccount);
@@ -82,7 +61,7 @@ describe("BridgeBase", function () {
     describe("revert cases", function () {
       it("Should revert if from is not msg.sender", async function () {
         const { bridge, owner, otherAccount } = await loadFixture(
-          fixtures.deployBridge
+          fixtures.deployAllContracts
         );
 
         const originParams = [
@@ -116,7 +95,7 @@ describe("BridgeBase", function () {
 
       it("Should revert if nonce is not correct", async function () {
         const { bridge, otherAccount } = await loadFixture(
-          fixtures.deployBridge
+          fixtures.deployAllContracts
         );
 
         const originParams = [
@@ -150,7 +129,7 @@ describe("BridgeBase", function () {
 
       it("Should revert if token is not authorized", async function () {
         const { bridge, otherAccount } = await loadFixture(
-          fixtures.deployBridge
+          fixtures.deployAllContracts
         );
 
         const notListedToken = "not listed token";
@@ -183,7 +162,7 @@ describe("BridgeBase", function () {
 
       it("Should revert if deposit native coin with msg.value equal to 0", async function () {
         const { storage, bridge, owner, otherAccount } = await loadFixture(
-          fixtures.deployBridge
+          fixtures.deployAllContracts
         );
 
         const originParams = [
@@ -214,7 +193,7 @@ describe("BridgeBase", function () {
 
       //   it("Should revert if native coin amount is superior than user balance", async function () {
       //     const { storage, bridge, owner, otherAccount } = await loadFixture(
-      //       fixtures.deployBridge
+      //       fixtures.deployAllContracts
       //     );
 
       //     const otherAccountBalance = await ethers.provider.getBalance(
@@ -250,7 +229,7 @@ describe("BridgeBase", function () {
       //   });
       it("Should revert if deposit of token and msg.value superior to 0", async function () {
         const { storage, bridge, mockedToken, owner, otherAccount } =
-          await loadFixture(fixtures.deployBridge);
+          await loadFixture(fixtures.deployAllContracts);
 
         const originParams = [
           owner.address,
@@ -279,7 +258,7 @@ describe("BridgeBase", function () {
       });
       it("Should revert if deposit of token and amount superior to user balance", async function () {
         const { storage, bridge, mockedToken, owner, otherAccount } =
-          await loadFixture(fixtures.deployBridge);
+          await loadFixture(fixtures.deployAllContracts);
 
         const otherAccountBalance = await mockedToken.balanceOf(
           otherAccount.address
@@ -315,7 +294,7 @@ describe("BridgeBase", function () {
     describe("regular cases", function () {
       it("Should increment user nonce after deposit of native coin", async function () {
         const { bridge, otherAccount } = await loadFixture(
-          fixtures.deployBridge
+          fixtures.deployAllContracts
         );
         const initialNonce = await bridge.getNewUserNonce(otherAccount.address);
         const originParams = [
@@ -347,7 +326,7 @@ describe("BridgeBase", function () {
       });
       it("Should have native coin deposited in Vault", async function () {
         const { vault, bridge, otherAccount } = await loadFixture(
-          fixtures.deployBridge
+          fixtures.deployAllContracts
         );
         const originParams = [
           otherAccount.address,
@@ -380,9 +359,41 @@ describe("BridgeBase", function () {
         expect(userDepositBalance).to.equal(mocked.amountToDeposit);
         expect(vaultBalance).to.equal(mocked.amountToDeposit);
       });
+      it("Should emit relayer event when depositing native coin", async function () {
+        const { vault, bridge, relayer, otherAccount } = await loadFixture(
+          fixtures.deployAllContracts
+        );
+        const originParams = [
+          otherAccount.address,
+          otherAccount.address,
+          31337,
+          441,
+          "ethereum",
+          mocked.amountToDeposit,
+          startNonce,
+        ];
+
+        const msgHash = ethers.solidityPackedKeccak256(
+          paramsTypes,
+          originParams
+        );
+        const signedMsgHash = await otherAccount.signMessage(
+          ethers.getBytes(msgHash)
+        );
+        const blockNumber = await ethers.provider.getBlockNumber();
+        await expect(
+          bridge
+            .connect(otherAccount)
+            .createBridgeOperation(...originParams, signedMsgHash, {
+              value: mocked.amountToDeposit,
+            })
+        )
+          .to.emit(relayer, "OperationCreated")
+          .withArgs(msgHash, [...originParams, signedMsgHash], blockNumber + 1);
+      });
       it("Should have mocked token deposited in Vault", async function () {
         const { vault, bridge, mockedToken, owner } = await loadFixture(
-          fixtures.deployBridge
+          fixtures.deployAllContracts
         );
         const originParams = [
           owner.address,
@@ -413,6 +424,48 @@ describe("BridgeBase", function () {
         expect(userDepositBalance).to.equal(mocked.amountToDeposit);
         expect(vaultBalance).to.equal(mocked.amountToDeposit);
       });
+      it("Should emit relayer event when depositing token", async function () {
+        const { vault, relayer, bridge, mockedToken, owner } =
+          await loadFixture(fixtures.deployAllContracts);
+        const originParams = [
+          owner.address,
+          owner.address,
+          31337,
+          441,
+          mocked.mockedTokenName,
+          mocked.amountToDeposit,
+          startNonce,
+        ];
+
+        const msgHash = ethers.solidityPackedKeccak256(
+          paramsTypes,
+          originParams
+        );
+        const signedMsgHash = await owner.signMessage(ethers.getBytes(msgHash));
+
+        await mockedToken.approve(vault.target, mocked.amountToDeposit);
+        const blockNumber = await ethers.provider.getBlockNumber();
+
+        await expect(
+          bridge
+            .connect(owner)
+            .createBridgeOperation(...originParams, signedMsgHash)
+        )
+          .to.emit(relayer, "OperationCreated")
+          .withArgs(msgHash, [...originParams, signedMsgHash], blockNumber + 1);
+      });
+
+      it("Should burn bridged deposited & decrease user balance", async function () {
+        // @todo deposit bridgedToken
+      });
     });
+
+    // @todo finalizeDeposit Test
+
+    // @todo depositFees Test when implemented
+
+    // @todo completeBridgeOperation Test
+
+    // @todo cancelBridgeDeposit Test
   });
 });

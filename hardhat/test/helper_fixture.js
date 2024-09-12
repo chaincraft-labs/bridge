@@ -162,7 +162,7 @@ const fixtures = {
     };
   },
 
-  deployBridge: async function () {
+  deployAllContracts: async function () {
     const [owner, otherAccount] = await ethers.getSigners();
     const storage = await hre.ethers.deployContract("Storage", ["ethereum"]);
     await storage.waitForDeployment();
@@ -194,6 +194,7 @@ const fixtures = {
     await storage.updateOperator("vault", vault.target);
     await storage.updateOperator("bridge", bridge.target);
     await storage.updateOperator("relayer", relayer.target);
+    await storage.updateOperator("oracle", owner.address);
 
     await storage.addTokenNameToList(mocked.mockedTokenName);
     const mockedToken = await hre.ethers.deployContract("MockedToken", [

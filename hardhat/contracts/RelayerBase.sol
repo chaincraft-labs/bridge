@@ -310,11 +310,11 @@ contract RelayerBase is Utils {
         uint256 blockToWait = Storage(s_storage).getUint(key);
         OriginOperation storage operation = s_originOperations[operationHash];
 
-        if (block.number < operation.blockStep.creationBlock + blockToWait) {
-            revert RelayerBase__BlockConfirmationNotReached();
-        }
         if (operation.status != OperationStatus.ORG_FEES_LOCKED) {
             revert RelayerBase__InvalidOperationStatus();
+        }
+        if (block.number < operation.blockStep.creationBlock + blockToWait) {
+            revert RelayerBase__BlockConfirmationNotReached();
         }
 
         operation.status = OperationStatus.ORG_OP_READY;
@@ -339,7 +339,9 @@ contract RelayerBase is Utils {
         onlyRole("oracle")
     {
         OriginOperation storage operation = s_originOperations[operationHash];
-        require(operation.status == OperationStatus.ORG_OP_READY, "RelayerBase: invalid status");
+        if (operation.status != OperationStatus.ORG_OP_READY) {
+            revert RelayerBase__InvalidOperationStatus();
+        }
 
         operation.status = OperationStatus.ORG_OP_CLOSED;
         operation.blockStep.closingBlock = uint64(block.number);
@@ -444,11 +446,11 @@ contract RelayerBase is Utils {
         bytes32 key = Storage(s_storage).getKey("blockToWait", operation.params.chainIdTo);
         uint256 blockToWait = Storage(s_storage).getUint(key);
 
-        if (block.number - operation.blockStep.feesDeposit > blockToWait) {
-            revert RelayerBase__BlockConfirmationNotReached();
-        }
         if (operation.status != OperationStatus.DST_FEES_DEPOSITED) {
             revert RelayerBase__InvalidOperationStatus();
+        }
+        if (block.number - operation.blockStep.feesDeposit > blockToWait) {
+            revert RelayerBase__BlockConfirmationNotReached();
         }
 
         operation.status = OperationStatus.DST_FEES_CONFIRMED;

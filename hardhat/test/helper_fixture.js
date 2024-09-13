@@ -194,6 +194,7 @@ const fixtures = {
     await storage.updateOperator("vault", vault.target);
     await storage.updateOperator("bridge", bridge.target);
     await storage.updateOperator("relayer", relayer.target);
+    // mock oracle (server) with owner in order to call relayer functions
     await storage.updateOperator("oracle", owner.address);
 
     await storage.addTokenNameToList(mocked.mockedTokenName);

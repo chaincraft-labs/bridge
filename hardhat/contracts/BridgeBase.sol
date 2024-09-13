@@ -277,7 +277,7 @@ contract BridgeBase is Utils {
      */
     function finalizeBridgeDeposit(address user, address tokenFrom, uint256 amount)
         external
-        onlyRoles("admin", "bridge")
+        onlyRoles("admin", "relayer")
     {
         _vault().finalizeDeposit(user, tokenFrom, amount);
     }

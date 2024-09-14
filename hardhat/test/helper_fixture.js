@@ -7,19 +7,6 @@ const mocked = {
   mockedTokenSymbol: "MCT",
   mockedTokenSupply: 1_000_000_000_000_000_000_000_000n, // 1_000_000 * 10 ** 18 wei
   amountToDeposit: 1_000_000_000_000_000_000n, // 1 * 10 ** 18 wei // 1 ether
-  //   originParams: async function () {
-  //     const [owner, user] = await ethers.getSigners();
-  //     const originParamsObject = {
-  //      address from: owner,
-  //         address to: user
-  //         uint256 chainIdFrom,
-  //         uint256 chainIdTo,
-  //         string memory tokenName,
-  //         uint256 amount,
-  //         uint256 nonce,
-  //         bytes calldata signature
-  // }
-  //   }
 };
 
 const fixtures = {

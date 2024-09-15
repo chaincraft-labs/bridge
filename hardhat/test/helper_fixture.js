@@ -1,6 +1,9 @@
 const hre = require("hardhat");
 
+// @toto rename (allfeat-> harmonie..., ethereum -> ether...)
 const mocked = {
+  hhNativeTokenName: "ethereum",
+  aftNativeTokenName: "allfeat",
   bridgedTokenName: "BridgedToken",
   bridgedTokenSymbol: "BTK",
   mockedTokenName: "MockedToken",
@@ -98,7 +101,7 @@ const fixtures = {
 
   deployVaultAndBridgedToken: async function () {
     const [owner, otherAccount] = await ethers.getSigners();
-    const storage = await hre.ethers.deployContract("Storage", ["ETH"]);
+    const storage = await hre.ethers.deployContract("Storage", ["ethereum"]);
     await storage.waitForDeployment();
     // console.log("Storage deployed to:", storage.target);
 
@@ -197,6 +200,7 @@ const fixtures = {
       mockedToken.target
     );
     // console.log("mockedToken deployed to:", mockedToken.target);
+    // IMPORTANT: owner has the total supply of the mockedToken
 
     await storage.addTokenNameToList(mocked.bridgedTokenName);
     await factory.createToken(
@@ -210,6 +214,17 @@ const fixtures = {
       "BridgedToken"
     );
     const bridgedToken = await bridgedTokenContract.attach(bridgedTokenAddress);
+
+    // mock bridge with owner in order to call vault functions
+    // vault is owner of the bridgedToken, so we can mint
+    await storage.updateOperator("bridge", owner.address);
+    await vault
+      .connect(owner)
+      .mint(owner.address, bridgedTokenAddress, mocked.amountToDeposit * 10n);
+    // restore bridge operator
+    await storage.updateOperator("bridge", bridge.target);
+
+    // const bridgedToken = await bridgedTokenContract.attach(bridgedTokenAddress);
     return {
       storage,
       factory,

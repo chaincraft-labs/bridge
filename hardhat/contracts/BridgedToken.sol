@@ -51,8 +51,8 @@ contract BridgedToken is ERC20 {
     function updateAdmin(address newAdmin) external onlyOwner {
         s_owner = newAdmin;
 
-        string memory tokenName = name();
-        emit OwnerUpdated(tokenName, newAdmin); // @todo OPTI name() without memory variable
+        // string memory tokenName = name();
+        emit OwnerUpdated(name(), newAdmin);
     }
 
     function getOwner() external view returns (address) {

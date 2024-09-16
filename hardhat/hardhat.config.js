@@ -8,6 +8,8 @@ require("./tasks/call-write");
 require("./tasks/call-read");
 require("./tasks/func-mintBridgedToken");
 require("./tasks/func-transferMockedToken");
+require("./tasks/func-getMsgHash");
+require("./tasks/func-getMsgSignature");
 
 const { forkPorts } = require("./constants/deploymentConfig");
 

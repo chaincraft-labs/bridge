@@ -130,25 +130,32 @@ npx hardhat call-writeFunc --contract <"ContractName"> --func <"functionName"> -
 #### Mint amount of bridged token to an address
 
 ```node
- npx hardhat func-mintBridgedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --address 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000 --network localhost
+ npx hardhat func-mintBridgedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --token 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000n --network localhost
 ```
 
 #### Transfer amount of mocked token to an address
 
 ```node
- npx hardhat func-mintBridgedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --address 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000 --network localhost
+ npx hardhat func-transferMockedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --token 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000n --network localhost
 ```
 
 #### Get the operation hash from args
 
 ```node
- npx hardhat func-getMsgHash --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90 0xbfae728Cf6D20DFba443c5A297dC9b344108de90 11155111 441 mockedDai 10000000000000000 0 0x993dab3dd91f5c6dc28e17439be475478f5635c92a56e17e82349d3fb2f166196f466c0b4e0c146f285204f0dcb13e5ae67bc33f4b888ec32dfe0a063e8f3f781b" --network localhost
+ npx hardhat func-getMsgHash --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90 0xbfae728Cf6D20DFba443c5A297dC9b344108de90 11155111 441 mockedDai 10000000000000000n 0" --network localhost
 ```
 
 #### Get the signature of the operation hash
 
+signer: optional, possible values [0, 1, 2]
+
+The default value is 0, which corresponds to the deployer/admin account (the first Ethers signer / deployer defined in the .env file).
+Values 1 and 2 correspond to Ethers signer 1 or 2 for a local environment, or user 2 or user 3 as configured in the .env file.
+
 ```node
- npx hardhat func-getMsgSignature --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90 0xbfae728Cf6D20DFba443c5A297dC9b344108de90 11155111 441 mockedDai 10000000000000000 0 0x993dab3dd91f5c6dc28e17439be475478f5635c92a56e17e82349d3fb2f166196f466c0b4e0c146f285204f0dcb13e5ae67bc33f4b888ec32dfe0a063e8f3f781b" --network localhost
+ npx hardhat func-getMsgSignature --args "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 11155111 441 mockedDai 10000000000000000n 0" --network localhost
+
+ npx hardhat func-getMsgSignature --args "0xD850badD41F9f7B5Fdc4387C14A9e7938E57619C 0xD850badD41F9f7B5Fdc4387C14A9e7938E57619C 11155111 441 mockedDai 10000000000000000n 0" --signer 1 --network sepolia
 ```
 
 ### Example of prepared commands:
@@ -161,13 +168,13 @@ npx hardhat call-writeFunc --contract "Storage" --func "updateOperator" --args "
 npx hardhat call-writeFunc --contract "Storage" --func "addTokenNameToList" --args "mockedDai" --network allfeat
 npx hardhat call-writeFunc --contract "Storage" --func "addChainIdToList" --args "441" --network sepolia
 
-npx hardhat call-writeFunc --contract "Storage" --func "addNewTokenAddressByChainId" --args "mockedDai 441 0x2B530BeCE26560D3241cB3Aa1a07Cb7164082414" --network sepolia
+npx hardhat call-writeFunc --contract "Storage" --func "addNewTokenAddressByChainId" --args "mockedDai 441 0x2B530BeCE26560D3241cB3Aa1a07Cb7164082414" --signer 0 --network sepolia
 npx hardhat call-writeFunc --contract "Storage" --func "updateTokenAddressByChainId" --args "mockedDai 441 0x2B530BeCE26560D3241cB3Aa1a07Cb7164082414" --network sepolia
 npx hardhat call-readFunc --contract "Storage" --func "getTokenAddressByChainId" --args "mockedDai 441" --network sepolia
 npx hardhat call-readFunc --contract "Storage" --func "getTokenAddressesByChainIds" --args "mockedDai 441 11155111" --network sepolia
 
 npx hardhat call-readFunc --contract "BridgeBase" --func "getNewUserNonce" --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90" --network sepolia
-npx hardhat call-writeFunc --contract "BridgeBase" --func "createBridgeOperation" --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90 0xbfae728Cf6D20DFba443c5A297dC9b344108de90 11155111 441 mockedDai 10000000000000000 0 0x993dab3dd91f5c6dc28e17439be475478f5635c92a56e17e82349d3fb2f166196f466c0b4e0c146f285204f0dcb13e5ae67bc33f4b888ec32dfe0a063e8f3f781b" --network sepolia
+npx hardhat call-writeFunc --contract "BridgeBase" --func "createBridgeOperation" --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90 0xbfae728Cf6D20DFba443c5A297dC9b344108de90 11155111 441 mockedDai 10000000000000000n 0 0x993dab3dd91f5c6dc28e17439be475478f5635c92a56e17e82349d3fb2f166196f466c0b4e0c146f285204f0dcb13e5ae67bc33f4b888ec32dfe0a063e8f3f781b" --signer 1 --network sepolia
 npx hardhat call-writeFunc --contract "BridgeBase" --func "depositFees" --args "0x5e2c8f1e3c6f1c4e8d5b5e8f8c5a8e29e1f4b7c3a2c8e1d4c5e2e8f2a1b8c4e5 11155111 441" --network allfeat
 
 npx hardhat call-readFunc --contract "RelayerBase" --func "getUserOperations" --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90" --network sepolia

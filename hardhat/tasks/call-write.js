@@ -1,6 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
 const { readLastDeployedAddress } = require("../helpers/fileHelpers");
 const { convertParamsStringToArray } = require("../helpers/functionHelpers");
+const { getSignerFromOption } = require("../utils/util");
 
 task("call-writeFunc", "send a write transaction to the contract")
   .addParam("contract", "The contract to interact with")
@@ -10,7 +11,13 @@ task("call-writeFunc", "send a write transaction to the contract")
     "value",
     "The value to send in wei (optional - 0 by default)"
   )
+  .addOptionalParam(
+    "signer",
+    "[deployer=0, user2=1, user3=2] as defined in .env (localhost uses signer 0, 1, 2 given by hardhat). Default is deployer/admin"
+  )
   .setAction(async (taskArgs, hre) => {
+    let signer = await getSignerFromOption(hre, taskArgs.signer);
+
     // get network name
     const network = hre.network.name;
     // read contract address from constants/deployedAddresses.js
@@ -21,7 +28,8 @@ task("call-writeFunc", "send a write transaction to the contract")
     // get contract instance
     const contract = await hre.ethers.getContractAt(
       taskArgs.contract,
-      contractAddress
+      contractAddress,
+      signer
     );
 
     // prepare args
@@ -30,14 +38,14 @@ task("call-writeFunc", "send a write transaction to the contract")
     // prepare value
     const option = taskArgs.value ? { value: taskArgs.value } : {};
 
-    // call the method
+    // call the function
     try {
-      const tx = await contract[taskArgs.method](...args, option);
+      const tx = await contract[taskArgs.func](...args, option);
       console.log("Transaction hash:", tx.hash);
       const receipt = await tx.wait();
       console.log(
         `Transaction status: ${
-          receipt.status
+          receipt.status == 1 ? "✅" : "❌"
         } - Gas used: ${receipt.gasUsed.toString()}`
       );
     } catch (error) {

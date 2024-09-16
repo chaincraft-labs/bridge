@@ -1,5 +1,48 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
+//               SIGNER UTILS
+//
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description Returns the selected signer
+ *
+ * @dev The default value is 0, which corresponds to the deployer/admin account (the first Ethers signer / deployer defined in the .env file).
+ * @dev Values 1 and 2 correspond to Ethers signer 1 or 2 for a local environment, or user 2 or user 3 as configured in the .env file.
+ *
+ * @param {*} hre
+ * @param {string | number} option optional, possible values [0, 1, 2]
+ * @returns a valid signer
+ */
+const getSignerFromOption = async (hre, option) => {
+  let userWallet;
+  try {
+    if (!option || option == 0) {
+      // default signer set in hardhat config
+      [userWallet] = await hre.ethers.getSigners();
+    } else {
+      if (option != 1 && option != 2) {
+        throw "Wrong signer value!";
+      }
+      if (hre.network.name === "localhost") {
+        const signers = await hre.ethers.getSigners();
+        userWallet = signers[option];
+      } else {
+        const userLabel =
+          option === 1 ? "USER_PRIVATE_KEY_2" : "USER_PRIVATE_KEY_3";
+        userWallet = await new ethers.Wallet(
+          process.env[userLabel],
+          hre.ethers.provider
+        );
+      }
+    }
+  } catch (err) {
+    throw `Signer can not be defined!\n${err}`;
+  }
+  return userWallet;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//
 //               ADDRESS UTILS
 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,6 +109,7 @@ const hexToNum = (hexString) => {
 };
 
 module.exports = {
+  getSignerFromOption,
   getRandomAddress,
   toChecksumAddress,
   getZeroAddress,

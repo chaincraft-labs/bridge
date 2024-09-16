@@ -37,9 +37,9 @@ task("func-mintBridgedToken", "mint amount of bridged token to user")
       const balanceAfter = await token.balanceOf(taskArgs.to);
       const delta = balanceAfter - balanceBefore;
       console.log(
-        `${
-          delta == taskArgs.amount ? "Success" : "Error"
-        }: Minted ${delta} of ${taskArgs.address} to ${taskArgs.to}`
+        `${delta == taskArgs.amount ? "✅" : "❌"}: Minted ${delta} of ${
+          taskArgs.address
+        } to ${taskArgs.to}`
       );
     } catch (error) {
       console.error("Error:", error);

@@ -1,7 +1,7 @@
 const { convertParamsStringToArray } = require("../helpers/functionHelpers");
 
 /**
- * @dev Get the signature of the hash of args
+ * @dev Get the signature of the hash of args (operation hash)
  */
 task("call-writeFunc", "send a write transaction to the contract")
   .addParam("args", "The arguments to pass to the method, space separated")

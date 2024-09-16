@@ -25,9 +25,9 @@ task("func-transferMockedToken", "transfer amount of mocked token to user")
       const balanceAfter = await token.balanceOf(taskArgs.to);
       const delta = balanceAfter - balanceBefore;
       console.log(
-        `${
-          delta == taskArgs.amount ? "Success" : "Error"
-        }: Transfer ${delta} of ${taskArgs.address} to ${taskArgs.to}`
+        `${delta == taskArgs.amount ? "✅" : "❌"}: Transfer ${delta} of ${
+          taskArgs.address
+        } to ${taskArgs.to}`
       );
     } catch (error) {
       console.error("Error:", error);

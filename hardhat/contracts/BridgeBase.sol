@@ -384,7 +384,6 @@ contract BridgeBase is Utils {
         } else {
             if (!_factory().isBridgedToken(tokenTo)) {
                 // erc20
-                // _vault().unlockToken(to, tokenFrom, amount);
                 _vault().unlockToken(to, tokenTo, amount);
             } else {
                 // bridged token

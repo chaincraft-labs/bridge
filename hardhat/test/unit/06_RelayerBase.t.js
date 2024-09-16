@@ -5,7 +5,7 @@ const { expect } = require("chai");
 const hre = require("hardhat");
 const { ethers } = hre;
 const { mocked, fixtures } = require("../helper_fixture");
-const { getMaxAddress, getZeroAddress } = require("../../utils/addressUtil");
+const { getMaxAddress, getZeroAddress } = require("../../utils/util");
 
 /*
  * IMPORTANT - COVERAGE

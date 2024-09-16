@@ -2,13 +2,12 @@ require("hardhat-deploy");
 require("@nomicfoundation/hardhat-toolbox");
 require("solidity-coverage");
 require("dotenv").config();
-// const { task } = require("hardhat/config");
 
-// ERROR with hh compile (import module of hardhat when initializing)
 require("./tasks/start-node");
-require("./tasks/call-writeFunc");
-require("./tasks/call-readFunc");
-// require("./tasks/test.js");
+require("./tasks/call-write");
+require("./tasks/call-read");
+require("./tasks/func-mintBridgedToken");
+require("./tasks/func-transferMockedToken");
 
 const { forkPorts } = require("./constants/deploymentConfig");
 
@@ -20,13 +19,9 @@ const signer2PrivateKey = process.env.USER_PRIVATE_KEY_2 || "";
 const signer3PrivateKey = process.env.USER_PRIVATE_KEY_3 || "";
 const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "";
 
-// test and manage different api infura, alchemy...
+// @todo test and manage different api infura, alchemy...
 
-// update networks => goerli !!! no!
-
-// @todo add checks for provider (ping and rate limit)
 module.exports = {
-  // const config = {
   solidity: "0.8.20",
   // defaultNetwork: "localhost",
   defaultNetwork: "hardhat",

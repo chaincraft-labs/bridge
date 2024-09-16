@@ -1,4 +1,5 @@
 const hre = require("hardhat");
+const { networkParams } = require("./configHelper");
 
 /**
  * @description Get context info

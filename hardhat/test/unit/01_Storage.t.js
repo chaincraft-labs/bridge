@@ -12,7 +12,7 @@ const {
   getMaxAddress,
   getZeroAddress,
   getRandomBytes,
-} = require("../../utils/addressUtil");
+} = require("../../utils/util");
 // const { getRandomBytes } = require("../helper_config");
 
 describe("Storage", function () {

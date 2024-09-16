@@ -86,6 +86,17 @@ const deploymentCheck = {
 //                DEPLOYMENT FUNCTIONS
 //
 ///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description Deploy a contract and stored its address in constants folder
+ *
+ * @dev 'params' is the array of constructor inputs, empty array if none
+ * @dev In case of mocked/bridged token the symbol is used to store the address
+ *
+ * @param {string} network
+ * @param {string} contractName
+ * @param {Array} params
+ * @returns
+ */
 const deployAndSaveAddress = async (network, contractName, params) => {
   let tokenSymbol;
   const instance = await hre.ethers.deployContract(contractName, params);
@@ -131,17 +142,64 @@ const deployAndSaveAddress = async (network, contractName, params) => {
 //   });
 // };
 
+///////////////////////////////////////////////////////////////////////////////
+//
+//                TASKS HELPERS
+//
+///////////////////////////////////////////////////////////////////////////////
 /**
- * Converts a parameter string into an array of arguments.
+ * @description Converts a parameter string into an array of arguments.
  *
- * @param {string} argsString - The parameter string, separated by commas.
- * @returns {Array} - An array of converted arguments.
+ * This function takes a string of parameters, separated by spaces, and converts it into an array of arguments.
+ * It supports both individual arguments and array-like arguments enclosed in square brackets.
+ *
+ * @dev Example usage:
+ *   - Input: "1 2 3 [abc,,fg,1,2,3] [] 0xabd 4 5 h i  k"
+ *   - Output: [1, 2, 3, ["abc", "", "fg", 1, 2, 3], [], "0xabd", 4, 5, "h", "i", "","k"]
+ *
+ * @dev Rules for formatting:
+ *   - Arguments are separated by a single space.
+ *   - To insert an empty string among the arguments, use two consecutive spaces.
+ *   - In array arguments, elements are separated by commas.
+ *     - Two consecutive commas (,,) indicate an empty string element between them.
+ *   - IMPORTANT: Do not include spaces within array arguments; they must be comma-separated.
+ *
+ * @param {string} argsString - The parameter string to be converted.
+ * @returns {Array} - An array of converted arguments based on the provided string.
  */
 const convertParamsStringToArray = (argsString) => {
-  // Split the parameters by commas and map each argument
-  let args = argsString.split(",").map((arg) => {
+  // Split the parameters by spaces and map each argument
+  let args = argsString.split(" ").map((arg) => {
     // Trim unnecessary spaces
     arg = arg.trim();
+
+    if (arg == "[]") return [];
+    // Check if the argument is a list (starts with '[' and ends with ']')
+    if (arg.startsWith("[") && arg.endsWith("]")) {
+      // Remove the brackets and split by comma
+      const arrayElements = arg
+        .slice(1, -1)
+        .split(",")
+        .map((el) => el.trim());
+
+      // Process each element in the array
+      return arrayElements
+        .map((element) => {
+          // Handle empty strings as empty elements
+          if (element === "") return ""; // Treat empty string as a valid element
+
+          // Process the element like before
+          if (element.startsWith("0x")) return element;
+          if (/^\d+n$/.test(element)) return BigInt(element.slice(0, -1));
+          if (/^\d+$/.test(element)) return parseInt(element, 10);
+          if (element === "true") return true;
+          if (element === "false") return false;
+          const num = parseFloat(element);
+          if (!isNaN(num)) return num;
+          return element; // Return the argument as is if none of the above conditions are met
+        })
+        .filter((el) => el !== null); // Filter out nulls to avoid adding them to the array
+    }
 
     // Return the argument as is if it starts with "0x"
     if (arg.startsWith("0x")) return arg;
@@ -161,7 +219,7 @@ const convertParamsStringToArray = (argsString) => {
     if (!isNaN(num)) return num;
 
     // Return null if the argument is an empty string
-    if (arg === "") return null;
+    if (arg === "") return ""; //null;
 
     // Return the argument as is if none of the above conditions are met
     return arg;

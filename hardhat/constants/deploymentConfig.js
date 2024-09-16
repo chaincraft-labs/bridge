@@ -1,11 +1,24 @@
-// Networks used for deployments
+////////////////////////////////////////////////////////////////
+//
+//             Networks used for deployments
+//
+///////////////////////////////////////////////////////////////
 const usedNetworks = ["allfeat", "localhost", "sepolia"];
 // const usedNetworks = ["gethTestnet", "allfeatLocal"];
 // const usedNetworks = ["allfeat", "sepolia"];
 
-// Native coins and tokens used (as mockedToken for test)
+////////////////////////////////////////////////////////////////
+//
+//             Native coins and tokens used (as mockedToken for test)
+//
+///////////////////////////////////////////////////////////////
 const usedTokens = ["ethereum", "allfeat", "mockedDai"];
 
+////////////////////////////////////////////////////////////////
+//
+//             Ports used for forks
+//
+///////////////////////////////////////////////////////////////
 const forkPorts = {
   harmonie: "8540",
   // @todo CHANGE NAME IN SCRIPT to harmonie testnet and get real mainnet id

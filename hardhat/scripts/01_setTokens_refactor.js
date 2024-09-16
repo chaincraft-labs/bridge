@@ -3,7 +3,7 @@ const {
   readLastDeployedAddress,
   logCurrentFileName,
 } = require("../helpers/fileHelpers");
-const { getMaxAddress, computeTokenSymbol } = require("../utils/addressUtil");
+const { getMaxAddress, computeTokenSymbol } = require("../utils/util");
 const {
   tokenParams,
   getChainIdByNetworkName,

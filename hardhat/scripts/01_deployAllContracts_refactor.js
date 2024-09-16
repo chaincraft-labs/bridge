@@ -1,34 +1,23 @@
 const hre = require("hardhat");
-
-const { getMaxAddress, computeTokenSymbol } = require("../utils/addressUtil");
-const {
-  getChainIdByNetworkName,
-  // getContext,
-} = require("../helpers/configHelper");
-const { getContext } = require("../helpers/contextHelper");
 const {
   writeDeployedAddress,
   logCurrentFileName,
 } = require("../helpers/fileHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
-const { usedNetworks, usedTokens } = require("../constants/deploymentConfig");
-const {
-  networkParams,
-  tokenList,
-  getNetworkNameByChainId,
-  tokenSymbols,
-  tokenParams,
-} = require("../helpers/configHelper");
+const { computeTokenSymbol } = require("../utils/util");
 const {
   deploymentCheck,
   deployAndSaveAddress,
 } = require("../helpers/functionHelpers");
+const { getContext } = require("../helpers/contextHelper");
+const {
+  getChainIdByNetworkName,
+  networkParams,
+  tokenParams,
+} = require("../helpers/configHelper");
+const { usedNetworks, usedTokens } = require("../constants/deploymentConfig");
 
-// @todo : TO MOVE IN ENV
-operatorAddress = "0xe4192bf486aea10422ee097bc2cf8c28597b9f11";
-
-// @todo : add igniton and tasks (for live...)
-// @todo : add try catch / error management
+const serverAddress = process.env.SERVER_ADDRESS; //"0xe4192bf486aea10422ee097bc2cf8c28597b9f11";
 
 async function main() {
   ///////////////////////////////////////////////////////////////////////////////
@@ -74,7 +63,6 @@ async function main() {
 
   const bridge = await deployAndSaveAddress(context.network, "BridgeBase", [
     storage.target,
-    // relayer.target,
   ]);
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -91,7 +79,7 @@ async function main() {
     vault.target,
     bridge.target,
     relayer.target,
-    operatorAddress,
+    serverAddress,
   ];
   tx = await storage.batchUpdateOperators(roles, operators);
   await tx.wait();

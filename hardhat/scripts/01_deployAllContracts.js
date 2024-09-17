@@ -16,7 +16,7 @@ const {
 } = require("../helpers/configHelper");
 const { usedNetworks, usedTokens } = require("../constants/deploymentConfig");
 
-const serverAddress = process.env.SERVER_ADDRESS; //"0xe4192bf486aea10422ee097bc2cf8c28597b9f11";
+const serverAddress = process.env.SERVER_ADDRESS;
 
 /**
  * @description Deployer script

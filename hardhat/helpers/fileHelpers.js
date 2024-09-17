@@ -128,8 +128,9 @@ const readLastDeployedAddress = function (
 
 /**
  * @description Update nonce used on network to used on destination
- * @description - Format: "lastOriginNonce": { "sepolia": 0, "allfeat": 0 }
- * @description Used by deposit scripts
+ *
+ * @dev Format: "lastOriginNonce": { "sepolia": 0, "allfeat": 0 }
+ * @dev Used by deposit scripts
  *
  * @param { string } network The network to read.
  * @param { number } nonce The current nonce used.
@@ -159,10 +160,12 @@ const writeLastUsedNonce = function (network, nonce) {
 
 /**
  * @description Read nonce used on origin network to used on destination
- * @description - Format: "lastOriginNonce": { "sepolia": 0, "allfeat": 0 }
- * @description Used by depositFees scripts
  *
- * @param { string } network The origin network to read.
+ * @dev Format: "lastOriginNonce": { "sepolia": 0, "allfeat": 0 }
+ * @dev Used by depositFees scripts
+ *
+ * @param { string } network The network to read.
+ * @returns The last nonce used on origin.
  */
 const readLastUsedNonce = function (network) {
   const lastNonce = JSON.parse(fs.readFileSync(LAST_NONCE_FILE_PATH));
@@ -171,10 +174,12 @@ const readLastUsedNonce = function (network) {
     return null;
   }
 
-  if (lastNonce["lastOriginNonce"] && lastNonce["lastOriginNonce"][network]) {
+  if (
+    lastNonce["lastOriginNonce"] &&
+    lastNonce["lastOriginNonce"][network] != null
+  ) {
     return lastNonce["lastOriginNonce"][network];
   }
-
   return null;
 };
 

@@ -1,15 +1,27 @@
 const hre = require("hardhat");
+const { getRandomAddress, getMaxAddress } = require("../utils/util");
 
-// @toto rename (allfeat-> harmonie..., ethereum -> ether...)
+// @todo rename (allfeat-> harmonie..., ethereum -> ether...)
+
+// @todo refactor mocked
 const mocked = {
-  hhNativeTokenName: "ethereum",
-  aftNativeTokenName: "allfeat",
   bridgedTokenName: "BridgedToken",
   bridgedTokenSymbol: "BTK",
   mockedTokenName: "MockedToken",
   mockedTokenSymbol: "MCT",
   mockedTokenSupply: 1_000_000_000_000_000_000_000_000n, // 1_000_000 * 10 ** 18 wei
-  amountToDeposit: 1_000_000_000_000_000_000n, // 1 * 10 ** 18 wei // 1 ether
+  amountToDeposit: 1_000_000_000_000_000_000n, //.......... 1 * 10 ** 18 wei // 1 ether
+  mockedTokenAddress: getRandomAddress(),
+};
+
+const constants = {
+  hhChainId: 31337,
+  aftChainId: 441,
+  sepoliaChainId: 11155111,
+  ethNativeTokenName: "ethereum",
+  hhNativeTokenName: "ethereum",
+  aftNativeTokenName: "allfeat",
+  nativeTokenAddress: getMaxAddress(),
 };
 
 const fixtures = {
@@ -224,7 +236,6 @@ const fixtures = {
     // restore bridge operator
     await storage.updateOperator("bridge", bridge.target);
 
-    // const bridgedToken = await bridgedTokenContract.attach(bridgedTokenAddress);
     return {
       storage,
       factory,
@@ -240,4 +251,4 @@ const fixtures = {
   },
 };
 
-module.exports = { mocked, fixtures };
+module.exports = { constants, mocked, fixtures };

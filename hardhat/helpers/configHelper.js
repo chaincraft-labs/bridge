@@ -104,12 +104,6 @@ const networkParams = {
     deployedTokens: [],
   },
 };
-// // to complete
-// const tokenSymbols = {
-//   ethereum: "ETH",
-//   allfeat: "AFT",
-//   dai: "DAI",
-// };
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -182,13 +176,18 @@ const computeTokenSymbol = (network, symbol) => {
   return `${firstLetter}b${symbol}`;
 };
 
+////////////////////////////////////////////////////////////////
+//
+//             FEES CONSTANTS
+//
+///////////////////////////////////////////////////////////////
+const FEES_AMOUNT = 1_000_000_000_000_000n; //0.001
+
 module.exports = {
   networkParams,
-  // tokenList,
   getChainIdByNetworkName,
   getNetworkNameByChainId,
   computeTokenSymbol,
-  // tokenSymbols,
   tokenParams,
-  // getContext,
+  FEES_AMOUNT,
 };

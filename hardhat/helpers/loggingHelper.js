@@ -4,6 +4,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+// const { network } = require("hardhat");
+
 // map readable style to its code used in styleMessage function
 const formattingStyles = {
   bold: 1,
@@ -179,6 +181,81 @@ const display = {
           tokenSymbol ? " " + tokenSymbol + " " : " "
         }to deployedAddresses.json...`
       )
+    );
+  },
+  // script - deposit
+  depositContractToCall: (bridgeAddress, network) => {
+    console.log(
+      `Will send tx to create an operation and deposit funds\nto ${toStyle.bold(
+        "Bridge address:"
+      )} ${toStyle.blueItalic(bridgeAddress)} on ${toStyle.bold(
+        "network:"
+      )} ${toStyle.blueItalic(network)}`
+    );
+  },
+  depositSignerInfo: (userAddress, nonce) => {
+    console.log(
+      `${toStyle.bold("Signer: ") + toStyle.blueItalic(userAddress)} - ${
+        toStyle.bold("Signer nonce: ") +
+        toStyle.blueItalic(nonce) +
+        toStyle.discrete(" (written in constants/nonceRecord.js)")
+      } `
+    );
+  },
+  depositOperationParams: (operationParams) => {
+    console.log(
+      `${toStyle.bold("Operation Params:")} ${toStyle.blueItalic(
+        operationParams
+      )}`
+    );
+  },
+  depositOperationHash: (operationHash) => {
+    console.log(
+      `${toStyle.bold("OperationHash: ")} ${toStyle.blueBold(operationHash)}`
+    );
+  },
+  depositOperationHashAndSignature: (operationHash, signature) => {
+    console.log(
+      `${toStyle.bold("OperationHash: ")} ${toStyle.blueBold(
+        operationHash
+      )}\n${toStyle.bold("Signature: ")} ${toStyle.blueItalic(signature)}`
+    );
+  },
+  depositValueToSend: (isNative, value) => {
+    console.log(
+      `${toStyle.bold("Token to deposit is native: ")} ${toStyle.blueItalic(
+        isNative
+      )} => ${toStyle.bold("Value to send with tx: ")} ${toStyle.blueItalic(
+        value
+      )}`
+    );
+  },
+  // script - depositFees
+  depositFeesContractToCall: (bridgeAddress, network) => {
+    console.log(
+      `Will send tx to send fees on destination chain\nto ${toStyle.bold(
+        "Bridge address:"
+      )} ${toStyle.blueItalic(bridgeAddress)} on ${toStyle.bold(
+        "network:"
+      )} ${toStyle.blueItalic(network)}`
+    );
+  },
+  depositFeesToSend: (fees) => {
+    console.log(
+      `${toStyle.bold("Fees to send: ")} ${toStyle.blueItalic(fees)} `
+    );
+  },
+
+  txInfo: (tx) => {
+    console.log(
+      `${toStyle.bold("Tx sent! - Tx hash:")} ${toStyle.blueBold(tx.hash)}`
+    );
+  },
+  txReceiptInfo: (txReceipt) => {
+    console.log(
+      `Tx status: ${
+        txReceipt.status == 1 ? "✅" : "❌"
+      } - Gas used: ${txReceipt.gasUsed.toString()} - Gas price: ${txReceipt.gasPrice.toString()}`
     );
   },
 };

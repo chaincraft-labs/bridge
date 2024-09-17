@@ -6,8 +6,11 @@
 /**
  * @description Returns the selected signer
  *
+ * @dev This helper is used in tasks.
  * @dev The default value is 0, which corresponds to the deployer/admin account (the first Ethers signer / deployer defined in the .env file).
  * @dev Values 1 and 2 correspond to Ethers signer 1 or 2 for a local environment, or user 2 or user 3 as configured in the .env file.
+ * @dev Using .env ensure to have a valid private key for the selected signer
+ * in the case of accounts are not defined in the hardhat.config.js
  *
  * @param {*} hre
  * @param {string | number} option optional, possible values [0, 1, 2]
@@ -41,6 +44,27 @@ const getSignerFromOption = async (hre, option) => {
   return userWallet;
 };
 
+// @todo unify the two functions
+/**
+ * @description Returns the selected signer
+ *
+ * @dev This helper is used in scripts.
+ * @dev The default value is 0, which corresponds to the deployer/admin account (the first Ethers signer / deployer defined in the .env file).
+ * @dev Values 1 and 2 correspond to Ethers signer 1 or 2 for a local environment, or user 2 or user 3 as configured in the .env file.
+ * @dev Be sure to configure the hardhat.config.js file with the desired accounts array for the network.
+ *
+ * @param {*} hre
+ * @param {string | number} option optional, possible values [0, 1, 2]
+ * @returns a valid signer
+ */
+const getSigner = async (signerOption = 0) => {
+  const signersArray = await hre.ethers.getSigners();
+  // if (!signerOption) signerOption = 0;
+  if (signerOption >= signersArray.length)
+    throw "Signer index out of bound of accounts arrays defined in hardhat.config";
+
+  return signersArray[signerOption];
+};
 ///////////////////////////////////////////////////////////////////////////////
 //
 //               ADDRESS UTILS
@@ -110,6 +134,7 @@ const hexToNum = (hexString) => {
 
 module.exports = {
   getSignerFromOption,
+  getSigner,
   getRandomAddress,
   toChecksumAddress,
   getZeroAddress,

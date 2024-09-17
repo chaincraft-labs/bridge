@@ -46,8 +46,6 @@ describe("Utils", function () {
     );
     // contract
     const msgHashComputed = await Utils.getMessageHash(...preparedParams);
-    // console.log("Utils::getMessageHash::msgHashCompute", msgHashCompute);
-    // console.log("Utils::getMessageHash::msgHashRef", msgHashRef);
 
     expect(msgHashComputed).to.equal(msgHashRef);
   });
@@ -102,9 +100,6 @@ describe("Utils", function () {
       mockedTypes,
       preparedParams
     );
-    // const msgHashComputed = await Utils.getMessageHash(...preparedParams);
-    // expect(msgHashComputed).to.equal(msgHashRef);
-
     // 2. Sign the message hash
     // - by default signMessage take a string and treat it as a string by converting to UTF-8 bytes
     // - msg is treated as binary data ONLY if msg is Bytes type

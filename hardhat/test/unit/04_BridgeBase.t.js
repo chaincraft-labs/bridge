@@ -191,42 +191,6 @@ describe("BridgeBase", function () {
           .withArgs("Native needs non zero value");
       });
 
-      //   it("Should revert if native coin amount is superior than user balance", async function () {
-      //     const { storage, bridge, owner, otherAccount } = await loadFixture(
-      //       fixtures.deployAllContracts
-      //     );
-
-      //     const otherAccountBalance = await ethers.provider.getBalance(
-      //       otherAccount.address
-      //     );
-      //     const amountToDeposit = otherAccountBalance + ethers.parseEther("1");
-      //     const originParams = [
-      //       otherAccount.address,
-      //       otherAccount.address,
-      //       31337,
-      //       441,
-      //       "ethereum",
-      //       amountToDeposit,
-      //       startNonce,
-      //     ];
-
-      //     const msgHash = ethers.solidityPackedKeccak256(
-      //       paramsTypes,
-      //       originParams
-      //     );
-      //     const signedMsgHash = await otherAccount.signMessage(
-      //       ethers.getBytes(msgHash)
-      //     );
-      //     await expect(
-      //       bridge
-      //         .connect(otherAccount)
-      //         .createBridgeOperation(...originParams, signedMsgHash, {
-      //           value: amountToDeposit,
-      //         })
-      //     )
-      //       .to.be.revertedWithCustomError(bridge, "BridgeBase__DepositFailed")
-      //       .withArgs("Insufficient balance");
-      //   });
       it("Should revert if deposit of token and msg.value superior to 0", async function () {
         const { storage, bridge, mockedToken, owner, otherAccount } =
           await loadFixture(fixtures.deployAllContracts);

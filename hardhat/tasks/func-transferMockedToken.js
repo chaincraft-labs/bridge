@@ -1,5 +1,3 @@
-const { readLastDeployedAddress } = require("../helpers/fileHelpers");
-
 /**
  * @dev caller MUST BE the admin / deployer (as it has the supply of mocked tokens)
  */

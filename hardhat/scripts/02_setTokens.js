@@ -7,17 +7,21 @@ const { getMaxAddress, computeTokenSymbol } = require("../utils/util");
 const {
   tokenParams,
   getChainIdByNetworkName,
-  networkParams,
-  // getContext,
 } = require("../helpers/configHelper");
 const { getContext } = require("../helpers/contextHelper");
-const {
-  deploymentCheck,
-  deployAndSaveAddress,
-} = require("../helpers/functionHelpers");
+const { deploymentCheck } = require("../helpers/functionHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
 const { usedNetworks, usedTokens } = require("../constants/deploymentConfig");
 
+/**
+ * @description set token addresses by chain Id
+ *
+ * This script will read last deployed addresses of networks included in 'usedNetworks'
+ * and set in Storage contract token addresses of other networks,
+ *
+ * @dev Contracts should be deployed on all desired networks BEFORE,
+ * and then this script should be run on these networks.
+ */
 async function main() {
   ///////////////////////////////////////////////////////////////////////////////
   //

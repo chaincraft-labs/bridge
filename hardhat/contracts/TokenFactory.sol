@@ -6,16 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./BridgedToken.sol";
 import "./Storage.sol";
 
-/*
- * @todo
- * - Manage different token types
- * - Unify the references to tokens (name, symbol..?)
- * - Better symbol format (no collision of chain name...)
- * - UpdateAdmin or Minter (see BridgedToken), to let admin update the minter address 
- * - OPTI: use Storage to check if token already exists 
- * - OPTI: state: Storage instead of address
- */
-
 error TokenFactory__CallerNotAdmin();
 error TokenFactory__TokenCreationFailed(string message);
 /**

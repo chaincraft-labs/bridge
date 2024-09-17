@@ -1,4 +1,3 @@
-const hre = require("hardhat");
 const {
   writeDeployedAddress,
   logCurrentFileName,
@@ -19,6 +18,20 @@ const { usedNetworks, usedTokens } = require("../constants/deploymentConfig");
 
 const serverAddress = process.env.SERVER_ADDRESS; //"0xe4192bf486aea10422ee097bc2cf8c28597b9f11";
 
+/**
+ * @description Deployer script
+ *
+ * This script will:
+ * - deploy all bridge contracts and set operator addresses
+ * - use 'usedNetworks' and 'usedTokens' to set authorized chain Ids and token names
+ * - deploy mocked and bridged token and set their addresses in 'Storage' for the current chain Id
+ *
+ * Native tokens are defined for each chain in 'networkParams' and 'tokenParams'
+ * Mocked tokens to deploy are non native token from 'usedTokens'
+ * Bridged tokens to deploy are all the tokens in 'usedTokens' not originating from the current chain Id
+ *
+ * @dev This script should be run on all the desired networks BEFORE other action or script
+ */
 async function main() {
   ///////////////////////////////////////////////////////////////////////////////
   //

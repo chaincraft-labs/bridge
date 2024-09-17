@@ -29,54 +29,6 @@ npx hardhat test [--network <network-name>]
 npx hardhat coverage
 ```
 
-# COMMANDS
-
-### Deployment of contracts:
-
-- Method 1:
-
-  - Use: 01_deployAllContracts_refactor.js on each network to deploy contracts (it will save addresses in 'constants' folder).
-  - Then: 01_setTokens_refactor.js to set addresses of tokens from one network to the other one.
-
-  ```node
-  npx hardhat run scripts/01_deployAllContracts_refactor.js --network localhost
-  npx hardhat run scripts /01_setTokens_refactor.js --network localhost
-  ```
-
-  ```node
-  npx hardhat run scripts/01_deployAllContracts_refactor.js --network sepolia
-  npx hardhat run scripts/01_deployAllContracts_refactor.js --network allfeat
-  npx hardhat run scripts/01_setTokens_refactor.js --network sepolia
-  npx hardhat run scripts/01_setTokens_refactor.js --network allfeat
-  ```
-
-- Method 2:  
-  This method allows to automate deployments and initialization on each network with one command.  
-  As it's using js to run hardhat command, the terminal output will be displayed only at the end of each sub script, so no information are given during each deployment.
-
-  Put the networks to deploy in `networksToDeploy` array of `scripts/09_deployAndConfig.js`, then run:
-
-  ```node
-  node ./scripts/09_deployAndConfig.js
-  ```
-
-- Method 3:  
-  This method allows to automate deployments and initialization on each network with one command.  
-  This bash script gives information during operations as the output are displayed in real time.
-
-  - To make the script executable, run once:
-
-  ```node
-  cd scripts
-  chmod u+x script.sh
-  ```
-
-  - Replace the value of `networkToDeploy` variable with the networks to use for deployment, then run (in hardhat folder):
-
-  ```node
-  ./scripts/09_deployAndConfig.sh
-  ```
-
 # NODES
 
 > To run in a second terminal
@@ -110,6 +62,112 @@ npx hardhat start-node --network-to-fork sepolia
 - To check process running and kill the node if not terminated with 'ctrl C':
   - get current process ans PIDs: `ps aux | grep hardhat`
   - kill it: `kill -9 PID`
+
+# SCRIPTS COMMANDS
+
+### Deployment of contracts:
+
+- Method 1:
+
+  - Use: 01_deployAllContracts_refactor.js on each network to deploy contracts (it will save addresses in 'constants' folder).
+  - Then: 01_setTokens_refactor.js to set addresses of tokens from one network to the other one.
+
+  ```node
+  npx hardhat run scripts/01_deployAllContracts.js --network localhost
+  npx hardhat run scripts/02_setTokens.js --network localhost
+  ```
+
+  ```node
+  npx hardhat run scripts/01_deployAllContracts.js --network sepolia
+  npx hardhat run scripts/01_deployAllContracts.js --network allfeat
+  npx hardhat run scripts/02_setTokens.js --network sepolia
+  npx hardhat run scripts/02_setTokens.js --network allfeat
+  ```
+
+- Method 2:  
+  This method allows to automate deployments and initialization on each network with one command.  
+  As it's using js to run hardhat command, the terminal output will be displayed only at the end of each sub script, so no information are given during each deployment.
+
+  It uses the networks written in the `usedNetworks` array of `constants/deploymentConfig.js`.
+
+  ```node
+  node ./scripts/09_deployAndConfig.js
+  ```
+
+- Method 3:  
+  This method allows to automate deployments and initialization on each network with one command.  
+  This bash script gives information during operations as the output are displayed in real time.
+
+  - To make the script executable, run once:
+
+  ```node
+  cd scripts
+  chmod u+x script.sh
+  ```
+
+  It uses the networks written in the `usedNetworks` array of `constants/deploymentConfig.js`.
+
+  ```node
+  ./scripts/09_deployAndConfig.sh
+  ```
+
+### User actions:
+
+- **Create a bridge operation and deposit funds:**
+
+  - Command:
+    ```node
+    [SIGNER_OPTION=<0-2>] [PARAMS_OPTION=<params>] npx hardhat run scripts/11_userAction_deposit.js --network <networkName>
+    ```
+  - Examples:
+
+    ```node
+    npx hardhat run scripts/11_userAction_deposit.js --network sepolia
+
+    SIGNER_OPTION=1 PARAMS_OPTION="11155111,441,ethereum,0.05" npx hardhat run scripts/11_userAction_deposit.js --network sepolia
+    ```
+
+  - Default option values:
+    - SIGNER_OPTION=0
+    - PARAMS_OPTION=defaultOrigin,sepolia
+  - Possible option values:
+    - SIGNER_OPTION: [0, 1, 2] => 0: deployer, 1: user2, 2: user3 as defined in .env file and in hardhat.config (accounts)
+    - PARAMS_OPTION:
+      - Using custom params: `chainIdFrom,chainIdTo,tokenName,amount` (ex: `11155111,441,ethereum,1.5`)  
+        Amount is in ethers with '.' as decimal separator
+      - Using simulation params: `defaultOrigin,sepolia` ...  
+        It will use the values in `constants/simulationParams.js` for the given network
+
+- **Deposit fees to the destination network:**
+
+  - Command:
+    ```node
+    [SIGNER_OPTION=<0-2>] [PARAMS_OPTION=<params>] [FEES_OPTION=<fees>] npx hardhat run scripts/12_userAction_depositFees.js --network <networkName>
+    ```
+  - Examples:
+
+    ```node
+    npx hardhat run scripts/12_userAction_depositFees.js --network allfeat
+
+    SIGNER_OPTION=1 PARAMS_OPTION="11155111,441,ethereum,0.05" npx hardhat run scripts/12_userAction_depositFees.js --network allfeat
+    ```
+
+  - Default option values:
+    - SIGNER_OPTION=0 => deployer/admin account
+    - PARAMS_OPTION=defaultOrigin,sepolia
+    - FEES_OPTION=null => `FEES_AMOUNT` as defined in `constants/deploymentConfig.js`
+  - Possible option values:
+    - SIGNER_OPTION: [0, 1, 2] => 0: deployer, 1: user2, 2: user3 as defined in .env file and in hardhat.config (accounts)
+    - PARAMS_OPTION:
+      - Using custom params: `chainIdFrom,chainIdTo,tokenName,amount` (ex: `11155111,441,ethereum,1.5`)  
+        Amount is in ethers with '.' as decimal separator
+      - Using simulation params: `defaultOrigin,sepolia` ...  
+        It will use the values in `constants/simulationParams.js` for the given network
+    - FEES_OPTION:
+      - Using custom fees: `fees in ethers` (ex: `0.01`)  
+        Fees is in ethers with '.' as decimal separator
+      - Using simulation fees: `defaultOrigin,sepolia` ...  
+        It will use the fees values in `constants/simulationParams.js` for the given network
 
 # TASKS
 

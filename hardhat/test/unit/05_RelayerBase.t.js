@@ -4,7 +4,7 @@ const {
 const { expect } = require("chai");
 const hre = require("hardhat");
 const { ethers } = hre;
-const { mocked, fixtures } = require("../helper_fixture");
+const { constants, mocked, fixtures } = require("../helper_fixture");
 const { getMaxAddress, getZeroAddress } = require("../../utils/util");
 
 /*
@@ -21,8 +21,12 @@ const { getMaxAddress, getZeroAddress } = require("../../utils/util");
 
 // @todo test revert cases when caller has not role
 // @todo network config to adapt test to different networks
-// current(origin): hardhat->allfeat / token:"ethereum"
-// current(destination): allfeat->hardhat / token:"ethereum" (fees: ethereum) / need previous deposit
+
+/*
+ * - current(origin): hardhat->allfeat / token:"ethereum"
+ * - current(destination): allfeat->hardhat / token:"ethereum" (fees: ethereum),
+ * need previous deposit
+ */
 
 const paramsTypes = [
   "address",
@@ -35,23 +39,19 @@ const paramsTypes = [
 ];
 const aftChainId = 441;
 const hhChainId = 31337;
-const tokenName = "ethereum";
 const fees = ethers.parseEther("0.01");
 
-// const originSide = [hhChainId, aftChainId, tokenName];
-// const destinationSide = [aftChainId, hhChainId, tokenName];
-const nativeCoinIndex = 0;
-
 const originSideCases = [
-  [hhChainId, aftChainId, mocked.hhNativeTokenName], // HH->allfeat native ethereum
-  [hhChainId, aftChainId, mocked.bridgedTokenName], // HH->allfeat bridged token
-  [hhChainId, aftChainId, mocked.mockedTokenName], // HH->allfeat mocked token
+  [hhChainId, aftChainId, constants.hhNativeTokenName], // HH->allfeat native ethereum
+  [hhChainId, aftChainId, mocked.bridgedTokenName], //. HH->allfeat bridged token
+  [hhChainId, aftChainId, mocked.mockedTokenName], //.. HH->allfeat mocked token
 ];
 const destinationSideCases = [
-  [aftChainId, hhChainId, mocked.hhNativeTokenName], // allfeat->HH native ethereum
-  [aftChainId, hhChainId, mocked.bridgedTokenName], // allfeat->HH bridged token
-  [aftChainId, hhChainId, mocked.mockedTokenName], // allfeat->HH mocked token
+  [aftChainId, hhChainId, constants.hhNativeTokenName], // allfeat->HH native ethereum
+  [aftChainId, hhChainId, mocked.bridgedTokenName], //. allfeat->HH bridged token
+  [aftChainId, hhChainId, mocked.mockedTokenName], //.. allfeat->HH mocked token
 ];
+const nativeCoinIndex = 0; // index of native coin case in previous arrays
 
 // describe.only("RelayerBase", function () {
 describe("RelayerBase", function () {

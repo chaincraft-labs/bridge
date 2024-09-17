@@ -1,20 +1,37 @@
+#!/bin/bash
 
-# cd ..
-# networkToDeploy="localhost"
-networkToDeploy="sepolia"
-npx hardhat run ./scripts/01_deployAllContracts_refactor.js --network "$networkToDeploy"
-networkToDeploy="allfeat"
-npx hardhat run ./scripts/01_deployAllContracts_refactor.js --network "$networkToDeploy"
+# This script deploys the contracts and sets the tokens on the networks specified in the deploymentConfig.js file
+# The script uses the scripts 01_deployAllContracts.js and 02_setTokens.js
+# The script is intended to be run from the root of the project
+# It uses the network names specified in the deploymentConfig.js file
 
-# networkToDeploy="localhost"
-networkToDeploy="sepolia"
-npx hardhat run ./scripts/01_setTokens_refactor.js --network "$networkToDeploy"
-networkToDeploy="allfeat"
-npx hardhat run ./scripts/01_setTokens_refactor.js --network "$networkToDeploy"
-# cd -
+# Parse the usedNetworks from the deploymentConfig.js file
+# Filter out comments, spaces, and quotes
+# Exclude the const usedNetworks = [ part
+usedNetworks=$(grep -oP '^(?!//).*?(?<=const usedNetworks = \[\K)[^\]]*' constants/deploymentConfig.js | tr -d ' ' | tr -d '"' | tr ',' '\n')
 
-# chmod u+x script.sh
+if [ -z "$usedNetworks" ]; then
+    echo "No networks found in usedNetwork."
+    exit 1
+fi
+echo "Used networks:"
+echo "$usedNetworks"
 
-# ./09_deployAndConfig.sh
+networkCount=$(echo "$usedNetworks" | wc -l)
+totalCommands=$((networkCount * 2))
+commandCount=0
 
-# ./scripts/09_deployAndConfig.sh
+# Loop over the networks to deploy the contracts
+for networkToDeploy in $usedNetworks; do
+    commandCount=$((commandCount + 1))
+    echo "Deploying contracts on network: $networkToDeploy - Commands: $commandCount/$totalCommands"
+    npx hardhat run ./scripts/01_deployAllContracts.js --network $networkToDeploy
+done
+
+# Loop over the networks to set the tokens
+for networkToDeploy in $usedNetworks; do
+    commandCount=$((commandCount + 1))
+    echo "Setting tokens on network: $networkToDeploy - Commands: $commandCount/$totalCommands"
+    npx hardhat run ./scripts/02_setTokens.js --network "$networkToDeploy"
+done
+

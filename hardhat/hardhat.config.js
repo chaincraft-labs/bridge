@@ -100,7 +100,7 @@ module.exports = {
     },
     harmonie: {
       url: `https://harmonie-endpoint-02.allfeat.io`,
-      accounts: [deployerPrivateKey],
+      accounts: [deployerPrivateKey, signer2PrivateKey, signer3PrivateKey],
     },
     // not an evm chain
     // harmonieFork: {
@@ -109,7 +109,7 @@ module.exports = {
     // },
     allfeat: {
       url: `https://harmonie-endpoint-02.allfeat.io`,
-      accounts: [deployerPrivateKey],
+      accounts: [deployerPrivateKey, signer2PrivateKey, signer3PrivateKey],
     },
     // @todo remove mumbai
     polygonMumbai: {

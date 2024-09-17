@@ -11,27 +11,6 @@ error Vault__CallerHasNotRole(string role);
 error Vault__TransferFailed();
 error Vault__InsufficientBalance(string message);
 error Vault__InvalidFeesParams(string message);
-// ADD event!!!!
-
-// This contract is a placeholder for the actual vault contract
-// Later dispatch DepositVault (native and erc20/ bridged) and FeesVault
-// to have less exposure in case of a bug
-
-// At the moment its the vault of all the tokens for the bridges and the fees
-// A balance will be kept for each token
-
-// ??
-// It will be the owner of bridgedTokens (transfer of ownership will be done by the factory)
-// to be abble to mint and burn tokens
-
-// Authorized actors : admin, factory, bridge (relayer can't access the vault)
-
-// @todo : add status of the vault (open, closed, paused, locked...)
-// and up/down // ready (if all role are set in storage)
-
-// @todo custom errors !!!
-
-// @todo IMPORTANT non reentrance with withdraw...
 
 /**
  * @title Vault

@@ -3,8 +3,6 @@
 pragma solidity ^0.8.20;
 
 import {TokenFactory} from "./TokenFactory.sol";
-// Eternal storage for the bridge ecosyste allowing to upgrade modules
-// ERRORS
 
 error Storage__NotAdmin();
 error Storage__TokenNotInList(string tokenName);
@@ -17,57 +15,14 @@ error Storage__ChainIdAlreadyInList(uint256 chainId);
 error Storage__TokenAddressAlreadySet(string tokenName, uint256 chainId);
 error Storage__TokenAddressNotSet(string tokenName, uint256 chainId);
 
-// @todo
-// refactor and add events
-// add fees variables (op, base, protocol, etc.)
-// keep only needed storage
-// store all varibles without balances (managed by vault) and operation (managed by relayer)
-
-//@todo
-// refactor token infos to : name => chainId => symbol & address
-
-// THINK about key label validation
-// not for all complete key cause it can be huge and not needed
-// enum StorageType {
-//     UINT,
-//     ADDRESS,
-//     BOOL,
-//     BYTES,
-//     STRING,
-//     BYTES32,
-//     UINT_ARRAY,
-//     ADDRESS_ARRAY,
-//     BYTES_ARRAY,
-//     STRING_ARRAY,
-//     BYTES32_ARRAY
-// }
-
-// struct Key {
-//     bool exists;
-//     string field;
-//     address optionalAddress;
-//     uint256 optionalUint;
-//     // bytes32 id;
-//     StorageType storageType;
-// }
-
-// system to valid keys ?
-
-// NATIVE toekn address(0) => address.max == 0xffffffffffffffffffffffffffffffffffffffff
-// to avoid confusion with real address(0) == 0x
-
-// RENAME ALL LABEL USING A SPECIAL FORMAT : opertator_role ... to reduce collision risk / with maj/min
-// USE constant if possible for essential values
-
-// @todo
-// At the moment only one admin, relayer, oracle (server), factory, vault, etc.
-// later refactor to have array of relayers, orcales, etc.
-// and refactor to have access control for admin, relayer, oracle, etc. (via openzeppelin access control)
-
-// @todo ENUM of role for admin, relayer, oracle, factory, vault, etc.
-
-// update functions to change the address of the admin, relayer, oracle, factory, vault, etc.
-
+/**
+ * @title Storage
+ * @notice This contract is the 'eternal storage' of the bridge
+ * @dev It stores the addresses of the tokens on the different chains
+ * @dev It stores the block confirmation needed for each chain
+ * @dev It stores the fees for each chain
+ * @dev It stores the addresses of the operators
+ */
 contract Storage {
     //****************************************************************** */
     //

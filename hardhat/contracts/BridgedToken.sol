@@ -4,16 +4,6 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-/*
- * @todo
- * - Add Ownable & Burnable + batchMint and burn (to decrease gas usage)
- * - Add a way to pause the contract
- * To manage pause/upgrade in case of hacks...
- * - add 'minter' => Factory keeps owner role, minter (Vault) can be updated
- * - updateMinter callable only by owner (Factory) => need same func in Factory callable by bridge admin
- * Renaming => owner / admin / minter
- */
-
 error BridgedToken__CallerNotOwner();
 
 /**

@@ -1,30 +1,17 @@
 const {
-  time,
   loadFixture,
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
-const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const hre = require("hardhat");
 const { ethers } = hre;
-const { fixtures } = require("../helper_fixture");
+const { constants, mocked, fixtures } = require("../helper_fixture");
 const {
   getRandomAddress,
-  getMaxAddress,
   getZeroAddress,
   getRandomBytes,
 } = require("../../utils/util");
-// const { getRandomBytes } = require("../helper_config");
 
 describe("Storage", function () {
-  const nativeChainId = 31337;
-  const nativeTokenName = "ethereum";
-  const nativeTokenAddress = getMaxAddress();
-  const mockedTokenName = "DAI token";
-  const mockedTokenAddress = getRandomAddress();
-  const mockedChainId1 = 441;
-  const mockedChainId2 = 11155111;
-  const mockedChainIdBN = 441n;
-
   describe("Storage deployment", function () {
     it("should store the admin at deployment", async function () {
       const { storage, owner } = await loadFixture(fixtures.deployStorage);
@@ -48,7 +35,7 @@ describe("Storage", function () {
 
   describe("Access - only admin", function () {
     it("should revert if NON admin tries to call setAddress", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -59,7 +46,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call setUint", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -68,7 +55,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call setBool", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -76,7 +63,7 @@ describe("Storage", function () {
       ).to.be.revertedWithCustomError(storage, "Storage__NotAdmin");
     });
     it("should revert if NON admin tries to call setString", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -85,7 +72,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call setBytes", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -96,7 +83,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call setBytes32", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -107,7 +94,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call setUintArray", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -116,7 +103,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call setAddressArray", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -127,7 +114,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call setStringArray", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -136,7 +123,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call addToUintArray", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -145,7 +132,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call addToAddressArray", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -156,7 +143,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call addToStringArray", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -165,7 +152,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call updateUintArray", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await storage.addToUintArray(getRandomBytes(), 0);
@@ -175,7 +162,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call updateAddressArray", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await storage.addToAddressArray(getRandomBytes(), otherAccount.address);
@@ -187,7 +174,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call updateStringArray", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await storage.addToStringArray(getRandomBytes(), "test");
@@ -199,7 +186,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call updateOperator", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -210,7 +197,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call batchUpdateOperators", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -221,7 +208,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call addTokenNameToList", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(storage.connect(otherAccount).addTokenNameToList("test")).to
@@ -229,7 +216,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call addChainIdToList", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(storage.connect(otherAccount).addChainIdToList(1)).to.be
@@ -237,7 +224,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call batchAddTokenNamesToList", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -246,7 +233,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call addChainIdToList", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(storage.connect(otherAccount).addChainIdToList(1)).to.be
@@ -254,7 +241,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call batchAddChainIdsToList", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(storage.connect(otherAccount).batchAddChainIdsToList([1])).to
@@ -262,7 +249,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call addNewTokenAddressByChainId", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -273,7 +260,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call updateTokenAddressByChainId", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -284,7 +271,7 @@ describe("Storage", function () {
     });
 
     it("should revert if NON admin tries to call batchAddNewTokensAddressesByChainId", async function () {
-      const { storage, owner, otherAccount } = await loadFixture(
+      const { storage, otherAccount } = await loadFixture(
         fixtures.deployStorage
       );
       await expect(
@@ -418,16 +405,20 @@ describe("Storage", function () {
   describe("Authorized token name & chain id lists", function () {
     it("should add new token name to list", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
-      await storage.addTokenNameToList(mockedTokenName);
-      expect(await storage.getTokenNamesList()).to.include(mockedTokenName);
+      await storage.addTokenNameToList(mocked.mockedTokenName);
+      expect(await storage.getTokenNamesList()).to.include(
+        mocked.mockedTokenName
+      );
     });
 
     // @todo => complete token name tests
 
     it("should add new chain to list to authorize it", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
-      await storage.addChainIdToList(mockedChainId1);
-      expect(await storage.getChainIdsList()).to.include(mockedChainIdBN);
+      await storage.addChainIdToList(constants.aftChainId);
+      expect(await storage.getChainIdsList()).to.include(
+        BigInt(constants.aftChainId)
+      );
     });
 
     // @todo => complete chainId tests
@@ -437,47 +428,53 @@ describe("Storage", function () {
     it("should get the token address of the native token", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       expect(
-        await storage.getTokenAddressByChainId(nativeTokenName, nativeChainId)
-      ).to.equal(nativeTokenAddress);
+        await storage.getTokenAddressByChainId(
+          constants.ethNativeTokenName,
+          constants.hhChainId
+        )
+      ).to.equal(constants.nativeTokenAddress);
     });
 
     it("should set new token address", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
-      let tx = await storage.addTokenNameToList(mockedTokenName);
+      let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       // tx.wait();
-      tx = await storage.addChainIdToList(mockedChainId1);
+      tx = await storage.addChainIdToList(constants.aftChainId);
       // tx.wait();
       tx = await storage.addNewTokenAddressByChainId(
-        mockedTokenName,
-        mockedChainId1,
-        mockedTokenAddress
+        mocked.mockedTokenName,
+        constants.aftChainId,
+        mocked.mockedTokenAddress
       );
       tx.wait();
       expect(
-        await storage.getTokenAddressByChainId(mockedTokenName, mockedChainIdBN)
-      ).to.equal(mockedTokenAddress);
+        await storage.getTokenAddressByChainId(
+          mocked.mockedTokenName,
+          BigInt(constants.aftChainId)
+        )
+      ).to.equal(mocked.mockedTokenAddress);
     });
 
     it("should revert adding new address address if token exists", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const preparedTokenAddress = getRandomAddress();
 
-      let tx = await storage.addTokenNameToList(mockedTokenName);
+      let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       // tx.wait();
-      tx = await storage.addChainIdToList(mockedChainIdBN);
+      tx = await storage.addChainIdToList(BigInt(constants.aftChainId));
       // tx.wait();
       tx = await storage.addNewTokenAddressByChainId(
-        mockedTokenName,
-        mockedChainId1,
-        mockedTokenAddress
+        mocked.mockedTokenName,
+        constants.aftChainId,
+        mocked.mockedTokenAddress
       );
       tx.wait();
 
-      expect(mockedTokenAddress).to.not.equal(preparedTokenAddress);
+      expect(mocked.mockedTokenAddress).to.not.equal(preparedTokenAddress);
       await expect(
         storage.addNewTokenAddressByChainId(
-          mockedTokenName,
-          mockedChainId1,
+          mocked.mockedTokenName,
+          constants.aftChainId,
           preparedTokenAddress
         )
       ).to.be.revertedWithCustomError(
@@ -490,30 +487,36 @@ describe("Storage", function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const preparedTokenAddress = getRandomAddress();
 
-      let tx = await storage.addTokenNameToList(mockedTokenName);
+      let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       // tx.wait();
-      tx = await storage.addChainIdToList(mockedChainId1);
+      tx = await storage.addChainIdToList(constants.aftChainId);
       // tx.wait();
       tx = await storage.addNewTokenAddressByChainId(
-        mockedTokenName,
-        mockedChainId1,
-        mockedTokenAddress
+        mocked.mockedTokenName,
+        constants.aftChainId,
+        mocked.mockedTokenAddress
       );
       tx.wait();
 
-      expect(mockedTokenAddress).to.not.equal(preparedTokenAddress);
+      expect(mocked.mockedTokenAddress).to.not.equal(preparedTokenAddress);
       expect(
-        await storage.getTokenAddressByChainId(mockedTokenName, mockedChainId1)
-      ).to.equal(mockedTokenAddress);
+        await storage.getTokenAddressByChainId(
+          mocked.mockedTokenName,
+          constants.aftChainId
+        )
+      ).to.equal(mocked.mockedTokenAddress);
 
       tx = await storage.updateTokenAddressByChainId(
-        mockedTokenName,
-        mockedChainId1,
+        mocked.mockedTokenName,
+        constants.aftChainId,
         preparedTokenAddress
       );
       tx.wait();
       expect(
-        await storage.getTokenAddressByChainId(mockedTokenName, mockedChainId1)
+        await storage.getTokenAddressByChainId(
+          mocked.mockedTokenName,
+          constants.aftChainId
+        )
       ).to.equal(preparedTokenAddress);
     });
 
@@ -523,68 +526,67 @@ describe("Storage", function () {
       );
       const preparedTokenAddress = getRandomAddress();
 
-      let tx = await storage.addTokenNameToList(mockedTokenName);
+      let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       // tx.wait();
-      tx = await storage.addChainIdToList(mockedChainId1);
+      tx = await storage.addChainIdToList(constants.aftChainId);
       // tx.wait();
 
       await expect(
         storage.updateTokenAddressByChainId(
-          mockedTokenName,
-          mockedChainId1,
-          mockedTokenAddress
+          mocked.mockedTokenName,
+          constants.aftChainId,
+          mocked.mockedTokenAddress
         )
       )
         .to.be.revertedWithCustomError(storage, "Storage__TokenAddressNotSet")
-        .withArgs(mockedTokenName, mockedChainId1);
+        .withArgs(mocked.mockedTokenName, constants.aftChainId);
     });
 
     it("should set new tokens addresses", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const mockedTokenAddress2 = getRandomAddress();
 
-      let tx = await storage.addTokenNameToList(mockedTokenName);
+      let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       // tx.wait();
-      tx = await storage.addChainIdToList(mockedChainId1);
+      tx = await storage.addChainIdToList(constants.aftChainId);
       // tx.wait();
-      tx = await storage.addChainIdToList(mockedChainId2);
+      tx = await storage.addChainIdToList(constants.sepoliaChainId);
       // tx.wait();
       tx = await storage.batchAddNewTokensAddressesByChainId(
-        [mockedTokenName, mockedTokenName],
-        [mockedChainId1, mockedChainId2],
-        [mockedTokenAddress, mockedTokenAddress2]
+        [mocked.mockedTokenName, mocked.mockedTokenName],
+        [constants.aftChainId, constants.sepoliaChainId],
+        [mocked.mockedTokenAddress, mockedTokenAddress2]
       );
       tx.wait();
 
       const add1 = await storage.getTokenAddressByChainId(
-        mockedTokenName,
-        mockedChainId1
+        mocked.mockedTokenName,
+        constants.aftChainId
       );
       const add2 = await storage.getTokenAddressByChainId(
-        mockedTokenName,
-        mockedChainId2
+        mocked.mockedTokenName,
+        constants.sepoliaChainId
       );
 
-      expect(add1).to.equal(mockedTokenAddress);
+      expect(add1).to.equal(mocked.mockedTokenAddress);
       expect(add2).to.equal(mockedTokenAddress2);
     });
 
     it("should revert setting new tokens addresses if arrays length mismatch", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
-      const mockedTokenAddress2 = getRandomAddress();
 
-      let tx = await storage.addTokenNameToList(mockedTokenName);
+      let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       // tx.wait();
-      tx = await storage.addChainIdToList(mockedChainId1);
+      tx = await storage.addChainIdToList(constants.aftChainId);
       // tx.wait();
-      tx = await storage.addChainIdToList(mockedChainId2);
+      tx = await storage.addChainIdToList(constants.sepoliaChainId);
       // tx.wait();
 
       await expect(
         storage.batchAddNewTokensAddressesByChainId(
-          [mockedTokenName, mockedTokenName],
-          [mockedChainId1, mockedChainId2],
-          [mockedTokenAddress]
+          [mocked.mockedTokenName, mocked.mockedTokenName],
+          [constants.aftChainId, constants.sepoliaChainId],
+          [mocked.mockedTokenAddress]
         )
       ).to.be.revertedWithCustomError(
         storage,
@@ -596,24 +598,24 @@ describe("Storage", function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const mockedTokenAddress2 = getRandomAddress();
 
-      let tx = await storage.addTokenNameToList(mockedTokenName);
+      let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       // tx.wait();
-      tx = await storage.addChainIdToList(mockedChainId1);
+      tx = await storage.addChainIdToList(constants.aftChainId);
       // tx.wait();
-      tx = await storage.addChainIdToList(mockedChainId2);
+      tx = await storage.addChainIdToList(constants.sepoliaChainId);
       // tx.wait();
       tx = await storage.addNewTokenAddressByChainId(
-        mockedTokenName,
-        mockedChainId1,
-        mockedTokenAddress
+        mocked.mockedTokenName,
+        constants.aftChainId,
+        mocked.mockedTokenAddress
       );
       tx.wait();
 
       await expect(
         storage.batchAddNewTokensAddressesByChainId(
-          [mockedTokenName, mockedTokenName],
-          [mockedChainId1, mockedChainId2],
-          [mockedTokenAddress, mockedTokenAddress2]
+          [mocked.mockedTokenName, mocked.mockedTokenName],
+          [constants.aftChainId, constants.sepoliaChainId],
+          [mocked.mockedTokenAddress, mockedTokenAddress2]
         )
       ).to.be.revertedWithCustomError(
         storage,
@@ -625,16 +627,16 @@ describe("Storage", function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const mockedTokenAddress2 = getRandomAddress();
 
-      let tx = await storage.addTokenNameToList(mockedTokenName);
+      let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       // tx.wait();
-      tx = await storage.addChainIdToList(mockedChainId1);
+      tx = await storage.addChainIdToList(constants.aftChainId);
       // tx.wait();
 
       await expect(
         storage.batchAddNewTokensAddressesByChainId(
-          [mockedTokenName, mockedTokenName],
-          [mockedChainId1, mockedChainId2],
-          [mockedTokenAddress, mockedTokenAddress2]
+          [mocked.mockedTokenName, mocked.mockedTokenName],
+          [constants.aftChainId, constants.sepoliaChainId],
+          [mocked.mockedTokenAddress, mockedTokenAddress2]
         )
       ).to.be.revertedWithCustomError(storage, "Storage__ChainIdNotInList");
     });
@@ -642,16 +644,16 @@ describe("Storage", function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const mockedTokenAddress2 = getRandomAddress();
 
-      let tx = await storage.addTokenNameToList(mockedTokenName);
+      let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       // tx.wait();
-      tx = await storage.addChainIdToList(mockedChainId1);
+      tx = await storage.addChainIdToList(constants.aftChainId);
       // tx.wait();
 
       await expect(
         storage.batchAddNewTokensAddressesByChainId(
-          [mockedTokenName, "Unknown token"],
-          [mockedChainId1, mockedChainId2],
-          [mockedTokenAddress, mockedTokenAddress2]
+          [mocked.mockedTokenName, "Unknown token"],
+          [constants.aftChainId, constants.sepoliaChainId],
+          [mocked.mockedTokenAddress, mockedTokenAddress2]
         )
       ).to.be.revertedWithCustomError(storage, "Storage__TokenNotInList");
     });
@@ -660,26 +662,26 @@ describe("Storage", function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const mockedTokenAddress2 = getRandomAddress();
 
-      let tx = await storage.addTokenNameToList(mockedTokenName);
+      let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       // tx.wait();
-      tx = await storage.addChainIdToList(mockedChainId1);
+      tx = await storage.addChainIdToList(constants.aftChainId);
       // tx.wait();
-      tx = await storage.addChainIdToList(mockedChainId2);
+      tx = await storage.addChainIdToList(constants.sepoliaChainId);
       // tx.wait();
       tx = await storage.batchAddNewTokensAddressesByChainId(
-        [mockedTokenName, mockedTokenName],
-        [mockedChainId1, mockedChainId2],
-        [mockedTokenAddress, mockedTokenAddress2]
+        [mocked.mockedTokenName, mocked.mockedTokenName],
+        [constants.aftChainId, constants.sepoliaChainId],
+        [mocked.mockedTokenAddress, mockedTokenAddress2]
       );
       tx.wait();
 
       const [add1, add2] = await storage.getTokenAddressesByChainIds(
-        mockedTokenName,
-        mockedChainId1,
-        mockedChainId2
+        mocked.mockedTokenName,
+        constants.aftChainId,
+        constants.sepoliaChainId
       );
 
-      expect(add1).to.equal(mockedTokenAddress);
+      expect(add1).to.equal(mocked.mockedTokenAddress);
       expect(add2).to.equal(mockedTokenAddress2);
     });
   });

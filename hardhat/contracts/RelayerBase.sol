@@ -9,49 +9,6 @@ import "./Vault.sol";
 import "./Utils.sol";
 import "hardhat/console.sol";
 
-//TODO
-//block step struct :RENAME + opti in one state + converter
-// bytes4 => uint64 (4 step in one uint256) / need reader...
-// or uint64 don't use pcking function let evm do the job
-
-// operator param => to specify h many fee to qich one...
-
-// Not store chainIdFrom in struct OperationParams=> we're on it... At initialization => Store immutable variable
-
-// hash op    /* state variables */
-//..??
-// No way to prove no collision between origin and destination with many chain...(it's only probability)
-// only sure things are the chainId and the nonce
-// So later modify for a mapping of chainId => nonce => Operation (with hash in it) or hashOperation & ref to nonce
-// chainId => nonce allows to have iterable list of operation. With index begin - end (actual)
-// possibility to prune the list after a certain time and update the index
-
-// load on ipfs ?
-
-// Naming
-
-// getter user op in progress (front/onchain fetch to continue/display)
-
-// DESTINATION
-
-// We should simulate operation to get the needed fees
-// these op will be server calling
-
-//In Later versions THIS WILL create a vote (or at the beginning on origin chain)
-// operator will act like bot for a vote
-// triggering status changes
-// some status trigger operation such as feesLock...
-// signature checks.. are done in the contract.
-// threshold reach trigger the final execution
-
-// USER HAS TO APPROVE THE RELAYER TO SPEND HIS TOKENS
-// first call to destination creating a new DestinationOperation
-
-// We don't check signature here cause we perhaps won't keep this function in the final version making
-// all the fees management in the first tx of origin chain
-
-// rename event IMPACT Arnaud   prefix
-
 error RelayerBase__CallerHasNotRole(string role);
 error RelayerBase__OperationAlreadyExists();
 error RelayerBase__InvalidOperationStatus();

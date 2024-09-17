@@ -1,7 +1,7 @@
 const { toStyle, display } = require("./loggingHelper");
-const { networkParams } = require("./configHelper");
+const { networkParams, FEES_AMOUNT } = require("./configHelper");
 const { writeDeployedAddress } = require("../helpers/fileHelpers");
-
+const { simulationParams } = require("../constants/simulationParams");
 ///////////////////////////////////////////////////////////////////////////////
 //
 //                CHECKS FOR DEPLOYMENT SCRIPTS
@@ -144,6 +144,95 @@ const deployAndSaveAddress = async (network, contractName, params) => {
 
 ///////////////////////////////////////////////////////////////////////////////
 //
+//                OPERATION PARAMS HELPERS
+//
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description From option return the array of operation params
+ *
+ * @dev args can be 2 formats (the number of ',' will select the format):
+ * 1. "chainIdFrom,chainIdTo,tokenName,amount"
+ * 2. "name,chain"
+ *
+ * 1. will take this value as params.
+ * Amount SHOULD be in ethers, not in wei.,'.' is used as decimal point
+ * 2. will take the value from constants/simulationParams to use default predefined values
+ * 3. null option will use default value: "defaultOrigin,sepolia" from simulationParams
+ *
+ * @param {string} paramsOption
+ * @returns
+ */
+const convertToOperationParams = (paramsOption = "defaultOrigin,sepolia") => {
+  if (!paramsOption) {
+    paramsOption = "";
+  }
+  // count the number of ',' in paramsOption
+  const count = (paramsOption.match(/,/g) || []).length;
+  if (count !== 3 && count !== 1 && count !== 0) {
+    throw "Wrong option format, can not extract operation params!";
+  }
+
+  if (count === 3) {
+    let [chainIdFrom, chainIdTo, tokenName, etherAmount] =
+      paramsOption.split(",");
+    // convert amount from ethers to wei (if ethers '.' is used as decimal point)
+    const amount = ethers.parseEther(etherAmount);
+    chainIdFrom = Number(chainIdFrom);
+    chainIdTo = Number(chainIdTo);
+
+    return [chainIdFrom, chainIdTo, tokenName, amount];
+  }
+
+  const [simName, simOriginChain] = paramsOption.split(",");
+  const simParams = simulationParams[simName][simOriginChain];
+
+  if (!simParams || Object.keys(simParams).length === 0) {
+    throw "Simulation Params not found!";
+  }
+  const params = [
+    simParams.chainIdFrom,
+    simParams.chainIdTo,
+    simParams.tokenName,
+    simParams.amount,
+  ];
+  return params;
+};
+
+/**
+ * @description From option return the fees amount
+ *
+ * @dev If paramsOption is null, return the default FEES_AMOUNT
+ * @dev If not null, fetch the feesAmount from simulationParams
+ *
+ * @param {string | null } feesOption
+ * @returns
+ */
+const getFeesAmount = (feesOption) => {
+  if (!feesOption) {
+    return FEES_AMOUNT;
+  }
+  // test if it's number or float ('.' decimal point)
+  if (!isNaN(feesOption)) {
+    return ethers.parseEther(feesOption);
+  }
+
+  // count the number of ',' in paramsOption
+  const count = (feesOption.match(/,/g) || []).length;
+  if (count !== 1) {
+    throw "Wrong option format, can not extract fees params!";
+  }
+
+  const [simName, simOriginChain] = feesOption.split(",");
+  const simParams = simulationParams[simName][simOriginChain];
+
+  if (!simParams || Object.keys(simParams).length === 0) {
+    throw "Simulation Params not found!";
+  }
+  return simParams.feesAmount;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//
 //                TASKS HELPERS
 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -238,4 +327,6 @@ module.exports = {
   deploymentCheck,
   deployAndSaveAddress,
   convertParamsStringToArray,
+  convertToOperationParams,
+  getFeesAmount,
 };

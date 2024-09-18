@@ -55,8 +55,9 @@ contract RelayerBase is Utils {
     struct OperationParams {
         address from;
         address to;
-        uint256 chainIdFrom;
+        uint256 chainIdFrom; // for signature but not necessary in memory (we're on the chain)
         uint256 chainIdTo;
+        string tokenName;
         string tokenName;
         uint256 amount;
         uint256 nonce;
@@ -85,6 +86,7 @@ contract RelayerBase is Utils {
     struct OriginOperation {
         OperationParams params;
         OperationStatus status;
+        OriginBlockStep blockStep;
         OriginBlockStep blockStep;
     }
 
@@ -191,6 +193,7 @@ contract RelayerBase is Utils {
         uint256 chainIdFrom,
         uint256 chainIdTo,
         string memory tokenName,
+        string memory tokenName,
         uint256 amount,
         uint256 nonce,
         bytes calldata signature
@@ -207,12 +210,15 @@ contract RelayerBase is Utils {
         params.chainIdFrom = chainIdFrom;
         params.chainIdTo = chainIdTo;
         params.tokenName = tokenName;
+        params.tokenName = tokenName;
         params.amount = amount;
         params.nonce = nonce;
         params.signature = signature;
 
         OriginOperation memory operation;
         operation.params = params;
+        operation.status = OperationStatus.ORG_OP_CREATED;
+        operation.blockStep.creationBlock = uint64(block.number);
         operation.status = OperationStatus.ORG_OP_CREATED;
         operation.blockStep.creationBlock = uint64(block.number);
 
@@ -446,8 +452,19 @@ contract RelayerBase is Utils {
 
         operation.status = OperationStatus.DST_OP_FINALIZED;
         operation.blockStep.receptionBlock = uint64(block.number);
+        operation.status = OperationStatus.DST_OP_FINALIZED;
+        operation.blockStep.receptionBlock = uint64(block.number);
 
         BridgeBase bridge = BridgeBase(Storage(s_storage).getOperator("bridge"));
+        bridge.completeBridgeOperation(
+            params.from,
+            params.to,
+            params.chainIdFrom,
+            params.chainIdTo,
+            params.tokenName,
+            params.amount,
+            params.nonce,
+            params.signature
         bridge.completeBridgeOperation(
             params.from,
             params.to,

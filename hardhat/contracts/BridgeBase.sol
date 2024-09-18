@@ -98,6 +98,7 @@ contract BridgeBase is Utils {
     //****************************************************************** */
 
     event BridgeOperationCreated(
+    event BridgeOperationCreated(
         address indexed from,
         address indexed to,
         uint256 chainId,
@@ -107,6 +108,7 @@ contract BridgeBase is Utils {
         uint256 timestamp,
         uint256 nonce
     );
+    event BridgeOperationCompleted(
     event BridgeOperationCompleted(
         address indexed from,
         address indexed to,
@@ -275,12 +277,15 @@ contract BridgeBase is Utils {
      * @param signature sig of the message containing previous params
      */
     function completeBridgeOperation(
+    function completeBridgeOperation(
         address from,
         address to,
         uint256 chainIdFrom,
         uint256 chainIdTo,
         string memory tokenName,
+        string memory tokenName,
         uint256 amount,
+        uint256 nonce,
         uint256 nonce,
         bytes calldata signature
     ) external onlyRole("relayer") {

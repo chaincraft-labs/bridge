@@ -1,3 +1,5 @@
+constants/*.json
+
 # env variables
 .env
 

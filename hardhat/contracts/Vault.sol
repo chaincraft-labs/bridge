@@ -202,6 +202,8 @@ contract Vault {
         }
         s_vaultBalance[token] -= amount;
 
+        s_vaultBalance[token] -= amount;
+
         bool res = ERC20(token).transfer(to, amount);
         if (!res) {
             revert Vault__TransferFailed();
@@ -291,6 +293,7 @@ contract Vault {
                 revert Vault__TransferFailed();
             }
         }
+        s_vaultBalance[token] -= amount;
         s_vaultBalance[token] -= amount;
     }
 

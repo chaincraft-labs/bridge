@@ -25,7 +25,6 @@ const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "";
 
 module.exports = {
   solidity: "0.8.20",
-  // defaultNetwork: "localhost",
   defaultNetwork: "hardhat",
   namedAccounts: {
     deployer: {
@@ -80,6 +79,18 @@ module.exports = {
     sepoliaFork: {
       url: `http://127.0.0.1:${forkPorts["sepolia"]}`,
       accounts: [deployerPrivateKey],
+    },
+    allfeat_local: {
+      url: `http://127.0.0.1:9944`,
+      accounts: [deployerPrivateKey],
+    },
+    anvil_local: {
+      url: `http://127.0.0.1:8545`,
+      accounts: [process.env.ANVIL_KEY],
+    },
+    geth: {
+      url: `http://127.0.0.1:8545`,
+      accounts: [process.env.GETH_KEY],
     },
     mainnet: {
       url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
@@ -181,5 +192,3 @@ module.exports = {
     },
   },
 };
-
-// export default config;

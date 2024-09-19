@@ -161,6 +161,12 @@ const tokenParams = {
     originChainId: [31337, 11155111],
     isNative: false,
   },
+  newCoin4: {
+    tokenName: "newCoin4",
+    tokenSymbol: "NCT",
+    originChainId: [31337, 11155111],
+    isNative: false,
+  },
 };
 
 ///////////////////////////////////////////////////////////////////////////////

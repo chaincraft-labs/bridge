@@ -6,14 +6,16 @@ const { getSignerFromOption } = require("../utils/util");
 task("call-writeFunc", "send a write transaction to the contract")
   .addParam("contract", "The contract to interact with")
   .addParam("func", "The function to call")
-  .addParam("args", "The arguments to pass to the method, comma separated")
+  .addParam("args", "The arguments to pass to the function, space separated")
   .addOptionalParam(
     "value",
-    "The value to send in wei (optional - 0 by default)"
+    "The value to send in wei. Optional - 0 by default"
   )
   .addOptionalParam(
     "signer",
-    "[deployer=0, user2=1, user3=2] as defined in .env (localhost uses signer 0, 1, 2 given by hardhat). Default is deployer/admin"
+    "[deployer=0, user2=1, user3=2] as defined in .env\n" +
+      "                (localhost uses signer 0, 1, 2 given by hardhat).\n" +
+      "                Optional - default is deployer/admin"
   )
   .setAction(async (taskArgs, hre) => {
     let signer = await getSignerFromOption(hre, taskArgs.signer);

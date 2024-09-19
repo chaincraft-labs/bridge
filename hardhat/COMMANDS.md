@@ -1,5 +1,20 @@
 @todo make shortcuts
-@todo allow to change signer (among pvkey of .env)
+@todo allow to change signer (among pvtKey of .env)
+
+# TOC
+
+- [Config](#config)
+- [Tests](#tests)
+- [Nodes](#nodes)
+  - [Hardhat](#hardhat)
+  - [Forks](#forks)
+- [Scripts](#scripts-commands)
+  - [Deployments](#deployment-of-contracts)
+  - [User Actions](#user-actions)
+- [Tasks](#tasks)
+  - [Generic tasks](#generic-tasks)
+  - [Specific tasks](#specific-tasks)
+  - [Example of generic tasks](#example-of-prepared-commands-for-call-readfunc-and-call-writefunc)
 
 # CONFIG
 
@@ -171,36 +186,68 @@ npx hardhat start-node --network-to-fork sepolia
 
 # TASKS
 
-### Read functions (getters):
+### Help:
 
 ```node
-npx hardhat call-readFunc --contract <"ContractName"> --func <"functionName"> --args <"args space separated"> --network <network-name>
+npx hardhat help [SCOPE] <TASK>
 ```
 
-### Write functions:
+### Generic tasks:
+
+Generic calls allowing to use any function of the contracts. 'call-readFunc' is to use with getters and 'call-writeFunc' with functions modifying states.
+
+Arguments are given with '--args' option. It's a string with values space separated. Array are inserted with brackets and with values commas separated (for more details see helpers/functionHelpers::convertParamsStringToArray).
+
+#### Read functions (getters):
 
 ```node
-npx hardhat call-writeFunc --contract <"ContractName"> --func <"functionName"> --args <"args space separated"> --network <network-name>
+npx hardhat call-readFunc --contract <ContractName> --func <functionName> --args <"args space separated"> --network <network>
+```
+
+#### Write functions:
+
+```node
+npx hardhat call-writeFunc --contract <ContractName> --func <functionName> --args <"args space separated"> --network <network>
 ```
 
 ### Specific tasks:
 
-#### Mint amount of bridged token to an address
+Calls to specific functions.
+
+#### Get the token balance of an address
 
 ```node
- npx hardhat func-mintBridgedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --token 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000n --network localhost
+npx hardhat func-balanceOf --user <userAddress> --token <tokenAddress> --network <network>
+
+npx hardhat func-balanceOf --user 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --token 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 --network localhost
+```
+
+#### Mint amount of bridged token to an address
+
+Amount should be a BigInt.
+
+```node
+npx hardhat func-mintBridgedToken --to <recipient> --token <tokenAddress> --amount <amountToMint> --network <network>
+
+npx hardhat func-mintBridgedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --token 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000n --network localhost
 ```
 
 #### Transfer amount of mocked token to an address
 
+Amount should be a BigInt.
+
 ```node
- npx hardhat func-transferMockedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --token 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000n --network localhost
+npx hardhat func-transferMockedToken --to <recipient> --token <tokenAddress> --amount <amountToTransfer> --network <network>
+
+npx hardhat func-transferMockedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --token 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000n --network localhost
 ```
 
 #### Get the operation hash from args
 
 ```node
- npx hardhat func-getMsgHash --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90 0xbfae728Cf6D20DFba443c5A297dC9b344108de90 11155111 441 mockedDai 10000000000000000n 0" --network localhost
+npx hardhat func-getMsgHash --args <"userAddress userAddress chainIdFrom chainIdTo tokenName amount nonce"> --network <network>
+
+npx hardhat func-getMsgHash --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90 0xbfae728Cf6D20DFba443c5A297dC9b344108de90 11155111 441 mockedDai 10000000000000000n 0" --network localhost
 ```
 
 #### Get the signature of the operation hash
@@ -211,12 +258,14 @@ The default value is 0, which corresponds to the deployer/admin account (the fir
 Values 1 and 2 correspond to Ethers signer 1 or 2 for a local environment, or user 2 or user 3 as configured in the .env file.
 
 ```node
- npx hardhat func-getMsgSignature --args "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 11155111 441 mockedDai 10000000000000000n 0" --network localhost
+npx hardhat func-getMsgSignature --args <"userAddress userAddress chainIdFrom chainIdTo tokenName amount nonce"> [--signer <index>] --network <network>
 
- npx hardhat func-getMsgSignature --args "0xD850badD41F9f7B5Fdc4387C14A9e7938E57619C 0xD850badD41F9f7B5Fdc4387C14A9e7938E57619C 11155111 441 mockedDai 10000000000000000n 0" --signer 1 --network sepolia
+npx hardhat func-getMsgSignature --args "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 11155111 441 mockedDai 10000000000000000n 0" --network localhost
+
+npx hardhat func-getMsgSignature --args "0xD850badD41F9f7B5Fdc4387C14A9e7938E57619C 0xD850badD41F9f7B5Fdc4387C14A9e7938E57619C 11155111 441 mockedDai 10000000000000000n 0" --signer 1 --network sepolia
 ```
 
-### Example of prepared commands:
+### Example of prepared commands for 'call-readFunc' and 'call-writeFunc':
 
 ```node
 npx hardhat call-readFunc --contract "Storage" --func "getChainIdsList" --args "" --network localhost

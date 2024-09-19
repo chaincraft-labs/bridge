@@ -42,11 +42,6 @@ contract TokenFactory {
         }
     }
 
-    //TESTING
-    function getOwner() public view returns (address) {
-        return owner;
-    }
-
     /**
      * @notice It creates a new BridgedToken
      * @dev Admin should have added chain and token in authorized list of Storage before calling

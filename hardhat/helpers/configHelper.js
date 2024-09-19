@@ -6,6 +6,7 @@
 
 // @todo RENAMING nativeToken => nativeCoin or Currency, Asset
 // @todo RENAMING in scripts allfeat => harmonie
+// @todo choose a convention for naming/network: duplicates!!
 
 /**
  * @dev Description of network configuration and deployed tokens
@@ -19,6 +20,16 @@ const networkParams = {
   hardhat: {
     // to complete (used for forks)
     chainId: 31337,
+    nativeToken: { name: "ethereum", symbol: "ETH" },
+    deployedTokens: [{ name: "mockedDai", symbol: "DAI" }],
+  },
+  anvil_local: {
+    chainId: 31337,
+    nativeToken: { name: "ethereum", symbol: "ETH" },
+    deployedTokens: [{ name: "mockedDai", symbol: "DAI" }],
+  },
+  geth: {
+    chainId: 1337,
     nativeToken: { name: "ethereum", symbol: "ETH" },
     deployedTokens: [{ name: "mockedDai", symbol: "DAI" }],
   },
@@ -37,9 +48,14 @@ const networkParams = {
     nativeToken: { name: "ethereum", symbol: "ETH" },
     deployedTokens: [{ name: "dai", symbol: "DAI" }],
   },
+  allfeat_local: {
+    chainId: 440,
+    nativeToken: { name: "allfeat", symbol: "AFT" },
+    deployedTokens: [],
+  },
   allfeatLocal: {
     chainId: 440,
-    nativeToken: { name: "allfeat", symbol: "HMY" },
+    nativeToken: { name: "allfeat", symbol: "AFT" },
     deployedTokens: [],
   },
   // harmonie: {
@@ -183,6 +199,30 @@ const computeTokenSymbol = (network, symbol) => {
 ///////////////////////////////////////////////////////////////
 const FEES_AMOUNT = 1_000_000_000_000_000n; //0.001
 
+////////////////////////////////////////////////////////////////
+//
+//             AS_CLI HELPERS
+//
+///////////////////////////////////////////////////////////////
+// @todo remove if we don't keep cli
+// moved from constants/token.js to reduce files numbers
+
+const nativeTokens = {
+  31337: "ethereum",
+  1337: "ethereum",
+  440: "allfeat",
+  11155111: "ethereum",
+  441: "allfeat",
+};
+
+const getNativeToken = (chainId) => {
+  try {
+    return nativeTokens[chainId];
+  } catch (err) {
+    throw "Invalid chainId!";
+  }
+};
+
 module.exports = {
   networkParams,
   getChainIdByNetworkName,
@@ -190,4 +230,5 @@ module.exports = {
   computeTokenSymbol,
   tokenParams,
   FEES_AMOUNT,
+  getNativeToken,
 };

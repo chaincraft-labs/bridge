@@ -4,7 +4,7 @@ const { convertParamsStringToArray } = require("../helpers/functionHelpers");
 task("call-readFunc", "send a read transaction to the contract")
   .addParam("contract", "The contract to interact with")
   .addParam("func", "The function to call")
-  .addParam("args", "The arguments to pass to the method, space separated")
+  .addParam("args", "The arguments to pass to the function, space separated")
   .setAction(async (taskArgs, hre) => {
     // get network name
     const network = hre.network.name;

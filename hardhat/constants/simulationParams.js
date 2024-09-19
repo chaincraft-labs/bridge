@@ -1,4 +1,4 @@
-// simu: params for default operation
+// sim: params for default operation
 const simulationParams = {
   // token bridged from origin, amount and fees
   defaultOrigin: {

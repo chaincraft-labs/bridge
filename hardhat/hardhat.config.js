@@ -6,6 +6,7 @@ require("dotenv").config();
 require("./tasks/start-node");
 require("./tasks/call-write");
 require("./tasks/call-read");
+require("./tasks/func-balanceOf");
 require("./tasks/func-mintBridgedToken");
 require("./tasks/func-transferMockedToken");
 require("./tasks/func-getMsgHash");
@@ -21,7 +22,10 @@ const signer2PrivateKey = process.env.USER_PRIVATE_KEY_2 || "";
 const signer3PrivateKey = process.env.USER_PRIVATE_KEY_3 || "";
 const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "";
 
+const gethPrivateKey = process.env.GETH_KEY || "";
+const anvil_localPrivateKey = process.env.ANVIL_KEY || "";
 // @todo test and manage different api infura, alchemy...
+// @todo checks networks to not connect mainnet with testnet
 
 module.exports = {
   solidity: "0.8.20",
@@ -86,11 +90,11 @@ module.exports = {
     },
     anvil_local: {
       url: `http://127.0.0.1:8545`,
-      accounts: [process.env.ANVIL_KEY],
+      accounts: [anvil_localPrivateKey],
     },
     geth: {
       url: `http://127.0.0.1:8545`,
-      accounts: [process.env.GETH_KEY],
+      accounts: [gethPrivateKey],
     },
     mainnet: {
       url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,

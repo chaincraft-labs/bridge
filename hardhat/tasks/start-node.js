@@ -12,7 +12,7 @@ task("start-node", "Starts a Hardhat node with forking")
       );
     }
     const port = forkPorts[taskArgs.networkToFork];
-    console.log("port: ", port);
+    console.log(`For network ${taskArgs.networkToFork}, using port ${port}...`);
     const child = spawn(
       "npx",
       ["hardhat", "node", "--fork", networkConfig.url, "--port", port],

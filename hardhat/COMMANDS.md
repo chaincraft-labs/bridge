@@ -1,6 +1,3 @@
-@todo make shortcuts
-@todo allow to change signer (among pvtKey of .env)
-
 # TOC
 
 - [Config](#config)
@@ -8,8 +5,10 @@
 - [Nodes](#nodes)
   - [Hardhat](#hardhat)
   - [Forks](#forks)
+  - [Geth](#geth)
 - [Scripts](#scripts-commands)
   - [Deployments](#deployment-of-contracts)
+  - [Adding a new token](#adding-a-new-token)
   - [User Actions](#user-actions)
 - [Tasks](#tasks)
   - [Generic tasks](#generic-tasks)
@@ -42,6 +41,18 @@
 ```node
 npx hardhat test [--network <network-name>]
 npx hardhat coverage
+```
+
+# GAS REPORT
+
+```node
+REPORT_GAS=true npx hardhat test
+```
+
+To save in a file the gas report:
+
+```node
+REPORT_GAS=true npx hardhat test  | awk '{gsub(/\033\[[0-9;]*m/, "")} /·-------------------/{found=1} found && !/passing/' > gas_report.txt
 ```
 
 # NODES
@@ -77,6 +88,59 @@ npx hardhat start-node --network-to-fork sepolia
 - To check process running and kill the node if not terminated with 'ctrl C':
   - get current process ans PIDs: `ps aux | grep hardhat`
   - kill it: `kill -9 PID`
+
+### GETH:
+
+Set up local node in dev mode
+
+1. Install Geth
+2. Start the node
+3. Import Hardhat account
+4. Fund new imported account
+
+#### 1 Install Geth
+
+[Download Geth](https://geth.ethereum.org/downloads)
+
+#### 2 Start Geth node
+
+Example:
+
+```bash
+mkdir /tmp/geth
+cd /tmp/geth
+geth geth --datadir . --dev --http --dev.period 12
+```
+
+- --http : allow to interact with the node
+- --dev.period 12 : mine a block every 12 seconds
+
+#### 3 Import hardhat account
+
+1. Copy the hardhat account private key into a file (without the 0x suffix)
+
+```bash
+echo "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d" > user2
+```
+
+2. Import the account and define a password (at least 10 chars)
+
+```bash
+clef importraw user2
+```
+
+#### 4 Fund imported account
+
+1. Identify the IPC once the node is started with the "IPC endpoint opened" words. The IPC should be something like url=/tmp/geth/geth.ipc
+
+2. Start the javascript console
+   ```bash
+   geth attach /tmp/geth/geth.ipc
+   ```
+3. Fund the account. (eth.accounts[0] is the dev account)
+   ```bash
+    eth.sendTransaction({from: eth.accounts[0], to: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8", value: web3.toWei(50, "ether")})
+   ```
 
 # SCRIPTS COMMANDS
 
@@ -117,13 +181,53 @@ npx hardhat start-node --network-to-fork sepolia
 
   ```node
   cd scripts
-  chmod u+x script.sh
+  chmod u+x 09_deployAndConfig.sh
+  cd -
   ```
 
   It uses the networks written in the `usedNetworks` array of `constants/deploymentConfig.js`.
 
   ```node
   ./scripts/09_deployAndConfig.sh
+  ```
+
+### Adding a new token:
+
+These scripts are used to deploy a new mocked token and associated bridged tokens on each network to a bridge already deployed. And then to set the token addresses in the Storage contract of each network.
+
+Before using these script, the token should be configured in `constants/deploymentConfig.js::tokenParams`.
+
+The networks used are those present in `constants/deploymentConfig.js::usedNetworks`.
+
+- **Deploy mocked token:**  
+  Args: the token name and symbol of the mocked token
+
+  ```node
+  MOCKED_TOKEN_OPTION=<"tokenName,tokenSymbol"> npx hardhat run scripts/03_deployMockedToken.js --network <networkName>
+  ```
+
+- **Deploy bridged token:**  
+  Args: the token name and symbol of the **mocked** token
+
+  ```node
+  MOCKED_TOKEN_OPTION=<"tokenName,tokenSymbol"> npx hardhat run scripts/03_deployBridgedToken.js --network <networkName>
+  ```
+
+- **Set the new addresses in Storage for each network:**  
+  Args: the token name of the mocked token
+
+  ```node
+  TOKEN_OPTION=<"tokenName"> npx hardhat run scripts/04_setNewToken.js --network <networkName>
+  ```
+
+- **Automation of all steps:**  
+  It will the deploy the mocked token on the specified network and its bridged tokens on each other networks.
+  It will then register in the 'Storage' contracts of each network the new addresses with their associated 'chainId' fo the token.
+
+  Args: the token name and symbol of the mocked token and its origin network
+
+  ```node
+  ./scripts/09_deployAndConfig.sh tokenName tokenSymbol originNetwork
   ```
 
 ### User actions:

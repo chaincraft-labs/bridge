@@ -3,6 +3,7 @@
 //               SIGNER UTILS
 //
 ///////////////////////////////////////////////////////////////////////////////
+// @todo Remove wallet creation in 'else' when hardhat config is set with accounts
 /**
  * @description Returns the selected signer
  *

@@ -318,32 +318,36 @@ npx hardhat call-writeFunc --contract <ContractName> --func <functionName> --arg
 
 Calls to specific functions.
 
-#### Get the token balance of an address
+#### Display signer addresses configured for the network and their balances
 
 ```node
-npx hardhat func-balanceOf --user <userAddress> --token <tokenAddress> --network <network>
+npx hardhat func-print-signers --network <network>
+```
+
+#### Get the token/ether balance of an address
+
+--token: optional, if not given, it will get the balance of ethers/native currency
+
+```node
+npx hardhat func-balanceOf --user <userAddress> [--token <tokenAddress>] --network <network>
 
 npx hardhat func-balanceOf --user 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --token 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 --network localhost
 ```
 
 #### Mint amount of bridged token to an address
 
-Amount should be a BigInt.
-
 ```node
 npx hardhat func-mintBridgedToken --to <recipient> --token <tokenAddress> --amount <amountToMint> --network <network>
 
-npx hardhat func-mintBridgedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --token 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000n --network localhost
+npx hardhat func-mintBridgedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --token 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000 --network localhost
 ```
 
 #### Transfer amount of mocked token to an address
 
-Amount should be a BigInt.
-
 ```node
 npx hardhat func-transferMockedToken --to <recipient> --token <tokenAddress> --amount <amountToTransfer> --network <network>
 
-npx hardhat func-transferMockedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --token 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000n --network localhost
+npx hardhat func-transferMockedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --token 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000 --network localhost
 ```
 
 #### Get the operation hash from args

@@ -1,4 +1,5 @@
 const { readLastDeployedAddress } = require("../helpers/fileHelpers");
+const { display } = require("../helpers/loggingHelper");
 
 /**
  * @dev caller MUST BE the admin / deployer
@@ -29,17 +30,21 @@ task("func-mintBridgedToken", "mint amount of bridged token to user")
       let tx = await storage.updateOperator("bridge", signer.address);
       tx.wait();
       tx = await vault.mint(taskArgs.to, taskArgs.token, taskArgs.amount);
-      tx.wait();
+      let receipt = await tx.wait();
+      display.tx(tx, receipt);
+
       // restore bridge operator
       tx = await storage.updateOperator("bridge", currentBridgeAddress);
       tx.wait();
       // get the new balance
       const balanceAfter = await tokenInstance.balanceOf(taskArgs.to);
       const delta = balanceAfter - balanceBefore;
-      console.log(
-        `${delta == taskArgs.amount ? "✅" : "❌"}: Minted ${delta} of ${
-          taskArgs.token
-        } to ${taskArgs.to}`
+      display.mintResult(
+        delta,
+        taskArgs.amount,
+        receipt.status,
+        taskArgs.token,
+        taskArgs.to
       );
     } catch (error) {
       console.error("Error:", error);

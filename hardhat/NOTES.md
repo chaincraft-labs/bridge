@@ -149,14 +149,18 @@ Prefixed by '!' are important.
 
 ### Others:
 
+#### Config
+
+- Add contract verification for allfeat (scout)
+
 #### EIP712
 
-- add typed structured data (for tx infos when user sign ...)
+- Add typed structured data (for tx infos when user sign ...)
 
 #### EIP165
 
-- to recognize 'bridged token' interface
-- idea is to allow batch mint/burn when possible to reduce fees (server side).
+- To recognize 'bridged token' interface
+- Idea is to allow batch mint/burn when possible to reduce fees (server side).
 
 #### User actions/ UX
 

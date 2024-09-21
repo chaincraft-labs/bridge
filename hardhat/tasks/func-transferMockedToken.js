@@ -1,3 +1,4 @@
+const { display } = require("../helpers/loggingHelper");
 /**
  * @dev caller MUST BE the admin / deployer (as it has the supply of mocked tokens)
  */
@@ -16,13 +17,17 @@ task("func-transferMockedToken", "transfer amount of mocked token to user")
       const balanceBefore = await tokenInstance.balanceOf(taskArgs.to);
       let tx = await tokenInstance.transfer(taskArgs.to, taskArgs.amount);
       tx.wait();
+      let receipt = await tx.wait();
+      display.tx(tx, receipt);
 
       const balanceAfter = await tokenInstance.balanceOf(taskArgs.to);
       const delta = balanceAfter - balanceBefore;
-      console.log(
-        `${delta == taskArgs.amount ? "✅" : "❌"}: Transfer ${delta} of ${
-          taskArgs.token
-        } to ${taskArgs.to}`
+      display.transferResult(
+        delta,
+        taskArgs.amount,
+        receipt.status,
+        taskArgs.token,
+        taskArgs.to
       );
     } catch (error) {
       console.error("Error:", error);

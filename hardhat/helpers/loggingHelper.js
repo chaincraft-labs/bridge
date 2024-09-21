@@ -1,3 +1,6 @@
+const { ethers } = require("ethers");
+const { shortenAddress } = require("../utils/util");
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 //                BASE STYLES AND FUNCTIONS
@@ -245,7 +248,13 @@ const display = {
       `${toStyle.bold("Fees to send: ")} ${toStyle.blueItalic(fees)} `
     );
   },
-
+  tx: (tx, receipt) => {
+    console.log(
+      `${toStyle.discrete("Tx hash:" + tx.hash)} - ${toStyle.discrete(
+        "Receipt status:" + receipt.status
+      )}`
+    );
+  },
   txInfo: (tx) => {
     console.log(
       `${toStyle.bold("Tx sent! - Tx hash:")} ${toStyle.blueBold(tx.hash)}`
@@ -256,6 +265,49 @@ const display = {
       `Tx status: ${
         txReceipt.status == 1 ? "✅" : "❌"
       } - Gas used: ${txReceipt.gasUsed.toString()} - Gas price: ${txReceipt.gasPrice.toString()}`
+    );
+  },
+  // tasks - balanceOf, mint, transfer
+  balance: async (token, symbol, balance, user) => {
+    console.log(
+      `User ${toStyle.discrete(
+        "(" + shortenAddress(user) + ")"
+      )} balance: ${toStyle.blueItalic(balance)} ${toStyle.discrete(
+        "(" + ethers.formatEther(balance) + ")"
+      )} of ${toStyle.blueItalic(token)} ${toStyle.discrete(symbol)}`
+    );
+  },
+  mintResult: (mintedAmount, desiredAmount, txStatus, token, user) => {
+    const mintedAmountInEther = ethers.formatEther(mintedAmount);
+    console.log(
+      `${
+        txStatus == 1 && mintedAmount == desiredAmount ? "✅" : "❌"
+      } Minted ${toStyle.blueItalic(mintedAmount)} ${toStyle.discrete(
+        "(" + mintedAmountInEther + ")"
+      )} of ${toStyle.blueItalic(token)} to ${toStyle.blueItalic(
+        shortenAddress(user)
+      )}`
+    );
+  },
+  transferResult: (transferedAmount, desiredAmount, txStatus, token, user) => {
+    const transferedAmountInEther = ethers.formatEther(transferedAmount);
+    console.log(
+      `${
+        txStatus == 1 && transferedAmount == desiredAmount ? "✅" : "❌"
+      } Transfered ${toStyle.blueItalic(transferedAmount)} ${toStyle.discrete(
+        "(" + transferedAmountInEther + ")"
+      )} of ${toStyle.blueItalic(token)} to ${toStyle.blueItalic(
+        shortenAddress(user)
+      )}`
+    );
+  },
+  signerAndBalance: (index, signerAddress, balance, symbol) => {
+    console.log(
+      `Signer ${index}: ${toStyle.blueItalic(
+        signerAddress
+      )} - Balance: ${toStyle.blueItalic(
+        ethers.formatEther(balance)
+      )} ${symbol}`
     );
   },
 };

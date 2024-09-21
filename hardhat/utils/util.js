@@ -92,6 +92,12 @@ const getMaxAddress = () => {
   return toChecksumAddress("0x" + "f".repeat(40));
 };
 
+/**
+ * @description Shorten address to format: 0x1234...5678
+ **/
+const shortenAddress = (address) => {
+  return address.slice(0, 6) + "..." + address.slice(-4);
+};
 ///////////////////////////////////////////////////////////////////////////////
 //
 //               SYMBOL 'COMPUTATION'
@@ -144,4 +150,5 @@ module.exports = {
   numToHex,
   hexToNum,
   getRandomBytes,
+  shortenAddress,
 };

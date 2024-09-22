@@ -406,7 +406,7 @@ contract RelayerBase is Utils {
         if (operation.status != OperationStatus.DST_FEES_DEPOSITED) {
             revert RelayerBase__InvalidOperationStatus();
         }
-        if (block.number - operation.blockStep.feesDeposit > blockToWait) {
+        if (block.number - operation.blockStep.feesDeposit < blockToWait) {
             revert RelayerBase__BlockConfirmationNotReached();
         }
 

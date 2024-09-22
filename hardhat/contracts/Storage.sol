@@ -600,8 +600,8 @@ contract Storage {
         setUint(getKey("protocolPercentFees", 11155111), protocolPercentFees); // sepolia
         setUint(getKey("protocolPercentFees", 441), protocolPercentFees); //..... allfeat
         setUint(getKey("protocolPercentFees", 31337), protocolPercentFees); //... hardhat
-        setUint(getKey("opFees", 440), protocolPercentFees); //.................. allfeatLocal
-        setUint(getKey("opFees", 1337), protocolPercentFees); //................. geth
+        setUint(getKey("protocolPercentFees", 440), protocolPercentFees); //..... allfeatLocal
+        setUint(getKey("protocolPercentFees", 1337), protocolPercentFees); //.... geth
     }
 
     /**

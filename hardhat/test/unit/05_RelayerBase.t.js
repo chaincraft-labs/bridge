@@ -865,20 +865,24 @@ describe("RelayerBase", function () {
           const { storage, relayer, owner, originParams, msgHash } =
             await loadFixture(prepareSendFeesLockConfirmationFixture);
 
-          // mock deposit fees block number validation // FIND BETTER WAY !!
+          // set blockToWait period for chainId >> than the tested tx block number
+          const periodToWait = await ethers.provider.getBlockNumber();
           const key = await storage["getKey(string, uint256)"](
             "blockToWait",
-            destinationSide[0] //31337
+            destinationSide[1] //31337
           );
-          let tx = await storage.setUint(key, 50);
-          tx.wait();
+          let tx = await storage.setUint(key, periodToWait);
+          await tx.wait();
 
-          const blockNumber = await ethers.provider.getBlockNumber();
-
+          const txBlockNumber = await ethers.provider.getBlockNumber();
           await expect(
             relayer
               .connect(owner)
-              .sendFeesLockConfirmation(msgHash, destinationParams, blockNumber)
+              .sendFeesLockConfirmation(
+                msgHash,
+                destinationParams,
+                txBlockNumber
+              )
           ).to.be.revertedWithCustomError(
             relayer,
             "RelayerBase__BlockConfirmationNotReached"
@@ -1063,8 +1067,8 @@ describe("RelayerBase", function () {
             token,
             mocked.amountToDeposit * 2n
           );
-
-          // //////////////////////
+          //
+          /////////////////////////
           const blockNumber = await ethers.provider.getBlockNumber();
 
           await expect(

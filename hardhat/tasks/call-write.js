@@ -3,6 +3,16 @@ const { readLastDeployedAddress } = require("../helpers/fileHelpers");
 const { convertParamsStringToArray } = require("../helpers/functionHelpers");
 const { getSignerFromOption } = require("../utils/util");
 
+/**
+ * @description Call any function of any contract that causes a change in state
+ *
+ * 'args': a string of parameters, separated by spaces.
+ *   - It supports both individual arguments and array-like arguments enclosed in square brackets.
+ *   - To insert an empty string among the arguments, use two consecutive spaces.
+ *   - In array arguments, elements are separated by commas.
+ *     - Two consecutive commas (,,) indicate an empty string element between them.
+ *   - IMPORTANT: Do not include spaces within array arguments; they must be comma-separated.
+ */
 task("call-writeFunc", "send a write transaction to the contract")
   .addParam("contract", "The contract to interact with")
   .addParam("func", "The function to call")
@@ -13,9 +23,8 @@ task("call-writeFunc", "send a write transaction to the contract")
   )
   .addOptionalParam(
     "signer",
-    "[deployer=0, user2=1, user3=2] as defined in .env\n" +
-      "                (localhost uses signer 0, 1, 2 given by hardhat).\n" +
-      "                Optional - default is deployer/admin"
+    "Index of the accounts defined in hardhat config\n" +
+      "                Optional - default: 0 (deployer/default signer)"
   )
   .setAction(async (taskArgs, hre) => {
     let signer = await getSignerFromOption(hre, taskArgs.signer);

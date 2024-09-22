@@ -12,7 +12,7 @@ const usedNetworks = ["allfeat", "sepolia"];
 //             Native coins and tokens used (as mockedToken for test)
 //
 ///////////////////////////////////////////////////////////////
-const usedTokens = ["ethereum", "allfeat", "mockedDai"];
+const usedTokens = ["ethereum", "allfeat", "mockedDai", "mockedUsdc"];
 
 ////////////////////////////////////////////////////////////////
 //

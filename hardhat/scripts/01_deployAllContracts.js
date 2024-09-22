@@ -157,8 +157,8 @@ async function main() {
     return usedTokens.includes(deployToken.name);
   });
 
-  await Promise.all(
-    currentNetworkTokens.map(async (tokenToDeploy) => {
+  for (const tokenToDeploy of currentNetworkTokens) {
+    try {
       // Deploy the mocked token
       const token = await deployAndSaveAddress(context.network, "MockedToken", [
         owner,
@@ -173,12 +173,12 @@ async function main() {
       );
       await tx.wait();
       display.tokenSet(tokenToDeploy.name, token.target, context.chainId);
-    })
-  ).catch((err) => {
-    console.log(
-      `${toStyle.error("Error: ")} Deploying mocked token...\n${err.message}`
-    );
-  });
+    } catch (err) {
+      console.log(
+        `${toStyle.error("Error: ")} Deploying mocked token...\n${err.message}`
+      );
+    }
+  }
 
   /*
    * ===> Bridged tokens: checks whether tokens are deployed on other chains & so need to be deployed as bridged tokens
@@ -195,14 +195,16 @@ async function main() {
   );
 
   // @todo refactor and export deployment and log as for deployAnSaveAddress
-  await Promise.all(
-    bridgedTokens.map(async (token) => {
+  for (const token of bridgedTokens) {
+    try {
       const symbol = computeTokenSymbol(
         context.network,
         tokenParams[token].tokenSymbol
       );
-      const tx = await factory.createToken(token, symbol);
+
+      const tx = await factory.createToken(token, symbol); // ,{ gas: 500000 });
       await tx.wait();
+
       // Factory set token data in storage when deploying the token
       const tokenAddress = await factory.getTokenAddress(symbol);
       display.deployContract("BridgedToken", tokenAddress, "factory");
@@ -215,12 +217,14 @@ async function main() {
       );
       display.writingAddress("BridgedToken", symbol);
       display.tokenSet(token, tokenAddress, context.chainId);
-    })
-  ).catch((err) => {
-    console.log(
-      `${toStyle.error("Error deploying bridged token...")}\n${err.message}`
-    );
-  });
+    } catch (err) {
+      console.log(
+        `${toStyle.error("Error deploying bridged token..." + token)}\n${
+          err.message
+        }`
+      );
+    }
+  }
 }
 main().catch((error) => {
   console.error(error);

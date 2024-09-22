@@ -1,5 +1,6 @@
 const { display } = require("../helpers/loggingHelper");
 /**
+ * @description FOR TEST transfer an amount of mocked token to an address
  * @dev caller MUST BE the admin / deployer (as it has the supply of mocked tokens)
  */
 task("func-transferMockedToken", "transfer amount of mocked token to user")

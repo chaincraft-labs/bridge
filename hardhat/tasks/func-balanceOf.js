@@ -1,5 +1,4 @@
-const { toStyle, display } = require("../helpers/loggingHelper");
-const { shortenAddress } = require("../utils/util");
+const { display } = require("../helpers/loggingHelper");
 const { networkParams } = require("../helpers/configHelper");
 
 const erc20Abi = [
@@ -38,6 +37,9 @@ const erc20Abi = [
   },
 ];
 
+/**
+ * @description Get the token or native coin balance of an address
+ */
 task("func-balanceOf", "get token balance of a user")
   .addParam("user", "The address of the user")
   .addOptionalParam(

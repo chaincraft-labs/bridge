@@ -2,6 +2,10 @@ require("@nomicfoundation/hardhat-toolbox");
 const { spawn } = require("child_process");
 const { forkPorts } = require("../constants/deploymentConfig");
 
+/**
+ * @description Launch a node forking the specified network
+ * @dev see constants/deploymentConfig::forkPorts for config of ports associated with networks
+ */
 task("start-node", "Starts a Hardhat node with forking")
   .addParam("networkToFork", "The network to fork") // "forking"
   .setAction(async (taskArgs, hre) => {

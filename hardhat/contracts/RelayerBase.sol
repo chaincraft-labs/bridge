@@ -118,7 +118,7 @@ contract RelayerBase is Utils {
     //              EVENTS
     //
     //****************************************************************** */
-
+    // @todo rename blockStep
     // 1. origin: intial event
     event OperationCreated(bytes32 operationHash, OperationParams params, uint256 blockStep);
     // 2. destination: fees deposited then confirmed
@@ -128,13 +128,13 @@ contract RelayerBase is Utils {
     event FeesLockedConfirmed(bytes32 operationHash, OperationParams params, uint256 blockStep);
     event FeesLockedAndDepositConfirmed(bytes32 operationHash, OperationParams params, uint256 blockStep);
     // 4. destination: operation received and processed
-    event OperationFinalized(bytes32 operationHash, OperationParams params, uint256 blockNumber);
+    event OperationFinalized(bytes32 operationHash, OperationParams params, uint256 blockStep);
     // 5. origin: operation closed after receiving operation confirmation on destination
-    event OperationClosed(bytes32 operationHash, uint256 blockNumber);
+    event OperationClosed(bytes32 operationHash, uint256 blockStep);
     // Cancel events (@todo to complete)
-    event OperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockNumber);
-    event SentOperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockNumber);
-    event ReceveidOperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockNumber);
+    event OperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockStep);
+    event SentOperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockStep);
+    event ReceveidOperationCanceled(bytes32 operationHash, uint256 chainId, uint256 blockStep);
 
     //****************************************************************** */
     //

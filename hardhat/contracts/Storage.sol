@@ -583,19 +583,25 @@ contract Storage {
         setUint(getKey("blockToWait", 11155111), 6); //.... sepolia
         setUint(getKey("blockToWait", 441), 2); //......... allfeat
         setUint(getKey("blockToWait", 31337), 2); //....... hardhat
+        setUint(getKey("blockToWait", 440), 2); //......... allfeatLocal
+        setUint(getKey("blockToWait", 1337), 2); //........ geth
+
         // operational fees on chainId
         uint256 opFees = 0.001 ether;
         setUint(getKey("opFees", 1), opFees); //........... eth
         setUint(getKey("opFees", 11155111), opFees); //.... sepolia
         setUint(getKey("opFees", 441), opFees); //......... allfeat
         setUint(getKey("opFees", 31337), opFees); //....... hardhat
-
+        setUint(getKey("opFees", 440), opFees); //......... allfeatLocal
+        setUint(getKey("opFees", 1337), opFees); //........ geth
         // protocol fees
         uint256 protocolPercentFees = 1000; // 0.1%
         setUint(getKey("protocolPercentFees", 1), protocolPercentFees); //....... eth
         setUint(getKey("protocolPercentFees", 11155111), protocolPercentFees); // sepolia
         setUint(getKey("protocolPercentFees", 441), protocolPercentFees); //..... allfeat
         setUint(getKey("protocolPercentFees", 31337), protocolPercentFees); //... hardhat
+        setUint(getKey("opFees", 440), protocolPercentFees); //.................. allfeatLocal
+        setUint(getKey("opFees", 1337), protocolPercentFees); //................. geth
     }
 
     /**

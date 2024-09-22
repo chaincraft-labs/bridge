@@ -1,6 +1,16 @@
 const { readLastDeployedAddress } = require("../helpers/fileHelpers");
 const { convertParamsStringToArray } = require("../helpers/functionHelpers");
 
+/**
+ * @description Call any function of any contract that does not cause a change in state
+ *
+ * 'args': a string of parameters, separated by spaces.
+ *   - It supports both individual arguments and array-like arguments enclosed in square brackets.
+ *   - To insert an empty string among the arguments, use two consecutive spaces.
+ *   - In array arguments, elements are separated by commas.
+ *     - Two consecutive commas (,,) indicate an empty string element between them.
+ *   - IMPORTANT: Do not include spaces within array arguments; they must be comma-separated.
+ */
 task("call-readFunc", "send a read transaction to the contract")
   .addParam("contract", "The contract to interact with")
   .addParam("func", "The function to call")

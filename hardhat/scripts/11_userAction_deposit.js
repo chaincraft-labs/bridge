@@ -60,11 +60,11 @@ async function main() {
   // => operation params
   // signer
   const signerOption = process.env.SIGNER_OPTION;
-  let userWallet = await getSigner(signerOption, network);
+  let userWallet = await getSigner(signerOption, context.network);
   // get signer nonce and write it in constants/nonceRecord.js to be used for fees deposit
   let nonce = await bridge.getNewUserNonce(userWallet.address);
   nonce = Number(nonce);
-  writeLastUsedNonce(network, nonce);
+  writeLastUsedNonce(context.network, nonce); /// context.
 
   display.depositSignerInfo(userWallet.address, nonce);
 

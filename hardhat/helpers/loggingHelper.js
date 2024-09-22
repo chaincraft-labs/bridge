@@ -7,8 +7,6 @@ const { shortenAddress } = require("../utils/util");
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-// const { network } = require("hardhat");
-
 // map readable style to its code used in styleMessage function
 const formattingStyles = {
   bold: 1,

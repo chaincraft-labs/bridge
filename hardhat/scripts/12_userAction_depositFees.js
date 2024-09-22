@@ -55,8 +55,10 @@ async function main() {
   //
   ///////////////////////////////////////////////////////////////////////////////
   // => contract to call
-  const network = hre.network.name;
-  let bridgeAddress = await readLastDeployedAddress(network, "BridgeBase");
+  let bridgeAddress = await readLastDeployedAddress(
+    context.network,
+    "BridgeBase"
+  );
   let bridge = await hre.ethers.getContractAt("BridgeBase", bridgeAddress);
 
   display.depositFeesContractToCall(bridgeAddress, context.network);
@@ -65,7 +67,7 @@ async function main() {
   // => operation params
   // signer
   const signerOption = process.env.SIGNER_OPTION;
-  let userWallet = await getSigner(signerOption, network);
+  let userWallet = await getSigner(signerOption, context.network);
 
   // operation
   const paramsOption = process.env.PARAMS_OPTION;

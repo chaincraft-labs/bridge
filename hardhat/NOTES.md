@@ -29,11 +29,16 @@
 Things to implement and ideas to dig.
 Prefixed by '!' are important.
 
+## Project:
+
+- CI/CD: Add github actions: tests + slither before main branch
+
 ## Naming:
 
 - Rethink naming of contracts & functions / explicit but with coherence
 - Rethink events & errors naming
 - Better naming of variables like owner in factory: ? minter ?
+- Rename native 'token' -> 'coin', 'currency' ? & description of origin deployment chain of tokens
 
 ## Events / errors:
 

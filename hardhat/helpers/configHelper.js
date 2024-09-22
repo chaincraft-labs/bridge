@@ -10,48 +10,58 @@
 
 /**
  * @dev Description of network configuration and deployed tokens
+ *
+ * order: local, test, main / ethereum then other networks by alphabetical order
  */
 const networkParams = {
   localhost: {
     chainId: 31337,
     nativeToken: { name: "ethereum", symbol: "ETH" },
-    deployedTokens: [{ name: "mockedDai", symbol: "DAI" }],
+    deployedTokens: [
+      { name: "mockedDai", symbol: "DAI" },
+      { name: "mockedUsdc", symbol: "USDC" },
+    ],
   },
   hardhat: {
     // to complete (used for forks)
     chainId: 31337,
     nativeToken: { name: "ethereum", symbol: "ETH" },
-    deployedTokens: [{ name: "mockedDai", symbol: "DAI" }],
+    deployedTokens: [
+      { name: "mockedDai", symbol: "DAI" },
+      { name: "mockedUsdc", symbol: "USDC" },
+    ],
   },
-  anvil_local: {
+  anvilLocal: {
     chainId: 31337,
     nativeToken: { name: "ethereum", symbol: "ETH" },
-    deployedTokens: [{ name: "mockedDai", symbol: "DAI" }],
+    deployedTokens: [
+      { name: "mockedDai", symbol: "DAI" },
+      { name: "mockedUsdc", symbol: "USDC" },
+    ],
   },
   geth: {
     chainId: 1337,
     nativeToken: { name: "ethereum", symbol: "ETH" },
-    deployedTokens: [{ name: "mockedDai", symbol: "DAI" }],
-  },
-  gethTestnet: {
-    chainId: 1337,
-    nativeToken: { name: "ethereum", symbol: "ETH" },
-    deployedTokens: [{ name: "mockedDai", symbol: "DAI" }],
+    deployedTokens: [
+      { name: "mockedDai", symbol: "DAI" },
+      { name: "mockedUsdc", symbol: "USDC" },
+    ],
   },
   sepolia: {
     chainId: 11155111,
     nativeToken: { name: "ethereum", symbol: "ETH" },
-    deployedTokens: [{ name: "mockedDai", symbol: "DAI" }],
+    deployedTokens: [
+      { name: "mockedDai", symbol: "DAI" },
+      { name: "mockedUsdc", symbol: "USDC" },
+    ],
   },
   ethereum: {
     chainId: 1,
     nativeToken: { name: "ethereum", symbol: "ETH" },
-    deployedTokens: [{ name: "dai", symbol: "DAI" }],
-  },
-  allfeat_local: {
-    chainId: 440,
-    nativeToken: { name: "allfeat", symbol: "AFT" },
-    deployedTokens: [],
+    deployedTokens: [
+      { name: "mockedDai", symbol: "DAI" },
+      { name: "mockedUsdc", symbol: "USDC" },
+    ],
   },
   allfeatLocal: {
     chainId: 440,
@@ -69,24 +79,14 @@ const networkParams = {
     nativeToken: { name: "allfeat", symbol: "AFT" },
     deployedTokens: [],
   },
-  polygonAmoy: {
-    chainId: 80002,
-    nativeToken: { name: "matic", symbol: "MATIC" },
+  arbitrumSepolia: {
+    chainId: 421614,
+    nativeToken: { name: "ethereum", symbol: "ETH" },
     deployedTokens: [],
   },
-  polygon: {
-    chainId: 137,
-    nativeToken: { name: "matic", symbol: "MATIC" },
-    deployedTokens: [],
-  },
-  fantomTestnet: {
-    chainId: 4002,
-    nativeToken: { name: "fantom", symbol: "FTM" },
-    deployedTokens: [],
-  },
-  fantom: {
-    chainId: 250,
-    nativeToken: { name: "fantom", symbol: "FTM" },
+  arbitrum: {
+    chainId: 42161,
+    nativeToken: { name: "ethereum", symbol: "ETH" },
     deployedTokens: [],
   },
   bscTestnet: {
@@ -99,14 +99,14 @@ const networkParams = {
     nativeToken: { name: "binance", symbol: "BNB" },
     deployedTokens: [],
   },
-  arbitrumSepolia: {
-    chainId: 421614,
-    nativeToken: { name: "ethereum", symbol: "ETH" },
+  fantomTestnet: {
+    chainId: 4002,
+    nativeToken: { name: "fantom", symbol: "FTM" },
     deployedTokens: [],
   },
-  arbitrum: {
-    chainId: 42161,
-    nativeToken: { name: "ethereum", symbol: "ETH" },
+  fantom: {
+    chainId: 250,
+    nativeToken: { name: "fantom", symbol: "FTM" },
     deployedTokens: [],
   },
   optimismSepolia: {
@@ -117,6 +117,16 @@ const networkParams = {
   optimism: {
     chainId: 10,
     nativeToken: { name: "ethereum", symbol: "ETH" },
+    deployedTokens: [],
+  },
+  polygonAmoy: {
+    chainId: 80002,
+    nativeToken: { name: "matic", symbol: "MATIC" },
+    deployedTokens: [],
+  },
+  polygon: {
+    chainId: 137,
+    nativeToken: { name: "matic", symbol: "MATIC" },
     deployedTokens: [],
   },
 };
@@ -134,13 +144,13 @@ const tokenParams = {
   ethereum: {
     tokenName: "ethereum",
     tokenSymbol: "ETH",
-    originChainId: [1, 31337, 11155111],
+    originChainId: [1, 1337, 31337, 11155111],
     isNative: true,
   },
   allfeat: {
     tokenName: "allfeat",
     tokenSymbol: "AFT",
-    originChainId: [441],
+    originChainId: [440, 441],
     isNative: true,
   },
   matic: {
@@ -158,7 +168,13 @@ const tokenParams = {
   mockedDai: {
     tokenName: "mockedDai",
     tokenSymbol: "DAI",
-    originChainId: [31337, 11155111],
+    originChainId: [1337, 31337, 11155111],
+    isNative: false,
+  },
+  mockedUsdc: {
+    tokenName: "mockedUsdc",
+    tokenSymbol: "USDC",
+    originChainId: [1337, 31337, 11155111],
     isNative: false,
   },
   newCoin4: {
@@ -203,6 +219,7 @@ const computeTokenSymbol = (network, symbol) => {
 //             FEES CONSTANTS
 //
 ///////////////////////////////////////////////////////////////
+// Hardcoded fees constant (waiting for fees features to be implemented)
 const FEES_AMOUNT = 1_000_000_000_000_000n; //0.001
 
 ////////////////////////////////////////////////////////////////
@@ -210,9 +227,8 @@ const FEES_AMOUNT = 1_000_000_000_000_000n; //0.001
 //             AS_CLI HELPERS
 //
 ///////////////////////////////////////////////////////////////
-// @todo remove if we don't keep cli
+// @todo remove if we don't keep cli ('as_' scripts)
 // moved from constants/token.js to reduce files numbers
-
 const nativeTokens = {
   31337: "ethereum",
   1337: "ethereum",

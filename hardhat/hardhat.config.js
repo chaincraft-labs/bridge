@@ -4,46 +4,47 @@ require("solidity-coverage");
 require("dotenv").config();
 
 require("./tasks/start-node");
-require("./tasks/print-signer");
 require("./tasks/call-write");
 require("./tasks/call-read");
+require("./tasks/func-printSigners");
 require("./tasks/func-balanceOf");
 require("./tasks/func-mintBridgedToken");
 require("./tasks/func-transferMockedToken");
 require("./tasks/func-getMsgHash");
 require("./tasks/func-getMsgSignature");
 
+const { ethers } = require("ethers");
 const { forkPorts } = require("./constants/deploymentConfig");
 
 // @todo add checks for env var
 // @todo check in config to not connect testnet with mainnet
 // @todo manage different api infura, alchemy... (if down, switch to another)
+const USER_COUNT = 20;
+
 const providerApiKey = process.env.ALCHEMY_API_KEY || "";
 const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "";
 
+// Accounts array will have: [0]: deployer/default signer [1-USER_COUNT]: other signers
+// Real accounts:
 const deployerPvtKey = process.env.DEPLOYER_PRIVATE_KEY || "";
-// Create an array of pvtKey from process.env.USERx_PRIVATE_KEY where x 0-10
-const userPvtKeys = [];
-for (let i = 0; i < 20; i++) {
+const usersPvtKeys = [];
+for (let i = 0; i < USER_COUNT - 1; i++) {
   const userPvtKey = process.env[`USER${i}_PRIVATE_KEY`];
   if (userPvtKey) {
-    userPvtKeys.push(userPvtKey);
+    usersPvtKeys.push(userPvtKey);
   }
 }
-
-const gethPrivateKey = process.env.GETH_KEY || "";
-const anvil_localPrivateKey = process.env.ANVIL_KEY || "";
-
-// @todo REVIEW ? really needed ?
-// Reproduce the default account from the default mnemonic using HD wallet
-// to be used in anvil_local & geth networks
-const { ethers } = require("ethers");
-const HARDHAT_ACCOUNTS = [];
-const mnemonic = ethers.Mnemonic.fromPhrase(process.env.MNEMONIC_TEST);
-const wallet = ethers.HDNodeWallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0`);
-for (let i = 0; i < 20; i++) {
-  const childWallet = wallet.deriveChild(i);
-  HARDHAT_ACCOUNTS.push(childWallet.privateKey);
+// Hardhat/Local accounts: (reproduce default hh accounts)
+const defaultDerivationPath = ethers.defaultPath.slice(0, -2);
+const hardhatPvtKeys = [];
+const hhMnemonic = ethers.Mnemonic.fromPhrase(process.env.MNEMONIC_TEST);
+const hhWallet = ethers.HDNodeWallet.fromMnemonic(
+  hhMnemonic,
+  defaultDerivationPath //`m/44'/60'/0'/0`
+);
+for (let i = 0; i < USER_COUNT; i++) {
+  const childWallet = hhWallet.deriveChild(i);
+  hardhatPvtKeys.push(childWallet.privateKey);
 }
 
 module.exports = {
@@ -56,6 +57,7 @@ module.exports = {
     },
   },
   networks: {
+    // order: local, test+fork, main+fork / ethereum then other networks by alphabetical order
     localhost: {
       url: "http://localhost:8545",
     },
@@ -77,113 +79,101 @@ module.exports = {
       //   },
       // ],
     },
-    gethTestnet: {
+    anvilLocal: {
       url: `http://127.0.0.1:8545`,
-      accounts: [deployerPvtKey],
+      accounts: hardhatPvtKeys,
+    },
+    geth: {
+      url: `http://127.0.0.1:8545`,
+      accounts: hardhatPvtKeys,
     },
     sepolia: {
       url: `https://eth-sepolia.g.alchemy.com/v2/${providerApiKey}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
+      accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     sepoliaFork: {
       url: `http://127.0.0.1:${forkPorts["sepolia"]}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
-    },
-    allfeat_local: {
-      url: `http://127.0.0.1:9944`,
-      accounts: [deployerPvtKey],
-    },
-    anvil_local: {
-      url: `http://127.0.0.1:8545`,
-      accounts: [anvil_localPrivateKey],
-    },
-    // @todo REVIEW TEST CONFIG
-    geth: {
-      url: `http://127.0.0.1:8545`,
-      accounts: [gethPrivateKey, ...HARDHAT_ACCOUNTS],
+      accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     mainnet: {
       url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
+      accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     mainnetFork: {
       url: `http://127.0.0.1:${forkPorts["mainnet"]}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
+      accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     allfeatLocal: {
       url: `http://127.0.0.1:9944`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
+      accounts: hardhatPvtKeys,
     },
     harmonie: {
+      // @todo replace allfeat with harmonie for testnet in config files (HMY...)
       url: `https://harmonie-endpoint-02.allfeat.io`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
+      accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     allfeat: {
+      // current harmonie testnet
       url: `https://harmonie-endpoint-02.allfeat.io`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
-    },
-    // @todo remove mumbai
-    polygonMumbai: {
-      url: `https://polygon-mumbai.g.alchemy.com/v2/${providerApiKey}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
-    },
-    polygonAmoyFork: {
-      url: `http://127.0.0.1:${forkPorts["polygonAmoy"]}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
-    },
-    polygonAmoy: {
-      url: `https://polygon-amoy.g.alchemy.com/v2/${providerApiKey}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
-    },
-    polygonFork: {
-      url: `http://127.0.0.1:${forkPorts["polygon"]}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
-    },
-    polygon: {
-      url: `https://polygon-mainnet.g.alchemy.com/v2/${providerApiKey}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
-    },
-    fantomTestnetFork: {
-      url: `http://127.0.0.1:${forkPorts["fantomTestnet"]}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
-    },
-    fantomTestnet: {
-      url: `https://fantom-testnet.g.alchemy.com/v2/${providerApiKey}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
-    },
-    fantomFork: {
-      url: `http://127.0.0.1:${forkPorts["fantom"]}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
-    },
-    fantom: {
-      url: `https://fantom-mainnet.g.alchemy.com/v2/${providerApiKey}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
-    },
-    bscTestnet: {
-      url: `https://bsc-testnet.g.alchemy.com/v2/${providerApiKey}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
-    },
-    bsc: {
-      url: `https://bsc-mainnet.g.alchemy.com/v2/${providerApiKey}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
+      accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     // @todo change url!
     arbitrumSepolia: {
-      url: `https://arb-goerli.g.alchemy.com/v2/${providerApiKey}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
+      url: `https://arb-sepolia.g.alchemy.com/v2/${providerApiKey}`,
+      accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     arbitrum: {
       url: `https://arb-mainnet.g.alchemy.com/v2/${providerApiKey}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
+      accounts: [deployerPvtKey, ...usersPvtKeys],
+    },
+    bscTestnet: {
+      url: `https://bsc-testnet.g.alchemy.com/v2/${providerApiKey}`,
+      accounts: [deployerPvtKey, ...usersPvtKeys],
+    },
+    bsc: {
+      url: `https://bsc-mainnet.g.alchemy.com/v2/${providerApiKey}`,
+      accounts: [deployerPvtKey, ...usersPvtKeys],
+    },
+    fantomTestnet: {
+      url: `https://fantom-testnet.g.alchemy.com/v2/${providerApiKey}`,
+      accounts: [deployerPvtKey, ...usersPvtKeys],
+    },
+    fantomTestnetFork: {
+      url: `http://127.0.0.1:${forkPorts["fantomTestnet"]}`,
+      accounts: [deployerPvtKey, ...usersPvtKeys],
+    },
+    fantom: {
+      url: `https://fantom-mainnet.g.alchemy.com/v2/${providerApiKey}`,
+      accounts: [deployerPvtKey, ...usersPvtKeys],
+    },
+    fantomFork: {
+      url: `http://127.0.0.1:${forkPorts["fantom"]}`,
+      accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     // @todo change url!
     optimismSepolia: {
       url: `https://opt-goerli.g.alchemy.com/v2/${providerApiKey}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
+      accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     optimism: {
       url: `https://opt-mainnet.g.alchemy.com/v2/${providerApiKey}`,
-      accounts: [deployerPvtKey, ...userPvtKeys],
+      accounts: [deployerPvtKey, ...usersPvtKeys],
+    },
+    polygonAmoy: {
+      url: `https://polygon-amoy.g.alchemy.com/v2/${providerApiKey}`,
+      accounts: [deployerPvtKey, ...usersPvtKeys],
+    },
+    polygonAmoyFork: {
+      url: `http://127.0.0.1:${forkPorts["polygonAmoy"]}`,
+      accounts: [deployerPvtKey, ...usersPvtKeys],
+    },
+    polygon: {
+      url: `https://polygon-mainnet.g.alchemy.com/v2/${providerApiKey}`,
+      accounts: [deployerPvtKey, ...usersPvtKeys],
+    },
+    polygonFork: {
+      url: `http://127.0.0.1:${forkPorts["polygon"]}`,
+      accounts: [deployerPvtKey, ...usersPvtKeys],
     },
   },
   verify: {

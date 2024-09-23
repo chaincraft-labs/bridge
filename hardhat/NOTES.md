@@ -1,6 +1,8 @@
-# IDEAS / THINGS TO ADD ...
+> The NOTE.md file serves as a central place for documenting important information related to the project. It encompasses the project's context, outlines the next steps for development, and provides a flexible to-do list for ideas to explore, improvements to be made, and features to implement.
 
 # CONTEXT:
+
+> An overview of the project's goals, key concepts.
 
 ## FOR THIS POC:
 
@@ -15,6 +17,8 @@
 
 # NEXT STEPS:
 
+> A roadmap of main tasks and milestones that the team aims to achieve in the upcoming development cycles.
+
 1. [ ] Fix V0 release (on/off chain)
 2. [ ] Add fees management
 3. [ ] Add cancel operation management
@@ -26,25 +30,28 @@
 
 # TODOs:
 
-Things to implement and ideas to dig.
-Prefixed by '!' are important.
+> A collection of ideas, potential improvements, and items that need correction or further exploration. This list serves as a brainstorming space to foster creativity and innovation within the team.
+> Prefixed by '❗' are important or to prioritize.
 
 ## Project:
 
 - CI/CD: Add github actions: tests + slither before main branch
+- ❗Task to setup config easily: chosen networks, add tokens
+- ❗Improve error handling across the project (scripts..)
 
 ## Naming:
 
 - Rethink naming of contracts & functions / explicit but with coherence
 - Rethink events & errors naming
 - Better naming of variables like owner in factory: ? minter ?
-- Rename native 'token' -> 'coin', 'currency' ? & description of origin deployment chain of tokens
+- Rename native 'token' -> 'coin', 'currency' ? & description of origin deployment chain of tokens (configHelper.js ...)
+  -❗Replace 'allfeat' by 'harmonie' for the testnet
 
 ## Events / errors:
 
 - Complete events & errors in all contracts
 - No unnecessary duplicate events when calling other contracts
-- !! Errors: bubble up to the top level (cancel management)
+- ❗ Errors: bubble up to the top level (cancel management)
 
 ## Storage:
 
@@ -65,15 +72,15 @@ Prefixed by '!' are important.
 ## Contracts:
 
 - Use of library if needed rather than import ?
-- !! Refactor call params (struct, payload..) to reduce gas usage
+- ❗ Refactor call params (struct, payload..) to reduce gas usage
 
 ### Storage
 
-- !! Improve functions (cause the more called)
-- !! Add specific getters/functions in relayer/bridge to avoid multiple calls
+- ❗ Improve functions (cause the more called)
+- ❗ Add specific getters for relayer/bridge functions to avoid multiple calls
 - Key, label, types validation ?
-- !! Setter for gas management
-- !! Setter for blocks verification
+- ❗ Setter for gas management
+- ❗ Setter for blocks verification
 - Management of nodes whitelist
 
 ### BridgeToken & Factory
@@ -94,6 +101,12 @@ Prefixed by '!' are important.
 
 ## Improvements:
 
+### Regulation / Ecosystem:
+
+#### Blacklist
+
+- ? User blacklist ? In the idea of stopping an ongoing hack that would use the bridge to move funds
+
 ### Security:
 
 #### weird erc20
@@ -102,17 +115,17 @@ Prefixed by '!' are important.
 
 - Add multiple vaults (per type, volume ??) to reduce risks of all funds stolen/locked in case of hack.
 
-#### !! Non reentrancy
+#### ❗ Non reentrancy
 
-- !! Add global process to storage contract
+- ❗ Add global process to storage contract
 - Check use of reentrancy guard in all contracts
 - Use transient storage
 
-#### !! Pause mechanism
+#### ❗ Pause mechanism
 
 - Add granular pause mechanism (update/stop if hack) / and status of the pair
 
-#### !! Access role
+#### ❗ Access role
 
 - Better design of role & access / access control (openzeppelin)
 - use bytes32 for role & reverse mapping
@@ -128,7 +141,7 @@ Prefixed by '!' are important.
 #### Check weird ERC20
 
 - decimals
-- !! blacklist
+- ❗ blacklist
 - approval race
 - return value or void
 - fees on transfer

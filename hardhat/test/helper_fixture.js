@@ -1,9 +1,12 @@
 const hre = require("hardhat");
 const { getRandomAddress, getMaxAddress } = require("../utils/util");
 
-// @todo rename (allfeat-> harmonie..., ethereum -> ether...)
+/*
+ * Fixtures for tests
+ * Mocked contracts and constants
+ */
 
-// @todo refactor mocked
+// @todo rename (allfeat-> harmonie..., ethereum -> ether...) / Refactor mocked
 const mocked = {
   bridgedTokenName: "BridgedToken",
   bridgedTokenSymbol: "BTK",

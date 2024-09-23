@@ -7,7 +7,10 @@ const { shortenAddress } = require("../utils/util");
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-// map readable style to its code used in styleMessage function
+/**
+ * @description Formatting styles
+ * map readable style to its code used in styleMessage function
+ */
 const formattingStyles = {
   bold: 1,
   italic: 3,

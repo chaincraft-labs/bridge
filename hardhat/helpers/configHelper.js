@@ -4,10 +4,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-// @todo RENAMING nativeToken => nativeCoin or Currency, Asset
-// @todo RENAMING in scripts allfeat => harmonie
-// @todo choose a convention for naming/network: duplicates!!
-
 /**
  * @dev Description of network configuration and deployed tokens
  *

@@ -61,7 +61,6 @@ const styleMessage = (msg, msgStyles) => {
   return `${styleHeader}${msg}${styleFooter}`;
 };
 
-// @todo make it more generic to ease msg logging
 // 80 :"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
 const dDotSeparator = ":".repeat(80);
 const sDotSeparator = ".".repeat(80);

@@ -7,7 +7,9 @@ task("func-getMsgSignature", "Get the signature of operation hash.")
   .addParam("args", "The arguments to pass to the function, space separated")
   .addOptionalParam(
     "signer",
-    "The signer of the hash. MUST be equal to 'from' arg. [deployer=0, user2=1, user3=2] as defined in .env (localhost uses signer 0, 1, 2 given by hardhat). Default is deployer/admin"
+    "The signer of the hash. MUST be equal to 'from' arg.\n" +
+      "                Index of the accounts defined in hardhat config\n" +
+      "                Optional - default: 0 (deployer/default signer)."
   )
   .setAction(async (taskArgs, hre) => {
     let userWallet = await getSignerFromOption(hre, taskArgs.signer);

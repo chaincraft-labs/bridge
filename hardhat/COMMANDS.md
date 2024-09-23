@@ -55,20 +55,20 @@ But those allowed for the deployment and therefore the use of the bridge are tho
 
 # TESTS
 
-```node
+```shell
 npx hardhat test [--network <network-name>]
 npx hardhat coverage
 ```
 
 # GAS REPORT
 
-```node
+```shell
 REPORT_GAS=true npx hardhat test
 ```
 
 To save in a file the gas report:
 
-```node
+```shell
 REPORT_GAS=true npx hardhat test  | awk '{gsub(/\033\[[0-9;]*m/, "")} /·-------------------/{found=1} found && !/passing/' > gas_report.txt
 ```
 
@@ -78,7 +78,7 @@ REPORT_GAS=true npx hardhat test  | awk '{gsub(/\033\[[0-9;]*m/, "")} /·-------
 
 ### HARDHAT:
 
-```node
+```shell
 npx hardhat node
 ```
 
@@ -89,14 +89,14 @@ npx hardhat node
 
 - **Regular command:**
 
-```node
+```shell
 npx hardhat node --fork https://<rpc-url-to-fork> --port <port-to-use>
 ```
 
 - **Task:**  
   It will use the port defined in `constants/deploymentConfig.js::forkPorts`
 
-```node
+```shell
 npx hardhat start-node --network-to-fork sepolia
 ```
 
@@ -168,14 +168,14 @@ You can deploy and initialize network-by-network contracts using method 1 or aut
   - Use: 01_deployAllContracts_refactor.js on each network to deploy contracts (it will save addresses in 'constants' folder).
   - Then: 01_setTokens_refactor.js on each network to set the addresses of tokens from other networks.
 
-  ```node
+  ```shell
   npx hardhat run scripts/01_deployAllContracts.js --network <network>
   npx hardhat run scripts/02_setTokens.js --network <network>
   ```
 
   - example:
 
-  ```node
+  ```shell
   npx hardhat run scripts/01_deployAllContracts.js --network sepolia
   npx hardhat run scripts/01_deployAllContracts.js --network allfeat
   npx hardhat run scripts/02_setTokens.js --network sepolia
@@ -189,7 +189,7 @@ You can deploy and initialize network-by-network contracts using method 1 or aut
 
   It uses the networks written in the `usedNetworks` array of `constants/deploymentConfig.js`.
 
-  ```node
+  ```shell
   node ./scripts/09_deployAndConfig.js
   ```
 
@@ -200,7 +200,7 @@ You can deploy and initialize network-by-network contracts using method 1 or aut
 
   - To make the script executable, run once:
 
-  ```node
+  ```shell
   cd scripts
   chmod u+x 09_deployAndConfig.sh
   cd -
@@ -208,7 +208,7 @@ You can deploy and initialize network-by-network contracts using method 1 or aut
 
   It uses the networks written in the `usedNetworks` array of `constants/deploymentConfig.js`.
 
-  ```node
+  ```shell
   ./scripts/09_deployAndConfig.sh
   ```
 
@@ -223,21 +223,21 @@ The networks used are those present in `constants/deploymentConfig.js::usedNetwo
 - **Deploy mocked token:**  
   Args: the token name and symbol of the mocked token
 
-  ```node
+  ```shell
   MOCKED_TOKEN_OPTION=<"tokenName,tokenSymbol"> npx hardhat run scripts/03_deployMockedToken.js --network <networkName>
   ```
 
 - **Deploy bridged token:**  
   Args: the token name and symbol of the **mocked** token
 
-  ```node
+  ```shell
   MOCKED_TOKEN_OPTION=<"tokenName,tokenSymbol"> npx hardhat run scripts/03_deployBridgedToken.js --network <networkName>
   ```
 
 - **Set the new addresses in Storage for each network:**  
   Args: the token name of the mocked token
 
-  ```node
+  ```shell
   TOKEN_OPTION=<"tokenName"> npx hardhat run scripts/04_setNewToken.js --network <networkName>
   ```
 
@@ -247,7 +247,7 @@ The networks used are those present in `constants/deploymentConfig.js::usedNetwo
 
   Args: the token name and symbol of the mocked token and its origin network
 
-  ```node
+  ```shell
   ./scripts/09_deployAndConfig.sh tokenName tokenSymbol originNetwork
   ```
 
@@ -256,12 +256,12 @@ The networks used are those present in `constants/deploymentConfig.js::usedNetwo
 - **Create a bridge operation and deposit funds:**
 
   - Command:
-    ```node
+    ```shell
     [SIGNER_OPTION=<0-2>] [PARAMS_OPTION=<params>] npx hardhat run scripts/11_userAction_deposit.js --network <originNetwork>
     ```
   - Examples:
 
-    ```node
+    ```shell
     npx hardhat run scripts/11_userAction_deposit.js --network sepolia
 
     SIGNER_OPTION=1 PARAMS_OPTION="11155111,441,ethereum,0.05" npx hardhat run scripts/11_userAction_deposit.js --network sepolia
@@ -284,12 +284,12 @@ The networks used are those present in `constants/deploymentConfig.js::usedNetwo
 - **Deposit fees to the destination network:**
 
   - Command:
-    ```node
+    ```shell
     [SIGNER_OPTION=<index>] [PARAMS_OPTION=<params>] [FEES_OPTION=<fees>] npx hardhat run scripts/12_userAction_depositFees.js --network <destinationNetwork>
     ```
   - Examples:
 
-    ```node
+    ```shell
     npx hardhat run scripts/12_userAction_depositFees.js --network allfeat
 
     SIGNER_OPTION=1 PARAMS_OPTION="11155111,441,ethereum,0.05" npx hardhat run scripts/12_userAction_depositFees.js --network allfeat
@@ -320,7 +320,7 @@ The networks used are those present in `constants/deploymentConfig.js::usedNetwo
 
 ### Help:
 
-```node
+```shell
 npx hardhat help [SCOPE] <TASK>
 ```
 
@@ -332,13 +332,13 @@ Arguments are given with '--args' option. It's a string with values space separa
 
 #### Read functions (getters):
 
-```node
+```shell
 npx hardhat call-readFunc --contract <ContractName> --func <functionName> --args <"args space separated"> --network <network>
 ```
 
 #### Write functions:
 
-```node
+```shell
 npx hardhat call-writeFunc --contract <ContractName> --func <functionName> --args <"args space separated"> --network <network>
 ```
 
@@ -348,7 +348,7 @@ Calls to specific functions.
 
 #### Display signer addresses configured for the network and their balances
 
-```node
+```shell
 npx hardhat func-print-signers --network <network>
 ```
 
@@ -356,7 +356,7 @@ npx hardhat func-print-signers --network <network>
 
 --token: optional, if not given, it will get the balance of ethers/native currency
 
-```node
+```shell
 npx hardhat func-balanceOf --user <userAddress> [--token <tokenAddress>] --network <network>
 
 npx hardhat func-balanceOf --user 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --token 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 --network localhost
@@ -364,7 +364,7 @@ npx hardhat func-balanceOf --user 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --t
 
 #### Mint amount of bridged token to an address (test purpose)
 
-```node
+```shell
 npx hardhat func-mintBridgedToken --to <recipient> --token <tokenAddress> --amount <amountToMint> --network <network>
 
 npx hardhat func-mintBridgedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --token 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000 --network localhost
@@ -372,7 +372,7 @@ npx hardhat func-mintBridgedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C
 
 #### Transfer amount of mocked token to an address (test purpose)
 
-```node
+```shell
 npx hardhat func-transferMockedToken --to <recipient> --token <tokenAddress> --amount <amountToTransfer> --network <network>
 
 npx hardhat func-transferMockedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --token 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000 --network localhost
@@ -380,7 +380,7 @@ npx hardhat func-transferMockedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc
 
 #### Get the operation hash from args
 
-```node
+```shell
 npx hardhat func-getMsgHash --args <"userAddress userAddress chainIdFrom chainIdTo tokenName amount nonce"> --network <network>
 
 npx hardhat func-getMsgHash --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90 0xbfae728Cf6D20DFba443c5A297dC9b344108de90 11155111 441 mockedDai 10000000000000000n 0" --network localhost
@@ -393,7 +393,7 @@ signer:
 - Index of the accounts array defined in hardhat config (0-20 following the number of private keys set in .env file)
 - Optional - default: 0 (deployer / default signer)
 
-```node
+```shell
 npx hardhat func-getMsgSignature --args <"userAddress userAddress chainIdFrom chainIdTo tokenName amount nonce"> [--signer <index>] --network <network>
 
 npx hardhat func-getMsgSignature --args "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 11155111 441 mockedDai 10000000000000000n 0" --network localhost
@@ -403,7 +403,7 @@ npx hardhat func-getMsgSignature --args "0xD850badD41F9f7B5Fdc4387C14A9e7938E576
 
 ### Example of 'call-readFunc' and 'call-writeFunc' commands:
 
-```node
+```shell
 npx hardhat call-readFunc --contract "Storage" --func "getOperator" --args "bridge" --network sepolia
 
 npx hardhat call-writeFunc --contract "Storage" --func "updateOperator" --args "bridge 0xbfae728Cf6D20DFba443c5A297dC9b344108de90" --network sepolia

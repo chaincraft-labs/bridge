@@ -38,6 +38,8 @@
 - CI/CD: Add github actions: tests + slither before main branch
 - ❗Task to setup config easily: chosen networks, add tokens
 - ❗Improve error handling across the project (scripts..)
+- ❗Config: check env vars / manage differents api (switch if down or limited) / check not connecting testnet to mainnet
+- Add foundry to improve tests and scripts
 
 ## Naming:
 

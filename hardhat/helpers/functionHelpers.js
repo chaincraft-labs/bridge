@@ -8,7 +8,6 @@ const { simulationParams } = require("../constants/simulationParams");
 //
 ///////////////////////////////////////////////////////////////////////////////
 const deploymentCheck = {
-  // @todo remove and replace with next one
   // Check we don't have localhost AND hardhat in network used (same id)
   noLocalChainDuplicate: (usedNetworks) => {
     if (

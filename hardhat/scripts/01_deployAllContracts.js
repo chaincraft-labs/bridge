@@ -194,7 +194,6 @@ async function main() {
     (usedToken) => !notBridgedTokens.includes(usedToken)
   );
 
-  // @todo refactor and export deployment and log as for deployAnSaveAddress
   for (const token of bridgedTokens) {
     try {
       const symbol = computeTokenSymbol(

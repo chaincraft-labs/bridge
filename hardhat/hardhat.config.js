@@ -16,9 +16,6 @@ require("./tasks/func-getMsgSignature");
 const { ethers } = require("ethers");
 const { forkPorts } = require("./constants/deploymentConfig");
 
-// @todo add checks for env var
-// @todo check in config to not connect testnet with mainnet
-// @todo manage different api infura, alchemy... (if down, switch to another)
 const USER_COUNT = 20;
 
 const providerApiKey = process.env.ALCHEMY_API_KEY || "";
@@ -117,7 +114,6 @@ module.exports = {
       url: `https://harmonie-endpoint-02.allfeat.io`,
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
-    // @todo change url!
     arbitrumSepolia: {
       url: `https://arb-sepolia.g.alchemy.com/v2/${providerApiKey}`,
       accounts: [deployerPvtKey, ...usersPvtKeys],
@@ -150,9 +146,8 @@ module.exports = {
       url: `http://127.0.0.1:${forkPorts["fantom"]}`,
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
-    // @todo change url!
     optimismSepolia: {
-      url: `https://opt-goerli.g.alchemy.com/v2/${providerApiKey}`,
+      url: `https://opt-sepolia.g.alchemy.com/v2/${providerApiKey}`,
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     optimism: {

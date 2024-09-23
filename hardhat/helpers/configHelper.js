@@ -223,7 +223,6 @@ const FEES_AMOUNT = 1_000_000_000_000_000n; //0.001
 //             AS_CLI HELPERS
 //
 ///////////////////////////////////////////////////////////////
-// @todo remove if we don't keep cli ('as_' scripts)
 // moved from constants/token.js to reduce files numbers
 const nativeTokens = {
   31337: "ethereum",

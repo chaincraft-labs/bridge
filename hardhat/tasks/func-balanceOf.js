@@ -40,22 +40,21 @@ const erc20Abi = [
 /**
  * @description Get the token or native coin balance of an address
  */
-task("func-balanceOf", "get token balance of a user")
-  .addParam("user", "The address of the user")
+task("func-balanceOf", "get a user's token balance")
+  .addParam("user", "The user's address")
   .addOptionalParam(
     "token",
-    "The address of the token - default (no token) = ETH/native coin"
+    "The token address - default (no token) = ETH/native coin"
   )
   .setAction(async (taskArgs, hre) => {
     if (!taskArgs.token) {
-      // No token address: get ETH/native balance
+      // ETH/native case:
       const balance = await hre.ethers.provider.getBalance(taskArgs.user);
       const symbol = networkParams[hre.network.name].nativeToken.symbol;
       display.balance("", symbol, balance, taskArgs.user);
       return;
     }
-    // Else: get ERC20 token balance
-
+    // ERC20 case:
     // get contract instance
     const contract = await hre.ethers.getContractAt(erc20Abi, taskArgs.token);
     // call the method

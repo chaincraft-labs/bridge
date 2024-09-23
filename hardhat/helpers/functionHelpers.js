@@ -8,7 +8,6 @@ const { simulationParams } = require("../constants/simulationParams");
 //
 ///////////////////////////////////////////////////////////////////////////////
 const deploymentCheck = {
-  // @todo remove and replace with next one
   // Check we don't have localhost AND hardhat in network used (same id)
   noLocalChainDuplicate: (usedNetworks) => {
     if (
@@ -75,7 +74,6 @@ const deploymentCheck = {
 
   validateNetworks: function (usedNetworks, currentNetwork) {
     deploymentCheck.noLocalChainDuplicate(usedNetworks);
-    // deploymentCheck.noDuplicateChains(usedNetworks);
     deploymentCheck.deploymentOnUsedNetworks(usedNetworks, currentNetwork);
     deploymentCheck.usedNetworksSetInConfig(usedNetworks);
   },
@@ -114,33 +112,6 @@ const deployAndSaveAddress = async (network, contractName, params) => {
 
   return instance;
 };
-
-///////////////////////////////////////////////////////////////////////////////
-//
-//                GENERIC FUNCTIONS => replaced by tasks
-//
-///////////////////////////////////////////////////////////////////////////////
-
-//setter != getter!!
-// parallel exec (don't use this if sequential call needed)
-// executes batch call of funcName on instance
-// each element of the array are params of one call
-// ex: batchWriteFunc(storage, "addChainIdsToLis", ["ethereum", "allfeat"])
-// const batchWriteFunc = async (instance, funcName, params) => {
-//   await Promise.all(
-//     params.map(async (param) => {
-//       const tx = await instance[funcName](param);
-//       await tx.wait();
-//       console.log(`executed func ${funcName} with param: ${param}`);
-//     })
-//   ).catch((err) => {
-//     console.log(
-//       `${toStyle.error("Error: ")} calling func ${funcName} on ${
-//         instance.target
-//       } with params: ${params}\n${err}`
-//     );
-//   });
-// };
 
 ///////////////////////////////////////////////////////////////////////////////
 //

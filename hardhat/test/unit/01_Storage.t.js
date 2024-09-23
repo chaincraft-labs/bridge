@@ -30,7 +30,6 @@ describe("Storage", function () {
       const result = await storage.getUint(key);
       expect(result).to.equal(0);
     });
-    // @todo => complete init tests
   });
 
   describe("Access - only admin", function () {
@@ -336,7 +335,6 @@ describe("Storage", function () {
     it("should set a new address", async function () {
       const { storage, owner } = await loadFixture(fixtures.deployStorage);
       const preparedAddress = getRandomAddress();
-      // const preparedKey = await storage["getKey(string)"]("testKey");
       const preparedKey = ethers.solidityPackedKeccak256(
         ["string"],
         ["testKey"]
@@ -438,15 +436,15 @@ describe("Storage", function () {
     it("should set new token address", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addChainIdToList(constants.aftChainId);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addNewTokenAddressByChainId(
         mocked.mockedTokenName,
         constants.aftChainId,
         mocked.mockedTokenAddress
       );
-      tx.wait();
+      await tx.wait();
       expect(
         await storage.getTokenAddressByChainId(
           mocked.mockedTokenName,
@@ -460,15 +458,15 @@ describe("Storage", function () {
       const preparedTokenAddress = getRandomAddress();
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addChainIdToList(BigInt(constants.aftChainId));
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addNewTokenAddressByChainId(
         mocked.mockedTokenName,
         constants.aftChainId,
         mocked.mockedTokenAddress
       );
-      tx.wait();
+      await tx.wait();
 
       expect(mocked.mockedTokenAddress).to.not.equal(preparedTokenAddress);
       await expect(
@@ -488,9 +486,9 @@ describe("Storage", function () {
       const preparedTokenAddress = getRandomAddress();
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addChainIdToList(constants.aftChainId);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addNewTokenAddressByChainId(
         mocked.mockedTokenName,
         constants.aftChainId,
@@ -527,9 +525,9 @@ describe("Storage", function () {
       const preparedTokenAddress = getRandomAddress();
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addChainIdToList(constants.aftChainId);
-      // tx.wait();
+      await tx.wait();
 
       await expect(
         storage.updateTokenAddressByChainId(
@@ -547,11 +545,11 @@ describe("Storage", function () {
       const mockedTokenAddress2 = getRandomAddress();
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addChainIdToList(constants.aftChainId);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addChainIdToList(constants.sepoliaChainId);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.batchAddNewTokensAddressesByChainId(
         [mocked.mockedTokenName, mocked.mockedTokenName],
         [constants.aftChainId, constants.sepoliaChainId],
@@ -576,11 +574,11 @@ describe("Storage", function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addChainIdToList(constants.aftChainId);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addChainIdToList(constants.sepoliaChainId);
-      // tx.wait();
+      await tx.wait();
 
       await expect(
         storage.batchAddNewTokensAddressesByChainId(
@@ -599,11 +597,11 @@ describe("Storage", function () {
       const mockedTokenAddress2 = getRandomAddress();
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addChainIdToList(constants.aftChainId);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addChainIdToList(constants.sepoliaChainId);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addNewTokenAddressByChainId(
         mocked.mockedTokenName,
         constants.aftChainId,
@@ -628,9 +626,9 @@ describe("Storage", function () {
       const mockedTokenAddress2 = getRandomAddress();
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addChainIdToList(constants.aftChainId);
-      // tx.wait();
+      await tx.wait();
 
       await expect(
         storage.batchAddNewTokensAddressesByChainId(
@@ -645,9 +643,9 @@ describe("Storage", function () {
       const mockedTokenAddress2 = getRandomAddress();
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addChainIdToList(constants.aftChainId);
-      // tx.wait();
+      await tx.wait();
 
       await expect(
         storage.batchAddNewTokensAddressesByChainId(
@@ -663,11 +661,11 @@ describe("Storage", function () {
       const mockedTokenAddress2 = getRandomAddress();
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addChainIdToList(constants.aftChainId);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.addChainIdToList(constants.sepoliaChainId);
-      // tx.wait();
+      await tx.wait();
       tx = await storage.batchAddNewTokensAddressesByChainId(
         [mocked.mockedTokenName, mocked.mockedTokenName],
         [constants.aftChainId, constants.sepoliaChainId],

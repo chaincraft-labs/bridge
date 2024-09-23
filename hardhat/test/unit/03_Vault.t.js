@@ -447,8 +447,7 @@ describe("Vault", function () {
       await vault.depositNative(owner.address, {
         value: mockedAmountWithFees,
       });
-      // const vaultBalance = await ethers.provider.getBalance(vault.target);
-      // expect(vaultBalance).to.equal(mockedAmountWithFees);
+
       await vault.finalizeDeposit(
         owner.address,
         nativeAddressInStorage,

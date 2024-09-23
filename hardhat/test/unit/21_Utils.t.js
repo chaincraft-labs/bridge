@@ -17,15 +17,7 @@ describe("Utils", function () {
     "uint",
     "uint",
   ];
-  const mockedParams = [
-    // owner.address,
-    // user.address,
-    31337,
-    441,
-    "testToken",
-    1_000_000_000_000_000_000n,
-    1,
-  ];
+  const mockedParams = [31337, 441, "testToken", 1_000_000_000_000_000_000n, 1];
 
   const prefixTypes = ["string", "bytes32"];
   const prefix = "\x19Ethereum Signed Message:\n32";

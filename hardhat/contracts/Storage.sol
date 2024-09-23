@@ -7,8 +7,6 @@ import {TokenFactory} from "./TokenFactory.sol";
 error Storage__NotAdmin();
 error Storage__TokenNotInList(string tokenName);
 error Storage__ChainIdNotInList(uint256 chainId);
-// error Storage__TokenAlreadySet(string tokenName, uint256 chainId);
-// error Storage__TokenNotSet(string tokenName, uint256 chainId);
 error Storage__InvalidArrayLengthInParams(string functionName);
 error Storage__TokenAlreadyInList(string tokenName);
 error Storage__ChainIdAlreadyInList(uint256 chainId);
@@ -53,7 +51,6 @@ contract Storage {
     event Storage__ChainIdAdded(uint256 chainId);
 
     event Storage__TokenAddressSet(string tokenName, uint256 chainId, address tokenAddress);
-    // event Storage__TokenAddressSet(string tokenName, uint256 chainId, address newAddress, address oldAddress);
 
     event Storage__UintDataChanged(bytes32 key, uint256 newValue);
     event Storage__AddressDataChanged(bytes32 key, address newValue);
@@ -85,12 +82,9 @@ contract Storage {
      * @param nativeTokenName name of the native coin
      */
     constructor(string memory nativeTokenName) {
-        uint256 nativeChainId = block.chainid; // on hardhat == 31337
+        uint256 nativeChainId = block.chainid;
 
         s_addressStorage[getKey("admin")] = msg.sender;
-
-        // setUint(getKey("nativeChainId"), nativeChainId);
-        // setString(getKey("nativeTokenName"), nativeTokenName);
 
         addChainIdToList(nativeChainId);
         addTokenNameToList(nativeTokenName);
@@ -130,7 +124,11 @@ contract Storage {
         return s_addressStorage[key];
     }
 
-    // test - name conflict with ethers 'getAddress()' see tests/units/01_Storage.t.js
+    /**
+     * @notice Get the address value for 'key'
+     * @dev duplicate of getAddress
+     * @dev temporary fix due conflict with ethers.getAddress() in tests/units/01_Storage.t.js
+     */
     function getAddr(bytes32 key) public view returns (address) {
         return getAddress(key);
     }

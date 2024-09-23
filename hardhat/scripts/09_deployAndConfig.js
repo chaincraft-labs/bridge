@@ -37,6 +37,7 @@ async function main() {
   });
 }
 
+// Other implementation having output issues
 // @todo fix empty line between outputs
 // The following code give more fluid output
 // but it add empty lines between outputs so broke the output readability

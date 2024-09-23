@@ -29,7 +29,6 @@ async function main() {
   //
   ///////////////////////////////////////////////////////////////////////////////
   const context = await getContext();
-  const owner = context.accounts[0];
   let tx;
 
   display.h1(`Script: ${logCurrentFileName()}...`);
@@ -59,10 +58,10 @@ async function main() {
   //                READ ADDRESSES TO STORE
   //
   ///////////////////////////////////////////////////////////////////////////////
-  for (index in networksToSet) {
+  for (const index in networksToSet) {
     const networkToSet = networksToSet[index];
 
-    for (usedToken in usedTokens) {
+    for (const usedToken in usedTokens) {
       const tokenToSet = usedTokens[usedToken];
       const chainIdToSet = getChainIdByNetworkName(networkToSet);
       tokensDataToSet.names.push(tokenToSet);

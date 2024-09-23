@@ -18,10 +18,7 @@ task("func-getMsgHash", "Get the operation hash (hash of the args")
     // prepare args
     const args = convertParamsStringToArray(taskArgs.args);
 
-    const hash = hre.ethers.solidityPackedKeccak256(
-      paramsTypes, // [...paramsTypes],
-      args //  [...args]
-    );
+    const hash = hre.ethers.solidityPackedKeccak256(paramsTypes, args);
 
     console.log("Hash of the args: ", hash);
   });

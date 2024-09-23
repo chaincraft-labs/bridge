@@ -16,9 +16,6 @@ require("./tasks/func-getMsgSignature");
 const { ethers } = require("ethers");
 const { forkPorts } = require("./constants/deploymentConfig");
 
-// @todo add checks for env var
-// @todo check in config to not connect testnet with mainnet
-// @todo manage different api infura, alchemy... (if down, switch to another)
 const USER_COUNT = 20;
 
 const providerApiKey = process.env.ALCHEMY_API_KEY || "";
@@ -62,22 +59,10 @@ module.exports = {
       url: "http://localhost:8545",
     },
     hardhat: {
-      // FOR METHOD VIA json scripts 'npm run ftm'
-      // mining: {
-      //   auto: false,
-      //   interval: [3000, 6000],
-      // },
-      // chainId: Number(process.env.CHAIN_ID),
       // forking: {
       //       url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
       //     enabled: process.env.MAINNET_FORKING_ENABLED === "true",
       // },
-      // accounts: [
-      //   {
-      //     balance: "100000000000000000000000000000",
-      //     privateKey: process.env.DEPLOYER_PRIVATE_KEY,
-      //   },
-      // ],
     },
     anvilLocal: {
       url: `http://127.0.0.1:8545`,
@@ -108,16 +93,13 @@ module.exports = {
       accounts: hardhatPvtKeys,
     },
     harmonie: {
-      // @todo replace allfeat with harmonie for testnet in config files (HMY...)
       url: `https://harmonie-endpoint-02.allfeat.io`,
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     allfeat: {
-      // current harmonie testnet
       url: `https://harmonie-endpoint-02.allfeat.io`,
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
-    // @todo change url!
     arbitrumSepolia: {
       url: `https://arb-sepolia.g.alchemy.com/v2/${providerApiKey}`,
       accounts: [deployerPvtKey, ...usersPvtKeys],
@@ -150,9 +132,8 @@ module.exports = {
       url: `http://127.0.0.1:${forkPorts["fantom"]}`,
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
-    // @todo change url!
     optimismSepolia: {
-      url: `https://opt-goerli.g.alchemy.com/v2/${providerApiKey}`,
+      url: `https://opt-sepolia.g.alchemy.com/v2/${providerApiKey}`,
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     optimism: {

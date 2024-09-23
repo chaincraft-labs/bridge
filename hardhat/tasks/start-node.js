@@ -26,16 +26,6 @@ task("start-node", "Starts a Hardhat node with forking")
       }
     );
 
-    //////// not working
-    const stopNode = () => {
-      console.log("Stopping Hardhat node...");
-      child.kill("SIGINT");
-    };
-
-    process.on("SIGINT", stopNode);
-    process.on("SIGTERM", stopNode);
-    ////////
-
     child.on("error", (error) => {
       console.error(`Local node: Error: ${error.message}`);
     });

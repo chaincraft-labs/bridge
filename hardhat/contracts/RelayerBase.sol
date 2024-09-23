@@ -100,7 +100,7 @@ contract RelayerBase is Utils {
     //              STATE VARIABLES
     //
     //****************************************************************** */
-    address public s_storage;
+    address public s_storageAddress;
     // op states on origin
     mapping(bytes32 operationHash => OriginOperation) public s_originOperations;
     // op states on destination
@@ -108,8 +108,6 @@ contract RelayerBase is Utils {
     // user op in progress
     mapping(address user => bytes32[] operations) public s_currentUserOperations;
 
-    // to change :
-    // temporary list of operations / not good to have a list of struct for op as the array can be too big quickly
     bytes32[] public s_originOperationsList;
     bytes32[] public s_destinationOperationsList;
 
@@ -142,7 +140,7 @@ contract RelayerBase is Utils {
     //
     //****************************************************************** */
     modifier onlyRole(string memory role) {
-        if (!Storage(s_storage).isRole(role, msg.sender)) {
+        if (!Storage(s_storageAddress).isRole(role, msg.sender)) {
             revert RelayerBase__CallerHasNotRole(role);
         }
         _;
@@ -155,9 +153,9 @@ contract RelayerBase is Utils {
     //****************************************************************** */
 
     constructor(address storageAddress) {
-        s_storage = storageAddress;
+        s_storageAddress = storageAddress;
 
-        if (!Storage(s_storage).isRole("admin", msg.sender)) {
+        if (!Storage(s_storageAddress).isRole("admin", msg.sender)) {
             revert RelayerBase__CallerHasNotRole("admin");
         }
     }
@@ -263,8 +261,8 @@ contract RelayerBase is Utils {
         OperationParams calldata params,
         uint256 blockStep
     ) external {
-        bytes32 key = Storage(s_storage).getKey("blockToWait", block.chainid);
-        uint256 blockToWait = Storage(s_storage).getUint(key);
+        bytes32 key = Storage(s_storageAddress).getKey("blockToWait", block.chainid);
+        uint256 blockToWait = Storage(s_storageAddress).getUint(key);
         OriginOperation storage operation = s_originOperations[operationHash];
 
         if (operation.status != OperationStatus.ORG_FEES_LOCKED) {
@@ -304,8 +302,8 @@ contract RelayerBase is Utils {
         operation.blockStep.closingBlock = uint64(block.number);
 
         address tokenFrom =
-            Storage(s_storage).getTokenAddressByChainId(operation.params.tokenName, operation.params.chainIdFrom);
-        BridgeBase bridge = BridgeBase(Storage(s_storage).getOperator("bridge"));
+            Storage(s_storageAddress).getTokenAddressByChainId(operation.params.tokenName, operation.params.chainIdFrom);
+        BridgeBase bridge = BridgeBase(Storage(s_storageAddress).getOperator("bridge"));
         bridge.finalizeBridgeDeposit(operation.params.from, tokenFrom, operation.params.amount);
 
         _removeUserOperation(operation.params.from, operationHash);
@@ -333,9 +331,9 @@ contract RelayerBase is Utils {
         operation.status = OperationStatus.ORG_OP_CANCELED;
         operation.blockStep.closingBlock = uint64(block.number);
         address tokenFrom =
-            Storage(s_storage).getTokenAddressByChainId(operation.params.tokenName, operation.params.chainIdFrom);
+            Storage(s_storageAddress).getTokenAddressByChainId(operation.params.tokenName, operation.params.chainIdFrom);
 
-        BridgeBase bridge = BridgeBase(Storage(s_storage).getOperator("bridge"));
+        BridgeBase bridge = BridgeBase(Storage(s_storageAddress).getOperator("bridge"));
         bridge.cancelBridgeDeposit(operation.params.from, tokenFrom, operation.params.amount);
 
         _removeUserOperation(operation.params.from, operationHash);
@@ -377,12 +375,11 @@ contract RelayerBase is Utils {
         newOperation.params.chainIdTo = chainIdTo;
         newOperation.status = OperationStatus.DST_FEES_DEPOSITED;
         newOperation.blockStep = newBlockStep;
-        // OperationParams memory params = newOperation.params;
 
         s_destinationOperations[operationHash] = newOperation;
         s_destinationOperationsList.push(operationHash);
 
-        emit FeesDeposited(operationHash, newOperation.params, block.number); // params
+        emit FeesDeposited(operationHash, newOperation.params, block.number);
     }
 
     /**
@@ -400,8 +397,8 @@ contract RelayerBase is Utils {
         onlyRole("oracle")
     {
         DestinationOperation storage operation = s_destinationOperations[operationHash];
-        bytes32 key = Storage(s_storage).getKey("blockToWait", operation.params.chainIdTo);
-        uint256 blockToWait = Storage(s_storage).getUint(key);
+        bytes32 key = Storage(s_storageAddress).getKey("blockToWait", operation.params.chainIdTo);
+        uint256 blockToWait = Storage(s_storageAddress).getUint(key);
 
         if (operation.status != OperationStatus.DST_FEES_DEPOSITED) {
             revert RelayerBase__InvalidOperationStatus();
@@ -447,7 +444,7 @@ contract RelayerBase is Utils {
         operation.status = OperationStatus.DST_OP_FINALIZED;
         operation.blockStep.receptionBlock = uint64(block.number);
 
-        BridgeBase bridge = BridgeBase(Storage(s_storage).getOperator("bridge"));
+        BridgeBase bridge = BridgeBase(Storage(s_storageAddress).getOperator("bridge"));
         bridge.completeBridgeOperation(
             params.from,
             params.to,

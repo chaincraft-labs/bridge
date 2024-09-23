@@ -3,8 +3,8 @@ const { display } = require("../helpers/loggingHelper");
  * @description FOR TEST transfer an amount of mocked token to an address
  * @dev caller MUST BE the admin / deployer (as it has the supply of mocked tokens)
  */
-task("func-transferMockedToken", "transfer amount of mocked token to user")
-  .addParam("to", "The address of the user")
+task("func-transferMockedToken", "transfer the MockedToken amount to the user")
+  .addParam("to", "The user's address")
   .addParam("token", "The address of the token to transfer")
   .addParam("amount", "The amount to transfer")
   .setAction(async (taskArgs, hre) => {

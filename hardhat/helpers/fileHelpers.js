@@ -15,8 +15,6 @@ const LAST_NONCE_FILE_PATH = path.join(CONSTANTS_DIR, LAST_NONCE_FILE);
 //                WRITE / READ LAST DEPLOYED ADDRESSES
 //
 ///////////////////////////////////////////////////////////////////////////////
-
-// @todo add error if writing flow is not complete
 /**
  * @description - Logs in constants/... .json addresses of deployed contracts
  * @description - Format:

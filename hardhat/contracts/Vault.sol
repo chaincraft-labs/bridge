@@ -50,6 +50,17 @@ contract Vault {
     // operationFees: tx reimbursement and reward for server
     mapping(address token => uint256) public s_operationFeesBalance;
 
+    /*
+    proposal for naming convention
+
+    s_vaultBalance -> s_vaultBalances
+    s_usersDeposits -> s_userDeposits
+    s_usersAmountToRedeem -> userRedeemableBalances
+    s_protocolFeesBalance -> s_protocolFeeBalances
+    s_operationFeesBalance -> s_operationFeeBalances
+    s_tokensInVault -> s_vaultTokens
+    */
+
     address[] public s_tokensInVault;
 
     //****************************************************************** */
@@ -164,7 +175,6 @@ contract Vault {
     }
     //**************************** TRANSFER DESTINATION SIDE *********************************/
 
-    // @todo remove commented line
     /**
      * @notice It mints bridged token to user
      * @param to recipient
@@ -172,7 +182,6 @@ contract Vault {
      * @param amount amount to mint
      */
     function mint(address to, address token, uint256 amount) external onlyRole("bridge") {
-        // s_usersDeposits[to][token] += amount;
         BridgedToken(token).mint(to, amount);
     }
 

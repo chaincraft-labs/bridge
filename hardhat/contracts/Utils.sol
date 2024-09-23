@@ -4,7 +4,8 @@ pragma solidity ^0.8.20;
 
 contract Utils {
     //************************* BIT OPERATIONS / PACKING ***********************/
-
+    // This bloc of functions is in progress, not yet used
+    // Contract too large
     // function toBytes32(uint256 x) public pure returns (bytes32) {
     //     return bytes32(uint256(x));
     // }
@@ -13,16 +14,17 @@ contract Utils {
     //     return uint256(x);
     // }
 
-    // Function to set a block step (4 blocknumber of uint64 by variable)
-    // function setBlockStep(uint8 index, uint32 value) public {
+    // // Function to set a block step (4 blocknumber of uint64 by variable)
+    // function setBlockStep(uint8 index, uint32 value, uint256 blockStep) public pure returns (uint256) {
     //     require(index < 4, "Index out of bounds");
     //     uint256 shiftedValue = uint256(value) << (index * 32);
     //     uint256 mask = uint256(0xFFFFFFFF) << (index * 32);
     //     blockStep = (blockStep & ~mask) | shiftedValue;
+    //     return blockStep;
     // }
 
-    // // Function to get a block step
-    // function getBlockStep(uint8 index) public view returns (uint32) {
+    // // // Function to get a block step
+    // function getBlockStep(uint8 index, uint256 blockStep) public pure returns (uint32) {
     //     require(index < 4, "Index out of bounds");
     //     return uint32((blockStep >> (index * 32)) & 0xFFFFFFFF);
     // }
@@ -87,11 +89,17 @@ contract Utils {
         return prefixed(getMessageHash(sender, receiver, chainIdFrom, chainIdTo, tokenName, amount, nonce));
     }
 
+    /**
+     * @notice Prefix a msg hash
+     *
+     * /    * @dev signMessage from ethers/hardhat dont put 32 at the end :
+     * @dev https://docs.ethers.org/v5/api/signer/#Signer-signMessage
+     * @dev return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n", hash));
+     *
+     * @param hash hash to prefix
+     * @return a hash: original hash prefixed
+     */
     function prefixed(bytes32 hash) public pure returns (bytes32) {
-        // signMessage from ethers/hardhat dont put 32 at the end :
-        //https://docs.ethers.org/v5/api/signer/#Signer-signMessage
-        // return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n", hash));
-
         return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
     }
 

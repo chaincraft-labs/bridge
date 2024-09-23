@@ -67,7 +67,7 @@ async function main() {
   // => operation params
   // signer
   const signerOption = process.env.SIGNER_OPTION;
-  let userWallet = await getSigner(signerOption, context.network);
+  let userWallet = await getSigner(hre, signerOption);
 
   // operation
   const paramsOption = process.env.PARAMS_OPTION;

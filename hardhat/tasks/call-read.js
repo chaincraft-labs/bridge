@@ -4,6 +4,8 @@ const { convertParamsStringToArray } = require("../helpers/functionHelpers");
 /**
  * @description Call any function of any contract that does not cause a change in state
  *
+ * The signer is the default signer
+ *
  * 'args': a string of parameters, separated by spaces.
  *   - It supports both individual arguments and array-like arguments enclosed in square brackets.
  *   - To insert an empty string among the arguments, use two consecutive spaces.
@@ -34,7 +36,7 @@ task("call-readFunc", "send a read transaction to the contract")
 
     // call the method
     try {
-      const result = await contract[taskArgs.method](...args);
+      const result = await contract[taskArgs.func](...args);
       console.log("Transaction result: ", result);
     } catch (error) {
       console.error("Error:", error);

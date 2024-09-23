@@ -3,8 +3,6 @@
 //             Networks used for deployments
 //
 ///////////////////////////////////////////////////////////////
-// const usedNetworks = ["allfeat", "localhost", "sepolia"];
-// const usedNetworks = ["gethTestnet", "allfeatLocal"];
 const usedNetworks = ["allfeat", "sepolia"];
 
 ////////////////////////////////////////////////////////////////
@@ -21,7 +19,6 @@ const usedTokens = ["ethereum", "allfeat", "mockedDai", "mockedUsdc"];
 ///////////////////////////////////////////////////////////////
 const forkPorts = {
   harmonie: "8540",
-  // @todo CHANGE NAME IN SCRIPT to harmonie testnet and get real mainnet id
   allfeat: "8541",
   sepolia: "8544",
   mainnet: "8545",

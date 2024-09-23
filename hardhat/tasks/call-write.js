@@ -1,7 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
 const { readLastDeployedAddress } = require("../helpers/fileHelpers");
 const { convertParamsStringToArray } = require("../helpers/functionHelpers");
-const { getSignerFromOption } = require("../utils/util");
+const { getSigner } = require("../utils/util");
 
 /**
  * @description Call any function of any contract that causes a change in state
@@ -23,11 +23,11 @@ task("call-writeFunc", "send a write transaction to the contract")
   )
   .addOptionalParam(
     "signer",
-    "Index of the accounts defined in hardhat config\n" +
+    "Index of accounts defined in hardhat config\n" +
       "                Optional - default: 0 (deployer/default signer)"
   )
   .setAction(async (taskArgs, hre) => {
-    let signer = await getSignerFromOption(hre, taskArgs.signer);
+    let signer = await getSigner(hre, taskArgs.signer);
 
     // get network name
     const network = hre.network.name;

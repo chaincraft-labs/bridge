@@ -140,7 +140,6 @@ contract BridgeBase is Utils {
     //
     //****************************************************************** */
 
-    // @todo add sig check
     /**
      * @notice Entry point to deposit tokens to the bridge (origin side)
      *
@@ -302,7 +301,6 @@ contract BridgeBase is Utils {
 
         bytes32 message = getPrefixedMessageHash(from, to, chainIdFrom, chainIdTo, tokenName, amount, nonce);
         if (recoverSigner(message, signature) != from) {
-            // console.logBytes(signature);
             revert BridgeBase__FinalizationFailed("wrong signature");
         }
 

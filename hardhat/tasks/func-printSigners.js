@@ -5,7 +5,7 @@ const { toStyle, display } = require("../helpers/loggingHelper");
 /**
  * @description Displays the addresses of the configured signers for the specified network
  */
-task("func-printSigners", "display the signers").setAction(
+task("func-printSigners", "display signers").setAction(
   async (taskArgs, hre) => {
     const signers = await hre.ethers.getSigners();
     const networkName = hre.network.name.replace("Fork", "");

@@ -5,7 +5,7 @@ const { display } = require("../helpers/loggingHelper");
  * @dev caller MUST BE the admin / deployer
  */
 task("func-mintBridgedToken", "mint amount of bridged token to user")
-  .addParam("to", "The address of the user")
+  .addParam("to", "The user's address")
   .addParam("token", "The address of the token to mint")
   .addParam("amount", "The amount to mint")
   .setAction(async (taskArgs, hre) => {

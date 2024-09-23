@@ -68,7 +68,7 @@ async function main() {
     )}`
   );
 
-  for (index in networksToSet) {
+  for (const index in networksToSet) {
     const networkToSet = networksToSet[index];
     const chainIdToSet = getChainIdByNetworkName(networkToSet);
     tokensDataToSet.names.push(tokenName);

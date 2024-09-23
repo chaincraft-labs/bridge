@@ -8,14 +8,10 @@
 # Parse the usedNetworks from the deploymentConfig.js file
 # Filter out comments, spaces, and quotes
 # Exclude the const usedNetworks = [ part
-OS=$(uname)
-if [[ "$OS" == "Darwin" ]]; then
-    # macOS
-    usedNetworks=$(awk '/^const usedNetworks = \[/{print}' constants/deploymentConfig.js | sed 's/.*const usedNetworks = \[\([^]]*\)\].*/\1/' | tr -d '",' | tr ' ' '\n')
-else
-    # Default WSL, linux
-    usedNetworks=$(grep -oP '^(?!//).*?(?<=const usedNetworks = \[\K)[^\]]*' constants/deploymentConfig.js | tr -d ' ' | tr -d '"' | tr ',' '\n')
-fi
+
+# compatible macOS/Wsl
+usedNetworks=$(awk '/^const usedNetworks = \[/{print}' constants/deploymentConfig.js | sed 's/.*const usedNetworks = \[\([^]]*\)\].*/\1/' | tr -d '",' | tr ' ' '\n')
+
 
 if [ -z "$usedNetworks" ]; then
     echo "No networks found in usedNetwork."

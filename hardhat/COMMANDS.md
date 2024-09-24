@@ -97,7 +97,7 @@ npx hardhat node --fork https://<rpc-url-to-fork> --port <port-to-use>
   It will use the port defined in `constants/deploymentConfig.js::forkPorts`
 
 ```shell
-npx hardhat start-node --network-to-fork sepolia
+npx hardhat start-node --networkToFork sepolia
 ```
 
 - To check process running and kill the node if not terminated with 'ctrl C':
@@ -349,7 +349,7 @@ Calls to specific functions.
 #### Display signer addresses configured for the network and their balances
 
 ```shell
-npx hardhat func-print-signers --network <network>
+npx hardhat func-printSigners --network <network>
 ```
 
 #### Get the token/ether balance of an address

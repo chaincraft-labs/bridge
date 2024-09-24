@@ -1,12 +1,19 @@
-# env variables
+constants/*.json
+
+# Env variables
 .env
 
 # Dependency directories
 node_modules
-coverage
-coverage.json
 typechain
 typechain-types
+
+# Stats
+coverage
+coverage.json
+**/gas_report*
+**/gas_output*
+**/gasReport*
 
 # Hardhat files
 cache

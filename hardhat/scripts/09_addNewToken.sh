@@ -21,7 +21,7 @@ nativeNetwork=$3
 # Filter out comments, spaces, and quotes
 # Exclude the const usedNetworks = [ part
 
-# compatible macOS/Wsl
+# compatible on macOs and wsl
 usedNetworks=$(awk '/^const usedNetworks = \[/{print}' constants/deploymentConfig.js | sed 's/.*const usedNetworks = \[\([^]]*\)\].*/\1/' | tr -d '",' | tr ' ' '\n')
 
 

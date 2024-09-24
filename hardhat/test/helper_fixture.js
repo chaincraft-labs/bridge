@@ -6,7 +6,6 @@ const { getRandomAddress, getMaxAddress } = require("../utils/util");
  * Mocked contracts and constants
  */
 
-// @todo rename (allfeat-> harmonie..., ethereum -> ether...) / Refactor mocked
 const mocked = {
   bridgedTokenName: "BridgedToken",
   bridgedTokenSymbol: "BTK",
@@ -44,7 +43,6 @@ const fixtures = {
       mocked.mockedTokenSymbol,
     ]);
     await mockedToken.waitForDeployment();
-    // console.log("mockedToken deployed to:", mockedToken.target);
     return { mockedToken, owner };
   },
 
@@ -52,7 +50,6 @@ const fixtures = {
     const [owner, otherAccount] = await ethers.getSigners();
     const storage = await hre.ethers.deployContract("Storage", ["ethereum"]);
     await storage.waitForDeployment();
-    // console.log("Storage deployed to:", storage.target);
     return { storage, owner, otherAccount };
   },
 
@@ -63,7 +60,6 @@ const fixtures = {
       mocked.bridgedTokenSymbol,
     ]);
     await bridgedToken.waitForDeployment();
-    // console.log("bridgedToken deployed to:", bridgedToken.target);
     return { bridgedToken, owner, otherAccount };
   },
 
@@ -71,12 +67,12 @@ const fixtures = {
     const [owner, otherAccount] = await ethers.getSigners();
     const storage = await hre.ethers.deployContract("Storage", ["ethereum"]);
     await storage.waitForDeployment();
-    // console.log("Storage deployed to:", storage.target);
+
     const factory = await hre.ethers.deployContract("TokenFactory", [
       storage.target,
     ]);
     await factory.waitForDeployment();
-    // console.log("factory deployed to:", factory.target);
+
     await storage.updateOperator("factory", factory.target);
 
     return { storage, factory, owner, otherAccount };
@@ -86,21 +82,18 @@ const fixtures = {
     const [owner, otherAccount] = await ethers.getSigners();
     const storage = await hre.ethers.deployContract("Storage", ["ETH"]);
     await storage.waitForDeployment();
-    // console.log("Storage deployed to:", storage.target);
 
     const factory = await hre.ethers.deployContract("TokenFactory", [
       storage.target,
     ]);
     await factory.waitForDeployment();
-    // console.log("factory deployed to:", factory.target);
 
     const vault = await hre.ethers.deployContract("Vault", [storage.target]);
     await vault.waitForDeployment();
-    // console.log("vault deployed to:", vault.target);
 
     await storage.updateOperator("factory", factory.target);
     await storage.updateOperator("vault", vault.target);
-    //TESTING PURPOSE
+    // TESTING PURPOSE: we mock the bridge to be authorized to call the relayer
     await storage.updateOperator("bridge", owner.address);
 
     const mockedToken = await hre.ethers.deployContract("MockedToken", [
@@ -109,7 +102,6 @@ const fixtures = {
       mocked.mockedTokenSymbol,
     ]);
     await mockedToken.waitForDeployment();
-    // console.log("mockedToken deployed to:", mockedToken.target);
 
     return { storage, factory, vault, mockedToken, owner, otherAccount };
   },
@@ -118,21 +110,18 @@ const fixtures = {
     const [owner, otherAccount] = await ethers.getSigners();
     const storage = await hre.ethers.deployContract("Storage", ["ethereum"]);
     await storage.waitForDeployment();
-    // console.log("Storage deployed to:", storage.target);
 
     const factory = await hre.ethers.deployContract("TokenFactory", [
       storage.target,
     ]);
     await factory.waitForDeployment();
-    // console.log("factory deployed to:", factory.target);
 
     const vault = await hre.ethers.deployContract("Vault", [storage.target]);
     await vault.waitForDeployment();
-    // console.log("vault deployed to:", vault.target);
 
     await storage.updateOperator("factory", factory.target);
     await storage.updateOperator("vault", vault.target);
-    //TESTING PURPOSE
+    //TESTING PURPOSE we mock the bridge to be authorized to call the relayer
     await storage.updateOperator("bridge", owner.address);
 
     const mockedToken = await hre.ethers.deployContract("MockedToken", [
@@ -141,7 +130,6 @@ const fixtures = {
       mocked.mockedTokenSymbol,
     ]);
     await mockedToken.waitForDeployment();
-    // console.log("mockedToken deployed to:", mockedToken.target);
 
     await storage.addTokenNameToList(mocked.bridgedTokenName);
     await factory.createToken(
@@ -171,29 +159,24 @@ const fixtures = {
     const [owner, otherAccount] = await ethers.getSigners();
     const storage = await hre.ethers.deployContract("Storage", ["ethereum"]);
     await storage.waitForDeployment();
-    // console.log("Storage deployed to:", storage.target);
 
     const factory = await hre.ethers.deployContract("TokenFactory", [
       storage.target,
     ]);
     await factory.waitForDeployment();
-    // console.log("factory deployed to:", factory.target);
 
     const vault = await hre.ethers.deployContract("Vault", [storage.target]);
     await vault.waitForDeployment();
-    // console.log("vault deployed to:", vault.target);
 
     const bridge = await hre.ethers.deployContract("BridgeBase", [
       storage.target,
     ]);
     await bridge.waitForDeployment();
-    // console.log("bridge deployed to:", bridge.target);
 
     const relayer = await hre.ethers.deployContract("RelayerBase", [
       storage.target,
     ]);
     await relayer.waitForDeployment();
-    // console.log("relayer deployed to:", relayer.target);
 
     await storage.updateOperator("factory", factory.target);
     await storage.updateOperator("vault", vault.target);
@@ -214,7 +197,6 @@ const fixtures = {
       31337,
       mockedToken.target
     );
-    // console.log("mockedToken deployed to:", mockedToken.target);
     // IMPORTANT: owner has the total supply of the mockedToken
 
     await storage.addTokenNameToList(mocked.bridgedTokenName);

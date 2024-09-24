@@ -7,7 +7,8 @@ import "../BridgedToken.sol";
 
 /**
  * @title MockedToken
- * @notice ONLY USED FOR DEV AND TEST CONTEXT
+ * @notice ONLY USED FOR DEV OR TEST CONTEXT
+
  * @dev Used to mock DAI and other tokens on their native chain
  * @dev All the supply is given to 'supplyHolder' at creation
  */

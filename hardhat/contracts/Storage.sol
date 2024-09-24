@@ -96,171 +96,358 @@ contract Storage {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
-    //                              KEY GENERATORS
+    //                                   KEY GENERATORS
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * @notice Computes a storage key by hashing the provided string 'key'.
+     *
+     * @dev This function uses the keccak256 hashing algorithm to generate a unique storage key.
+     *
+     * @param key The string representation of the key to store in the eternal storage.
+     * @return bytes32 The hashed representation of the storage key.
+     */
     function getKey(string memory key) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(key));
     }
 
+    /**
+     * @notice Computes a hash of a composite key formed by the provided 'key' and an Ethereum address.
+     *
+     * @dev This function combines the string 'key' and the address into a single value,
+     *      then hashes it using keccak256 to create a unique identifier for that specific key and address combination.
+     *
+     * @param key The string representation of the key to hash.
+     * @param addr The Ethereum address to combine with the key for unique identification.
+     * @return bytes32 The hashed representation of the composite key (key + address).
+     */
     function getKey(string memory key, address addr) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(key, addr));
     }
 
+    /**
+     * @notice Computes a hash of a composite key formed by the provided 'key' and a uint256 number.
+     *
+     * @dev This function combines the string 'key' and the number into a single value,
+     *      then hashes it using keccak256 to create a unique identifier for that specific key and number combination.
+     *
+     * @param key The string representation of the key to hash.
+     * @param number The uint256 number to combine with the key for unique identification.
+     * @return bytes32 The hashed representation of the composite key (key + number).
+     */
     function getKey(string memory key, uint256 number) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(key, number));
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
-    //                              DATA GETTERS BY TYPE
+    //                                   DATA GETTERS BY TYPE
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * @notice Retrieves a uint256 value from storage using the specified key.
+     *
+     * @param key The bytes32 key associated with the uint256 value.
+     * @return uint256 The stored uint256 value.
+     */
     function getUint(bytes32 key) public view returns (uint256) {
         return s_uintStorage[key];
     }
 
+    /**
+     * @notice Retrieves an address value from storage using the specified key.
+     *
+     * @param key The bytes32 key associated with the address value.
+     * @return address The stored address value.
+     */
     function getAddress(bytes32 key) public view returns (address) {
         return s_addressStorage[key];
     }
 
     /**
-     * @notice Get the address value for 'key'
-     * @dev duplicate of getAddress
-     * @dev temporary fix due conflict with ethers.getAddress() in tests/units/01_Storage.t.js
+     * @notice Retrieves the address value for the specified key.
+     *
+     * @dev This function is a duplicate of getAddress. It is a temporary fix due to a conflict with ethers.getAddress()
+     *      in tests/units/01_Storage.t.js.
+     *
+     * @param key The bytes32 key associated with the address value.
+     * @return address The stored address value.
      */
     function getAddr(bytes32 key) public view returns (address) {
         return getAddress(key);
     }
 
+    /**
+     * @notice Retrieves a boolean value from storage using the specified key.
+     *
+     * @param key The bytes32 key associated with the boolean value.
+     * @return bool The stored boolean value.
+     */
     function getBool(bytes32 key) public view returns (bool) {
         return s_boolStorage[key];
     }
 
+    /**
+     * @notice Retrieves a bytes array value from storage using the specified key.
+     *
+     * @param key The bytes32 key associated with the bytes value.
+     * @return bytes The stored bytes value.
+     */
     function getBytes(bytes32 key) public view returns (bytes memory) {
         return s_bytesStorage[key];
     }
 
+    /**
+     * @notice Retrieves a string value from storage using the specified key.
+     *
+     * @param key The bytes32 key associated with the string value.
+     * @return string The stored string value.
+     */
     function getString(bytes32 key) public view returns (string memory) {
         return s_stringStorage[key];
     }
 
+    /**
+     * @notice Retrieves a bytes32 value from storage using the specified key.
+     *
+     * @param key The bytes32 key associated with the bytes32 value.
+     * @return bytes32 The stored bytes32 value.
+     */
     function getBytes32(bytes32 key) public view returns (bytes32) {
         return s_bytes32Storage[key];
     }
 
+    /**
+     * @notice Retrieves an array of uint256 values from storage using the specified key.
+     *
+     * @param key The bytes32 key associated with the uint256 array.
+     * @return uint256[] The stored array of uint256 values.
+     */
     function getUintArray(bytes32 key) public view returns (uint256[] memory) {
         return s_uintArrayStorage[key];
     }
 
+    /**
+     * @notice Retrieves an array of address values from storage using the specified key.
+     *
+     * @param key The bytes32 key associated with the address array.
+     * @return address[] The stored array of address values.
+     */
     function getAddressArray(bytes32 key) public view returns (address[] memory) {
         return s_addressArrayStorage[key];
     }
 
+    /**
+     * @notice Retrieves an array of string values from storage using the specified key.
+     *
+     * @param key The bytes32 key associated with the string array.
+     * @return string[] The stored array of string values.
+     */
     function getStringArray(bytes32 key) public view returns (string[] memory) {
         return s_stringArrayStorage[key];
     }
 
+    /**
+     * @notice Retrieves a specific value from a uint256 array using the specified key and index.
+     *
+     * @param key The bytes32 key associated with the uint256 array.
+     * @param index The index of the value to retrieve.
+     * @return uint256 The value from the uint256 array at the specified index.
+     */
     function getUintArrayValue(bytes32 key, uint256 index) public view returns (uint256) {
         return s_uintArrayStorage[key][index];
     }
 
+    /**
+     * @notice Retrieves a specific value from an address array using the specified key and index.
+     *
+     * @param key The bytes32 key associated with the address array.
+     * @param index The index of the value to retrieve.
+     * @return address The value from the address array at the specified index.
+     */
     function getAddressArrayValue(bytes32 key, uint256 index) public view returns (address) {
         return s_addressArrayStorage[key][index];
     }
 
+    /**
+     * @notice Retrieves a specific value from a string array using the specified key and index.
+     *
+     * @param key The bytes32 key associated with the string array.
+     * @param index The index of the value to retrieve.
+     * @return string The value from the string array at the specified index.
+     */
     function getStringArrayValue(bytes32 key, uint256 index) public view returns (string memory) {
         return s_stringArrayStorage[key][index];
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
-    //                              DATA SETTERS BY TYPE
-    //                          ONLY admin can access setters
+    //                                   DATA SETTERS BY TYPE
+    //                               ONLY admin can access setters
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /* *****************SIMPLE VALUE ************************** */
+
+    /**
+     * @notice Sets an address value in storage for the specified key.
+     *
+     * @param key The bytes32 key to associate with the address value.
+     * @param value The address value to store.
+     */
     function setAddress(bytes32 key, address value) public {
-        if (!_isAdmin() && !_isFactory()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         s_addressStorage[key] = value;
         emit Storage__AddressDataChanged(key, value);
     }
 
+    /**
+     * @notice Sets a uint256 value in storage for the specified key.
+     *
+     * @param key The bytes32 key to associate with the uint256 value.
+     * @param value The uint256 value to store.
+     */
     function setUint(bytes32 key, uint256 value) public {
-        _checkAccess();
+        _checkAdminAccess();
         s_uintStorage[key] = value;
         emit Storage__UintDataChanged(key, value);
     }
 
+    /**
+     * @notice Sets a boolean value in storage for the specified key.
+     *
+     * @param key The bytes32 key to associate with the boolean value.
+     * @param value The boolean value to store.
+     */
     function setBool(bytes32 key, bool value) public {
-        _checkAccess();
+        _checkAdminAccess();
         s_boolStorage[key] = value;
         emit Storage__BoolDataChanged(key, value);
     }
 
+    /**
+     * @notice Sets a bytes array value in storage for the specified key.
+     *
+     * @param key The bytes32 key to associate with the bytes value.
+     * @param value The bytes value to store.
+     */
     function setBytes(bytes32 key, bytes memory value) public {
-        _checkAccess();
+        _checkAdminAccess();
         s_bytesStorage[key] = value;
         emit Storage__BytesDataChanged(key, value);
     }
 
+    /**
+     * @notice Sets a string value in storage for the specified key.
+     *
+     * @param key The bytes32 key to associate with the string value.
+     * @param value The string value to store.
+     */
     function setString(bytes32 key, string memory value) public {
-        _checkAccess();
+        _checkAdminAccess();
         s_stringStorage[key] = value;
         emit Storage__StringDataChanged(key, value);
     }
 
+    /**
+     * @notice Sets a bytes32 value in storage for the specified key.
+     *
+     * @param key The bytes32 key to associate with the bytes32 value.
+     * @param value The bytes32 value to store.
+     */
     function setBytes32(bytes32 key, bytes32 value) public {
-        _checkAccess();
+        _checkAdminAccess();
         s_bytes32Storage[key] = value;
         emit Storage__Bytes32_DataChanged(key, value);
     }
-    /* ***************** ARRAYS ************************** */
 
+    /* ***************** ARRAYS ************************** */
+    /**
+     * @notice Sets an array of uint256 values in storage for the specified key.
+     *
+     * @param key The bytes32 key to associate with the uint256 array.
+     * @param array The array of uint256 values to store.
+     */
     function setUintArray(bytes32 key, uint256[] memory array) public {
-        _checkAccess();
+        _checkAdminAccess();
         s_uintArrayStorage[key] = array;
         emit Storage__UintArrayChanged(key, array);
     }
 
+    /**
+     * @notice Sets an array of address values in storage for the specified key.
+     *
+     * @param key The bytes32 key to associate with the address array.
+     * @param array The array of address values to store.
+     */
     function setAddressArray(bytes32 key, address[] memory array) public {
-        _checkAccess();
+        _checkAdminAccess();
         s_addressArrayStorage[key] = array;
         emit Storage__AddressArrayChanged(key, array);
     }
 
+    /**
+     * @notice Sets an array of string values in storage for the specified key.
+     *
+     * @param key The bytes32 key to associate with the string array.
+     * @param array The array of string values to store.
+     */
     function setStringArray(bytes32 key, string[] memory array) public {
-        _checkAccess();
+        _checkAdminAccess();
         s_stringArrayStorage[key] = array;
         emit Storage__StringArrayChanged(key, array);
     }
 
     /* *****************ARRAY VALUE ************************** */
+
+    /**
+     * @notice Adds a value to a uint256 array stored under the specified key.
+     *
+     * @param key The bytes32 key associated with the uint256 array.
+     * @param value The uint256 value to add to the array.
+     */
     function addToUintArray(bytes32 key, uint256 value) public {
-        _checkAccess();
+        _checkAdminAccess();
         uint256[] storage array = s_uintArrayStorage[key];
         array.push(value);
         emit Storage__UintArrayDataChanged(key, array.length - 1, value);
     }
 
+    /**
+     * @notice Adds a value to an address array stored under the specified key.
+     *
+     * @param key The bytes32 key associated with the address array.
+     * @param value The address value to add to the array.
+     */
     function addToAddressArray(bytes32 key, address value) public {
-        _checkAccess();
+        _checkAdminAccess();
         address[] storage array = s_addressArrayStorage[key];
         array.push(value);
         emit Storage__AddressArrayDataChanged(key, array.length - 1, value);
     }
 
+    /**
+     * @notice Adds a value to a string array stored under the specified key.
+     *
+     * @param key The bytes32 key associated with the string array.
+     * @param value The string value to add to the array.
+     */
     function addToStringArray(bytes32 key, string calldata value) public {
-        _checkAccess();
+        _checkAdminAccess();
         string[] storage array = s_stringArrayStorage[key];
         array.push(value);
         emit Storage__StringArrayDataChanged(key, array.length - 1, value);
     }
 
+    /**
+     * @notice Updates a specific value in a uint256 array stored under the specified key.
+     *
+     * @param key The bytes32 key associated with the uint256 array.
+     * @param index The index of the value to update.
+     * @param value The new uint256 value to set at the specified index.
+     * @dev Reverts if the index is out of bounds.
+     */
     function updateUintArray(bytes32 key, uint256 index, uint256 value) public {
-        _checkAccess();
+        _checkAdminAccess();
         if (index >= s_uintArrayStorage[key].length) {
             revert Storage__InvalidArrayLengthInParams("updateUintArray");
         }
@@ -268,19 +455,35 @@ contract Storage {
         emit Storage__UintArrayDataChanged(key, index, value);
     }
 
+    /**
+     * @notice Updates a specific value in an address array stored under the specified key.
+     *
+     * @param key The bytes32 key associated with the address array.
+     * @param index The index of the value to update.
+     * @param value The new address value to set at the specified index.
+     * @dev Reverts if the index is out of bounds.
+     */
     function updateAddressArray(bytes32 key, uint256 index, address value) public {
-        _checkAccess();
-        if (index >= s_uintArrayStorage[key].length) {
-            revert Storage__InvalidArrayLengthInParams("updateUintArray");
+        _checkAdminAccess();
+        if (index >= s_addressArrayStorage[key].length) {
+            revert Storage__InvalidArrayLengthInParams("updateAddressArray");
         }
         s_addressArrayStorage[key][index] = value;
         emit Storage__AddressArrayDataChanged(key, index, value);
     }
 
+    /**
+     * @notice Updates a specific value in a string array stored under the specified key.
+     *
+     * @param key The bytes32 key associated with the string array.
+     * @param index The index of the value to update.
+     * @param value The new string value to set at the specified index.
+     * @dev Reverts if the index is out of bounds.
+     */
     function updateStringArray(bytes32 key, uint256 index, string calldata value) public {
-        _checkAccess();
-        if (index >= s_uintArrayStorage[key].length) {
-            revert Storage__InvalidArrayLengthInParams("updateUintArray");
+        _checkAdminAccess();
+        if (index >= s_stringArrayStorage[key].length) {
+            revert Storage__InvalidArrayLengthInParams("updateStringArray");
         }
         s_stringArrayStorage[key][index] = value;
         emit Storage__StringArrayDataChanged(key, index, value);
@@ -288,19 +491,25 @@ contract Storage {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
-    //                              ROLES HELPERS
+    //                                      ROLES HELPERS
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
     /**
-     * @notice update address of an operator (role)
+     * @notice Updates the address of an operator associated with a specific role.
+     *
+     * @param role The role of the operator to update.
+     * @param newOperator The new address to assign to the operator's role.
      */
     function updateOperator(string calldata role, address newOperator) public {
         setAddress(getKey(role), newOperator);
     }
 
     /**
-     * @notice update the addresses of a set of operators
+     * @notice Updates the addresses of a batch of operators associated with their roles.
+     *
+     * @param roles An array of roles corresponding to the operators to update.
+     * @param newOperators An array of new operator addresses to assign to the respective roles.
+     * @dev Reverts if the lengths of roles and newOperators arrays do not match.
      */
     function batchUpdateOperators(string[] calldata roles, address[] calldata newOperators) public {
         if (roles.length != newOperators.length) {
@@ -315,14 +524,20 @@ contract Storage {
     }
 
     /**
-     * @notice get the addresses of an operator
+     * @notice Retrieves the address of an operator associated with a specific role.
+     *
+     * @param role The role of the operator to retrieve.
+     * @return address The address of the operator associated with the specified role.
      */
     function getOperator(string memory role) public view returns (address) {
         return getAddress(getKey(role));
     }
 
     /**
-     * @notice Get the addresses of a set of operators
+     * @notice Retrieves the addresses of a batch of operators associated with their roles.
+     *
+     * @param roles An array of roles for which to retrieve operator addresses.
+     * @return address[] An array of addresses corresponding to the specified roles.
      */
     function getOperators(string[] memory roles) public view returns (address[] memory) {
         address[] memory operators = new address[](roles.length);
@@ -336,14 +551,23 @@ contract Storage {
     }
 
     /**
-     * @notice Check that 'role' is assigned to 'address'
+     * @notice Checks if a specified role is assigned to a given address.
+     *
+     * @param role The role to check.
+     * @param addr The address to verify against the specified role.
+     * @return bool True if the address is assigned to the specified role, false otherwise.
      */
     function isRole(string calldata role, address addr) public view returns (bool) {
         return getOperator(role) == addr;
     }
 
     /**
-     * @notice Check that 'roles' are assigned to operators addresses
+     * @notice Checks if a batch of roles are assigned to their corresponding operator addresses.
+     *
+     * @param roles An array of roles to check.
+     * @param operators An array of addresses to verify against the specified roles.
+     * @return bool True if all roles are correctly assigned to their respective addresses, false otherwise.
+     * @dev Reverts if the lengths of roles and operators arrays do not match.
      */
     function checkOperators(string[] memory roles, address[] memory operators) public view returns (bool) {
         if (roles.length != operators.length) {
@@ -359,20 +583,22 @@ contract Storage {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
-    //                              TOKEN NAMES AND CHAIN IDS
+    //                                          TOKEN NAMES AND CHAIN IDS
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /*
-     * This functions have security purpose by forcing 2 step actions when adding a token
-     * @todo REMOVE as not responsability of the contract
-     */
+    * This function has security purposes by forcing 2-step actions when adding a token.
+    */
 
     /**
-     * @notice add a token name to the list of authorized tokens
+     * @notice Adds a token name to the list of authorized tokens.
+     *
+     * @param tokenName The name of the token to add to the authorized list.
+     * @dev Reverts if the token name is already in the list.
      */
     function addTokenNameToList(string memory tokenName) public {
-        _checkAccess();
+        _checkAdminAccess();
         if (isTokenNameInList(tokenName)) {
             revert Storage__TokenAlreadyInList(tokenName);
         }
@@ -383,7 +609,9 @@ contract Storage {
     }
 
     /**
-     * @notice add a batch of token name to the list of authorized tokens
+     * @notice Adds a batch of token names to the list of authorized tokens.
+     *
+     * @param tokenNames An array of token names to add to the authorized list.
      */
     function batchAddTokenNamesToList(string[] calldata tokenNames) external {
         for (uint256 i; i < tokenNames.length;) {
@@ -395,14 +623,19 @@ contract Storage {
     }
 
     /**
-     * @notice get the list of authorized tokens
+     * @notice Retrieves the list of authorized token names.
+     *
+     * @return string[] An array of authorized token names.
      */
     function getTokenNamesList() public view returns (string[] memory) {
         return getStringArray(getKey("tokenNamesList"));
     }
 
     /**
-     * @notice check if token is in the list of authorized tokens
+     * @notice Checks if a token name is in the list of authorized tokens.
+     *
+     * @param tokenName The name of the token to check.
+     * @return bool True if the token name is in the authorized list, false otherwise.
      */
     function isTokenNameInList(string memory tokenName) public view returns (bool) {
         string[] memory list = getStringArray(getKey("tokenNamesList"));
@@ -415,10 +648,13 @@ contract Storage {
     }
 
     /**
-     * @notice add a chainId to the list of authorized chains
+     * @notice Adds a chain ID to the list of authorized chains.
+     *
+     * @param chainId The ID of the chain to add to the authorized list.
+     * @dev Reverts if the chain ID is already in the list.
      */
     function addChainIdToList(uint256 chainId) public {
-        _checkAccess();
+        _checkAdminAccess();
         if (isChainIdInList(chainId)) {
             revert Storage__ChainIdAlreadyInList(chainId);
         }
@@ -429,7 +665,9 @@ contract Storage {
     }
 
     /**
-     * @notice add a batch of chainId to the list of authorized chains
+     * @notice Adds a batch of chain IDs to the list of authorized chains.
+     *
+     * @param chainIds An array of chain IDs to add to the authorized list.
      */
     function batchAddChainIdsToList(uint256[] calldata chainIds) external {
         for (uint256 i; i < chainIds.length;) {
@@ -441,20 +679,28 @@ contract Storage {
     }
 
     /**
-     * @notice get the list of authorized chain
+     * @notice Retrieves the list of authorized chain IDs.
+     *
+     * @return uint256[] An array of authorized chain IDs.
      */
     function getChainIdsList() public view returns (uint256[] memory) {
         return getUintArray(getKey("chainIdsList"));
     }
 
     /**
-     * @notice check if the chainId is in the list of authorized chain
+     * @notice Checks if a specified chain ID is in the list of authorized chains.
+     *
+     * @param chainId The chain ID to check.
+     * @return bool True if the chain ID is in the authorized list, false otherwise.
      */
     function isChainIdInList(uint256 chainId) public view returns (bool) {
         uint256[] memory list = getUintArray(getKey("chainIdsList"));
-        for (uint256 i = 0; i < list.length; i++) {
+        for (uint256 i = 0; i < list.length;) {
             if (list[i] == chainId) {
                 return true;
+            }
+            unchecked {
+                ++i;
             }
         }
         return false;
@@ -477,14 +723,24 @@ contract Storage {
      */
 
     /**
-     * @notice get the address of 'tokenName' on 'chainId'
+     * @notice Retrieves the address of a specified token on a specific chain.
+     *
+     * @param tokenName The name of the token to look up.
+     * @param chainId The ID of the chain on which to find the token's address.
+     * @return address The address of the token on the specified chain.
      */
     function getTokenAddressByChainId(string memory tokenName, uint256 chainId) public view returns (address) {
         return getAddress(getKey(tokenName, chainId));
     }
 
     /**
-     * @notice get the addresses of 'tokenName' on origin and destination 'chainId'
+     * @notice Retrieves the addresses of a specified token on both the origin and destination chains.
+     *
+     * @param tokenName The name of the token to look up.
+     * @param originChainId The ID of the origin chain.
+     * @param destinationChainId The ID of the destination chain.
+     * @return originChainAddress The address of the token on the origin chain.
+     * @return destinationChainAddress The address of the token on the destination chain.
      */
     function getTokenAddressesByChainIds(string memory tokenName, uint256 originChainId, uint256 destinationChainId)
         public
@@ -496,8 +752,12 @@ contract Storage {
     }
 
     /**
-     * @notice add a new address and chainId for 'tokenName'
-     * @dev address shouldn't exist before
+     * @notice Adds a new address and chain ID for a specified token name.
+     *
+     * @param tokenName The name of the token to which the address should be assigned.
+     * @param chainId The ID of the chain on which the token address is being added.
+     * @param tokenAddress The address of the token to add.
+     * @dev Reverts if the token name or chain ID is not in the authorized lists or if the address is already set.
      */
     function addNewTokenAddressByChainId(string memory tokenName, uint256 chainId, address tokenAddress) public {
         if (!isTokenNameInList(tokenName)) {
@@ -513,8 +773,12 @@ contract Storage {
     }
 
     /**
-     * @notice update the address of 'tokenName' on 'chainId'
-     * @dev address should exist before
+     * @notice Updates the address of a specified token on a specific chain.
+     *
+     * @param tokenName The name of the token for which the address should be updated.
+     * @param chainId The ID of the chain on which the token address is being updated.
+     * @param tokenAddress The new address of the token.
+     * @dev Reverts if the token name or chain ID is not in the authorized lists or if the old address does not exist.
      */
     function updateTokenAddressByChainId(string memory tokenName, uint256 chainId, address tokenAddress) public {
         address oldAddress = getTokenAddressByChainId(tokenName, chainId);
@@ -531,17 +795,19 @@ contract Storage {
     }
 
     /**
-     * @notice add a set of new addresses and chainIds for 'tokenNames'
-     * @dev addresses shouldn't exist before
+     * @notice Adds a set of new addresses and chain IDs for specified token names.
+     *
+     * @param tokenNames An array of token names to which addresses should be assigned.
+     * @param chainIds An array of chain IDs corresponding to the token names.
+     * @param tokenAddresses An array of addresses to assign to the respective token names and chain IDs.
+     * @dev Reverts if the lengths of the input arrays do not match.
      */
     function batchAddNewTokensAddressesByChainId(
         string[] memory tokenNames,
         uint256[] memory chainIds,
         address[] memory tokenAddresses
     ) public {
-        if (!_isAdmin() && !_isFactory()) {
-            revert Storage__NotAdmin();
-        }
+        _checkAccess();
         if (tokenNames.length != chainIds.length || chainIds.length != tokenAddresses.length) {
             revert Storage__InvalidArrayLengthInParams("batchAddTokenAddressessByChainId");
         }
@@ -555,25 +821,25 @@ contract Storage {
     }
 
     /**
-     * @notice check if tokenName on chainId is authorized
-     * @dev address shouldn't exist before
+     * @notice Checks if a specified token name on a specific chain ID is authorized.
+     *
+     * @param tokenName The name of the token to check.
+     * @param chainId The ID of the chain to check against.
+     * @return bool True if the token is authorized on the specified chain, false otherwise.
      */
     function isAuthorizedTokenByChainId(string memory tokenName, uint256 chainId) public view returns (bool) {
         return getTokenAddressByChainId(tokenName, chainId) != address(0);
     }
 
-    //****************************************************************** */
-    //
+    //****************************************************************** //
     //              PRIVATE FUNCTIONS
-    //
-    //****************************************************************** */
+    //****************************************************************** //
 
-    // @todo ADD separate setters
     /**
-     * @notice Sets the initial values. Draft version to ease dev/test
+     * @notice Sets initial values for the contract, including default parameters.
      *
-     * @dev set default params (fees, block confimration..)
-     * @dev TO REFACTOR when block checks, fees management implemented
+     * @dev This is a draft version to ease development and testing.
+     *      To be refactored when block checks and fees management are implemented.
      */
     function _setInitialValues() private {
         // blockToWait for confirmation on chainId
@@ -592,6 +858,7 @@ contract Storage {
         setUint(getKey("opFees", 31337), opFees); //....... hardhat
         setUint(getKey("opFees", 440), opFees); //......... allfeatLocal
         setUint(getKey("opFees", 1337), opFees); //........ geth
+
         // protocol fees
         uint256 protocolPercentFees = 1000; // 0.1%
         setUint(getKey("protocolPercentFees", 1), protocolPercentFees); //....... eth
@@ -603,31 +870,55 @@ contract Storage {
     }
 
     /**
-     * @notice checks sender is the admin
+     * @notice Checks if the sender is the admin.
+     *
+     * @return bool True if the sender is the admin, false otherwise.
      */
     function _isAdmin() private view returns (bool) {
         return getOperator("admin") == msg.sender;
     }
 
     /**
-     * @notice checks sender is the factory
+     * @notice Checks if the sender is the factory.
+     *
+     * @return bool True if the sender is the factory, false otherwise.
      */
     function _isFactory() private view returns (bool) {
         return getOperator("factory") == msg.sender;
     }
 
     /**
-     * @notice checks sender is admin
+     * @notice Checks that the sender has admin access.
+     *
+     * @dev Reverts if the sender is not the admin.
      */
-    function _checkAccess() private view {
+    function _checkAdminAccess() private view {
         if (!_isAdmin()) {
             revert Storage__NotAdmin();
         }
     }
 
+    /**
+     * @notice Checks that the sender has access (admin or factory).
+     *
+     * @dev Reverts if the sender is neither the admin nor the factory.
+     */
+    function _checkAccess() private view {
+        if (!_isAdmin() && !_isFactory()) {
+            revert Storage__NotAdmin();
+        }
+    }
+
+    /**
+     * @notice Sets the token address for a specified token name and chain ID.
+     *
+     * @param tokenName The name of the token for which the address is being set.
+     * @param chainId The ID of the chain on which the token address is being set.
+     * @param tokenAddress The address of the token to set.
+     * @dev Emits a Storage__TokenAddressSet event upon success.
+     */
     function _setTokenAddressByChainId(string memory tokenName, uint256 chainId, address tokenAddress) private {
         setAddress(getKey(tokenName, chainId), tokenAddress);
-
         emit Storage__TokenAddressSet(tokenName, chainId, tokenAddress);
     }
 }

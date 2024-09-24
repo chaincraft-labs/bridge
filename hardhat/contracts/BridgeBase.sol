@@ -124,9 +124,6 @@ contract BridgeBase is Utils {
     //              CONSTRUCTOR / INITIALIZATION
     //
     //****************************************************************** */
-
-    // @review REMOVED RELAYER FROM INPUT => so refactor scripts
-    // old: constructor(address storageAddress, address relayer)
     constructor(address storageAddress) {
         s_storage = storageAddress;
 
@@ -320,6 +317,15 @@ contract BridgeBase is Utils {
 
     //**************************** CANCELING *********************************/
 
+    /**
+     * @notice Cancels a bridge deposit for a user.
+     *
+     * @dev This function can only be called by users with the "admin" or "bridge" roles.
+     *
+     * @param user The address of the user whose bridge deposit is to be canceled.
+     * @param tokenFrom The address of the token being canceled.
+     * @param amount The amount of tokens to be canceled.
+     */
     function cancelBridgeDeposit(address user, address tokenFrom, uint256 amount)
         external
         onlyRoles("admin", "bridge")
@@ -333,6 +339,12 @@ contract BridgeBase is Utils {
     //
     //****************************************************************** */
 
+    /**
+     * @notice Gets the next nonce for a specified user.
+     *
+     * @param user The address of the user whose nonce is to be retrieved.
+     * @return uint256 The next nonce associated with the user.
+     */
     function getNewUserNonce(address user) external view returns (uint256) {
         return s_nextUserNonce[user];
     }
@@ -344,7 +356,9 @@ contract BridgeBase is Utils {
     //****************************************************************** */
 
     /**
-     * @notice returns instance of Vault contract
+     * @notice Returns an instance of the RelayerBase contract.
+     *
+     * @return RelayerBase The instance of the RelayerBase contract.
      */
     function _relayer() private view returns (RelayerBase) {
         Storage store = Storage(s_storage);
@@ -353,7 +367,9 @@ contract BridgeBase is Utils {
     }
 
     /**
-     * @notice returns instance of Vault contract
+     * @notice Returns an instance of the Vault contract.
+     *
+     * @return Vault The instance of the Vault contract.
      */
     function _vault() private view returns (Vault) {
         Storage store = Storage(s_storage);
@@ -362,7 +378,9 @@ contract BridgeBase is Utils {
     }
 
     /**
-     * @notice returns instance of Vault contract and its address
+     * @notice Returns an instance of the Vault contract and its address.
+     *
+     * @return (Vault, address) The instance of the Vault contract and its address.
      */
     function _getVaultData() private view returns (Vault, address) {
         Storage store = Storage(s_storage);
@@ -371,7 +389,9 @@ contract BridgeBase is Utils {
     }
 
     /**
-     * @notice returns instance of TokenFactory contract
+     * @notice Returns an instance of the TokenFactory contract.
+     *
+     * @return TokenFactory The instance of the TokenFactory contract.
      */
     function _factory() private view returns (TokenFactory) {
         Storage store = Storage(s_storage);
@@ -380,26 +400,32 @@ contract BridgeBase is Utils {
     }
 
     /**
-     * @notice Helper for native coin deposit
-     * @dev It transfers msg.value to vault
-     * @dev Require: msg.value > 0
+     * @notice Helper function for native coin deposit.
+     *
+     * @dev This function transfers msg.value to the vault.
+     * @dev Requires: msg.value > 0.
      */
     function _depositNative() private {
         if (msg.value == 0) {
             revert BridgeBase__DepositFailed("Native needs non zero value");
         }
-        //
+
         if (msg.sender.balance < msg.value) {
             revert BridgeBase__DepositFailed("Insufficient balance");
         }
+
         _vault().depositNative{value: msg.value}(msg.sender);
     }
 
     /**
-     * @notice Helper for token deposit
-     * @dev It transfers msg.value to vault
-     * @dev Require: msg.value == 0
-     * @dev Require: allowance for vault >= amount prior to call
+     * @notice Helper function for token deposit.
+     *
+     * @dev This function transfers tokens to the vault.
+     *
+     * @dev Requires: msg.value == 0.
+     * @dev Requires: allowance for vault >= amount prior to call.
+     * @param tokenFrom The address of the token being deposited.
+     * @param amount The amount of tokens to deposit.
      */
     function _depositToken(address tokenFrom, uint256 amount) private {
         (Vault vault, address vaultAddress) = _getVaultData();
@@ -407,6 +433,7 @@ contract BridgeBase is Utils {
         if (msg.value > 0) {
             revert BridgeBase__DepositFailed("Token needs zero value");
         }
+
         if (ERC20(tokenFrom).balanceOf(msg.sender) < amount) {
             revert BridgeBase__DepositFailed("Insufficient balance");
         }

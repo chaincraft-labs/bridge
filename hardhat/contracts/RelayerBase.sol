@@ -17,11 +17,23 @@ error RelayerBase__UserOperationsEmpty();
 error RelayerBase__InvalidOperationHash();
 
 /**
- * @notice Base contract comunicating with the oracle/server
- * It's in charge to emit the bridge event to the oracle/server and maanage tx status
- * @dev register is called to register a new bridge tx
- * @dev confirm is called to confirm a tx when called by the oracle/server (to forward fees event)
- * @dev when these 2 conditions are met the bridge event is emitted
+ * @notice Base contract communicating with the oracle/server
+ * It's in charge to emit the bridge event to the oracle/server and manage tx status
+ *
+ * @dev origin side:
+ * @dev 1. createOperation is called by the bridge to register a new bridge tx
+ * @dev 4. receiveFeesLockConfirmation is called to confirm fees deposit
+ * @dev 5. when these 2 conditions are met confirmFeesLockedAndDepositConfirmed is called the main event is emitted
+ * @dev 7. receivedFinalizedOperation is called to confirm the operation is done on destination
+ *
+ * @dev destination side:
+ * @dev 2. lockDestinationFees is called by the bridge when fees are deposited
+ * @dev 3. sendFeesLockConfirmation is called to confirm validation of the fees deposited
+ * @dev 6. completeOperation is called to perform the operation on destination
+ *
+ * @dev cancel:
+ * @dev The destination can emit an event via emitCancelOperation to cancel the operation on origin
+ * @dev The origin is called with receiveCancelOperation and makes the user deposit redeemable
  */
 contract RelayerBase is Utils {
     //****************************************************************** */

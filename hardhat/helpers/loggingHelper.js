@@ -61,15 +61,26 @@ const styleMessage = (msg, msgStyles) => {
   return `${styleHeader}${msg}${styleFooter}`;
 };
 
-// 80 :"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
-const dDotSeparator = ":".repeat(80);
-const sDotSeparator = ".".repeat(80);
-const sDashSeparator = "-".repeat(80);
-const dDashSeparator = "=".repeat(80);
-const titleSeparator = dDashSeparator;
+/**
+ * @description Available separators
+ * @notice length :80 :"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
+ */
+const separator = {
+  none: "",
+  dDot: ":".repeat(80),
+  sDot: ".".repeat(80),
+  sDash: "-".repeat(80),
+  dDash: "=".repeat(80),
+};
 
-const toTitle = (titleSeparator, msg) => {
-  const formattedMsg = `\n${titleSeparator}\n===========>   ${msg}\n${titleSeparator}`;
+/**
+ * @description Convert a message to a title style
+ * @param {string} msg
+ * @param {string} separatorType: "none" | "dDot" | "sDot" | "sDash" | "dDash"
+ * @returns msg formatted in title style
+ */
+const toTitle = (msg, separatorType = "none") => {
+  const formattedMsg = `\n${separator[separatorType]}\n===========>   ${msg}\n${separator[separatorType]}`;
   return styleMessage(formattedMsg, ["bold"]);
 };
 
@@ -87,10 +98,10 @@ const toStyle = {
     return styleMessage(msg, ["brightGreen"]);
   },
   h1: (msg) => {
-    return toTitle(dDashSeparator, msg);
+    return toTitle(msg, "dDash");
   },
   h2: (msg) => {
-    return toTitle(sDashSeparator, msg);
+    return toTitle(msg, "sDash");
   },
   error: (msg) => {
     return styleMessage(msg, ["red", "bold", "brightYellowBackground"]);
@@ -131,7 +142,7 @@ const toStyle = {
 };
 
 /**
- * @description Shortcut for general formats
+ * @description Display a message  formatted in a predefined style
  */
 const display = {
   h1: (msg) => console.log(toStyle.h1(msg)),

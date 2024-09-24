@@ -10,9 +10,10 @@ error TokenFactory__CallerNotAdmin();
 error TokenFactory__TokenCreationFailed(string message);
 /**
  * @title TokenFactory
- * @notice It creates bridged tokens and stores created tokens
- * @dev Only owner (admin of the bridge) can use the factory
- * @dev Format of token symbol: cbSYM (c: first letter of chain, SYM: symbol)
+ * @notice This contract creates bridged tokens and stores created tokens.
+ *
+ * @dev Only the owner (admin of the bridge) can use the factory.
+ * @dev The format of the token symbol is: cbSYM (c: first letter of the chain, SYM: symbol).
  */
 
 contract TokenFactory {
@@ -32,7 +33,9 @@ contract TokenFactory {
     event BridgeTokenCreated(address indexed token, string name, string symbol, address owner);
 
     /**
-     * @dev Set Storage address and check sender is the bridge admin
+     * @notice Constructor to set the storage address and ensure the sender is the bridge admin.
+     *
+     * @param storageAddress The address of the Storage contract.
      */
     constructor(address storageAddress) {
         s_storageAddress = storageAddress;
@@ -43,20 +46,23 @@ contract TokenFactory {
     }
 
     /**
-     * @notice It creates a new BridgedToken
-     * @dev Admin should have added chain and token in authorized list of Storage before calling
-     * @dev Require:
-     * @dev - name and symbol are not empty strings
-     * @dev - not already deployed token (address associated to symbol is address 0)
+     * @notice Creates a new bridged token.
+     *
+     * @dev Admin should have added the chain and token to the authorized list of Storage before calling.
+     * @dev Requires:
+     * @dev - name and symbol are not empty strings.
+     * @dev - the token has not already been deployed (address associated with the symbol is address 0).
+     *
      * @dev Process:
-     * @dev - deploy the token
-     * @dev - store the token data in Storage contract
-     * @dev - transfer ownership of the token to Vault
-     * @dev - update token data in Factory storage
-     * @dev EMIT BridgeTokenCreated event
-     * @param name: the name of the token
-     * @param symbol: the symbol of the token
-     * @return the address of the new token
+     * @dev - Deploy the token.
+     * @dev - Store the token data in the Storage contract.
+     * @dev - Transfer ownership of the token to the Vault.
+     * @dev - Update token data in Factory storage.
+     *
+     * @dev emit BridgeTokenCreated event.
+     * @param name The name of the token.
+     * @param symbol The symbol of the token.
+     * @return address The address of the newly created token.
      */
     function createToken(string memory name, string memory symbol) external onlyAdmin returns (address) {
         if (bytes(name).length == 0 || bytes(symbol).length == 0) {
@@ -82,18 +88,40 @@ contract TokenFactory {
         return address(token);
     }
 
+    /**
+     * @notice Gets the list of bridged tokens.
+     *
+     * @return string[] The array of bridged token symbols.
+     */
     function getTokenList() external view returns (string[] memory) {
         return s_BridgedTokens;
     }
 
+    /**
+     * @notice Checks if a given address is a bridged token.
+     *
+     * @param token The address of the token to check.
+     * @return bool True if the token is a bridged token, false otherwise.
+     */
     function isBridgedToken(address token) external view returns (bool) {
         return s_isBridgedToken[token];
     }
 
+    /**
+     * @notice Gets the address of a token given its symbol.
+     *
+     * @param symbol The symbol of the token.
+     * @return address The address of the token associated with the symbol.
+     */
     function getTokenAddress(string memory symbol) external view returns (address) {
         return s_symbolToAddress[symbol];
     }
 
+    /**
+     * @notice Gets the address of the storage contract.
+     *
+     * @return address The address of the storage contract.
+     */
     function getStorageAddress() external view returns (address) {
         return s_storageAddress;
     }

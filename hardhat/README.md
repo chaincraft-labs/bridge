@@ -1,130 +1,119 @@
-# Sample Hardhat Project
+# Hardhat README
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+## TOC
 
-Try running some of the following tasks:
+- [Installation](#installation)
+- [Usage](#usage)
+- [Folder structure](#folder-structure)
+- [Useful links](#useful-links)
+
+## Installation
+
+To get started with this project, follow these steps:
+
+1. Clone the repository:
+
+   ```shell
+   git clone https://github.com/AlyraButerin/Allfeat-EVM-bridge-POC.git
+   cd Allfeat-EVM-bridge-POC/hardhat
+   ```
+
+2. Install dependencies:  
+   _Make sure you have Node.js installed. Then, run:_
+
+   ```shell
+   npm install
+   ```
+
+3. Install Hardhat:
+   If Hardhat is not installed globally, you can install it using:
+   ```shell
+   npx hardhat
+   ```
+
+## Usage
+
+### User perspective
+
+From a user's standpoint, interacting with the deployed bridge requires a few steps. The user needs to initiate an operation on the source chain and then deposit the necessary fees on the destination chain.
+
+To complete this process, the user must call two specific functions on the BridgeBase contract:
+
+- On the origin chain:
+
+```solidity
+createBridgeOperation(
+        address from,
+        address to,
+        uint256 chainIdFrom,
+        uint256 chainIdTo,
+        string memory tokenName,
+        uint256 amount,
+        uint256 nonce,
+        bytes calldata signature
+    )
+```
+
+The value sent with the tx if it's a native transfer should be equal to amount, or 0 in case of ERC20.
+
+- On the destination chain:
+
+```solidity
+depositFees(bytes32 operationHash, uint256 chainIdFrom, uint256 chainIdTo)
+```
+
+Where `operationHash` is the hash of the params given to `createBridgeOperation` less the signature.
+
+The value sent with the tx should be equal to the needed fees.
+
+- Scripts are available within the project to facilitate these operations and make the user experience smoother:
+
+  - `scripts/11_userAction_deposit.js`
+  - `scripts/12_userAction_depositFees.js`
+
+### Dev perspective
+
+For developers working on this project, several standard Hardhat commands are available to assist in development and testing.
 
 ```shell
 npx hardhat help
 npx hardhat test
 REPORT_GAS=true npx hardhat test
 npx hardhat node
-npx hardhat run scripts/deploy.js
 ```
 
-## Update 2024-07-04
+For a comprehensive guide to all available commands, please refer to the [COMMAND.md file](COMMANDS.md):
 
-Adding a bridge.js CLI tool to help to interact with contracts
+### Folder Structure
 
-- bridge.js : CLI tool
-- functions.js : Logic functions
-- utils.js : Generic functions
-- constants/networks : refacto network definitions
-- constants/tokens : refacto token definitions
+Here’s a brief overview of the main folder structure:
 
-### Usage 
-
-
-**Deploy all contract to a blockchain**
-Example: Deploy contracts on allfeat_local
-```bash
-HARDHAT_NETWORK=allfeat_local node scripts/as_bridge.js --deploy anvil_local,allfeat_local
+```
+|-backend
+|-hardhat
+    |-constants/: Config values needed for setup, deployment and use.
+    |-contracts/: Contains the Solidity smart contracts.
+    |-helpers/: Contains helpers dedicated to a specific domain
+    |-scripts/: Contains deployment and interaction scripts.
+    |-tasks/: Contains commands allowing specific simple tasks.
+    |-test/: Contains the test files for the smart contracts.
+    |-utils/: Contains global helpers.
+    |-.env.example: Remove '.example' to have '.env' file available with you private data.
+    |-CHANGELOG.md: Contains major changes and updates.
+    |-COMMANDS.md: Contains guide to available commands.
+    |-NOTES.md: Contains ideas to dig and a todo list of stuff to implement
 ```
 
-**Deposit token**
-Example: deposit token on anvil_local
-```bash
-HARDHAT_NETWORK=anvil_local node scripts/as_bridge.js --test-deposit-token
-```
+### Useful links:
 
-**Deposit fees**
-Example: deposit fees on allfeat_local
-```bash
-HARDHAT_NETWORK=allfeat_local node scripts/as_bridge.js --test-deposit-fees
-```
+- [Allfeat doc](https://docs.allfeat.com/#features)
 
-**Other options**
+- [Hardhat](https://hardhat.org/)
+- [Ethers](https://docs.ethers.org/v6/)
+- [Foundry](https://book.getfoundry.sh/)
 
-Use help argument to show all options
+- [Allfeat explorer](https://evm.allfeat.com/)
+- [Sepolia explorer](https://sepolia.etherscan.io/)
 
-```bash
-HARDHAT_NETWORK=allfeat_local node scripts/as_bridge.js --help
-```
-
-```bash
-Usage: as_bridge [options]
-
-Bridge relayer CLI
-
-Options:
-  -V, --version                                                              output the version number
-  --deploy [options]                                                         deploy all contracts, set operators, chainIds
-                                                                             and token. Options: anvil_local,allfeat_local
-  --deploy-contracts                                                         deploy all contracts
-  --deploy-storage                                                           deploy Storage contract
-  --deploy-token-factory                                                     deploy TokenFactory contract
-  --deploy-vault                                                             deploy Vault contract
-  --deploy-relayer-base                                                      deploy RelayerBase contract
-  --deploy-bridge-base                                                       deploy BridgeBase contract
-  --update-operator                                                          update operator
-  --add-chain-ids [chain Ids]                                                add chainIds to storage [11155111, 31337, 440,
-                                                                             441]
-  --add-tokens [tokens]                                                      add tokens to storage []
-  --add-eth [network ETH]                                                    add ETH token. network e.g anvil_local
-  --add-aft [network AFT]                                                    add AFT token. network e.g allfeat_local
-  --add-dai                                                                  add DAI
-  --user-deposit-token [userAddress,amount,chainIdFrom,chainIdTo,tokenName]  user deposit token
-  --user-deposit-fees [userAddress,amount,chainIdFrom,chainIdTo,tokenName]   user deposit fees
-  --test-deposit-token                                                       Test user deposit token
-  --test-deposit-fees                                                        Test user deposit fees
-  --show-deployed-addr                                                       show last deployed addresses
-  --set-nonce [address]                                                      set nonce
-  --get-nonce [address]                                                      get nonce
-  -h, --help                                
-```
-
-
-## Setup GETH local node in dev mode
-
-1. Install Geth
-2. Start the node
-3. Import Hardhat account
-4. Fund new imported account
-
-### 1 Install Geth
-[Download Geth](https://geth.ethereum.org/downloads)
-
-### 2 Start Geth node
-Example:
-```bash
-mkdir /tmp/geth
-cd /tmp/geth
-geth geth --datadir . --dev --http --dev.period 12
-```
-
-* --http : allow to interact with the node
-* --dev.period 12 : mine a block every 12 seconds
-
-
-### 3 Import hardhat account
-1. Copy the hardhat account private key into a file (without the 0x suffix)
-```bash
-echo "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d" > user2
-```
-2. Import the account and define a password (at least 10 chars)
-```bash
-clef importraw user2
-```
-
-### 4 Fund imported account
-
-1. Identify the IPC once the node is started with the "IPC endpoint opened" words. The IPC should be something like url=/tmp/geth/geth.ipc
-
-2. Start the javascript console
-   ```bash
-   geth attach /tmp/geth/geth.ipc
-   ```
-3. Fund the account. (eth.accounts[0] is the dev account)
-   ```bash
-    eth.sendTransaction({from: eth.accounts[0], to: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8", value: web3.toWei(50, "ether")})
-    ```
+- [Allfeat faucet](https://substratefaucet.xyz/allfeat-testnet)
+- [Sepolia faucet](https://sepolia-faucet.pk910.de/)

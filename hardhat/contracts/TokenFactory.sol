@@ -6,123 +6,102 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./BridgedToken.sol";
 import "./Storage.sol";
 
-error TokenFactory__CallerNotAdmin();
-error TokenFactory__TokenCreationFailed(string message);
 /**
- * @title TokenFactory
- * @notice This contract creates bridged tokens and stores created tokens.
- *
- * @dev Only the owner (admin of the bridge) can use the factory.
- * @dev The format of the token symbol is: cbSYM (c: first letter of the chain, SYM: symbol).
+ * Contract to create new bridged tokens
  */
-
 contract TokenFactory {
-    address private s_storageAddress;
+    address public s_storageAddress;
 
-    mapping(address => bool) private s_isBridgedToken;
-    mapping(string => address) private s_symbolToAddress;
-    string[] private s_BridgedTokens;
+    mapping(address => bool) public IsBridgedToken;
+    address[] public BridgedTokens;
 
     modifier onlyAdmin() {
-        if (!Storage(s_storageAddress).isRole("admin", msg.sender)) {
-            revert TokenFactory__CallerNotAdmin();
-        }
+        require(Storage(s_storageAddress).isAdmin(msg.sender), "TokenFactory: caller is not the admin");
         _;
     }
 
     event BridgeTokenCreated(address indexed token, string name, string symbol, address owner);
 
-    /**
-     * @notice Constructor to set the storage address and ensure the sender is the bridge admin.
-     *
-     * @param storageAddress The address of the Storage contract.
-     */
     constructor(address storageAddress) {
+        // first deployed is storage so admin of storage should be the admin of the factory and msg.sender
+        // store the storage address
+        // check is isAdmin(msg.sender) in the storage
         s_storageAddress = storageAddress;
-
-        if (!Storage(s_storageAddress).isRole("admin", msg.sender)) {
+        if (!Storage(s_storageAddress).isAdmin(msg.sender)) {
             revert("TokenFactory: caller is not the admin");
         }
     }
 
-    /**
-     * @notice Creates a new bridged token.
-     *
-     * @dev Admin should have added the chain and token to the authorized list of Storage before calling.
-     * @dev Requires:
-     * @dev - name and symbol are not empty strings.
-     * @dev - the token has not already been deployed (address associated with the symbol is address 0).
-     *
-     * @dev Process:
-     * @dev - Deploy the token.
-     * @dev - Store the token data in the Storage contract.
-     * @dev - Transfer ownership of the token to the Vault.
-     * @dev - Update token data in Factory storage.
-     *
-     * @dev emit BridgeTokenCreated event.
-     * @param name The name of the token.
-     * @param symbol The symbol of the token.
-     * @return address The address of the newly created token.
-     */
-    function createToken(string memory name, string memory symbol) external onlyAdmin returns (address) {
-        if (bytes(name).length == 0 || bytes(symbol).length == 0) {
-            revert TokenFactory__TokenCreationFailed("Name or symbol is empty");
-        }
+    // function updateAdmin(address newAdmin) external onlyAdmin {
+    //     admin = newAdmin;
+    // }
 
-        if (s_symbolToAddress[symbol] != address(0)) {
-            revert TokenFactory__TokenCreationFailed("Token symbol already exists");
+    // function updateBridge(address newBridge) external onlyAdmin {
+    //     bridge = newBridge;
+    // }
+
+    // Factory is the owner of the token
+    function createToken(string memory name, string memory symbol, uint256 originChainId, address originAddress)
+        external
+        onlyAdmin
+        returns (address)
+    {
+        // originChain != 0
+        if (originChainId == 0) {
+            revert("TokenFactory: originChainId is 0");
         }
+        // check name and symbol are not empty
 
         BridgedToken token = new BridgedToken(name, symbol);
 
-        Storage(s_storageAddress).addNewTokenAddressByChainId(name, block.chainid, address(token));
+        // transfer ownership to the bridge
+        // token.updateAdmin(bridge);
+        // IsBridgedToken[address(token)] = true;
+        // BridgedTokens.push(address(token));
+        // updtae in storage (REMOVE UNUSED FUNCTIONS !!)
+        Storage(s_storageAddress).addBridgedTokenList(address(token));
+        Storage(s_storageAddress).setBridgedToken(address(token), true);
+        Storage(s_storageAddress).addTokenList(address(token));
+        Storage(s_storageAddress).setBridgedTokenToChainId(address(token), originChainId);
+        Storage(s_storageAddress).setAuthorizedToken(address(token), true);
+        // RENAME setTokenOnChainId !!! the global mapping of token equivalence
+        Storage(s_storageAddress).setTokenOnChainId(address(token), originChainId, originAddress);
 
+        // transfert ownership to Vault
         address vault = Storage(s_storageAddress).getOperator("vault");
         BridgedToken(token).updateAdmin(vault);
-
-        s_BridgedTokens.push(symbol);
-        s_isBridgedToken[address(token)] = true;
-        s_symbolToAddress[symbol] = address(token);
 
         emit BridgeTokenCreated(address(token), name, symbol, vault);
         return address(token);
     }
 
-    /**
-     * @notice Gets the list of bridged tokens.
-     *
-     * @return string[] The array of bridged token symbols.
-     */
-    function getTokenList() external view returns (string[] memory) {
-        return s_BridgedTokens;
-    }
+    //updtat list... storage
 
-    /**
-     * @notice Checks if a given address is a bridged token.
-     *
-     * @param token The address of the token to check.
-     * @return bool True if the token is a bridged token, false otherwise.
-     */
-    function isBridgedToken(address token) external view returns (bool) {
-        return s_isBridgedToken[token];
-    }
+    // function mint(address token, address to, uint256 amount) external onlyBridge {
+    //     BridgedToken(token).mint(to, amount);
+    // }
 
-    /**
-     * @notice Gets the address of a token given its symbol.
-     *
-     * @param symbol The symbol of the token.
-     * @return address The address of the token associated with the symbol.
-     */
-    function getTokenAddress(string memory symbol) external view returns (address) {
-        return s_symbolToAddress[symbol];
-    }
+    // function burn(address token, address owner, uint256 amount) external onlyBridge {
+    //     BridgedToken(token).burn(owner, amount);
+    // }
 
-    /**
-     * @notice Gets the address of the storage contract.
-     *
-     * @return address The address of the storage contract.
-     */
-    function getStorageAddress() external view returns (address) {
-        return s_storageAddress;
-    }
+    // function transfer(address token, address to, uint256 amount) external onlyBridge {
+    //     BridgedToken(token).transfer(to, amount);
+    // }
+
+    // function transferFrom(address token, address from, address to, uint256 amount) external onlyBridge {
+    //     BridgedToken(token).transferFrom(from, to, amount);
+    // }
+
+    // function approve(address token, address spender, uint256 amount) external onlyBridge {
+    //     BridgedToken(token).approve(spender, amount);
+    // }
+
+    // function getBridgedTokens() external view returns (address[] memory) {
+    //     return BridgedTokens;
+    // }
+
+    // function isBridgedToken(address token) external view returns (bool) {
+    //     return IsBridgedToken[token];
+    // }
 }

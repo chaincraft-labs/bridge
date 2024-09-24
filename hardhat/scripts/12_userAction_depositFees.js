@@ -2,7 +2,7 @@ const hre = require("hardhat");
 const {
   readLastDeployedAddress,
   logCurrentFileName,
-  readLastUsedNonce,
+  readFirstValidNonce,
 } = require("../helpers/fileHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
 const { getContext } = require("../helpers/contextHelper");
@@ -74,11 +74,17 @@ async function main() {
   let operationParams = convertToOperationParams(paramsOption);
 
   // read nonce from file depending on the network 'chainId from'
-  let nonce = await readLastUsedNonce(
-    getNetworkNameByChainId(operationParams[0])
+  let nonce = await readFirstValidNonce(
+    getNetworkNameByChainId(operationParams[0]),
+    userWallet.address
   );
-  console.log(operationParams[0]);
-  console.log(getNetworkNameByChainId(operationParams[0]));
+  if (!nonce) {
+    throw "No valid nonce found!";
+  }
+  // @todo remove logs (testing new nonce record)
+  // console.log(operationParams[0]);
+  // console.log(getNetworkNameByChainId(operationParams[0]));
+
   display.depositSignerInfo(userWallet.address, nonce);
 
   operationParams = [

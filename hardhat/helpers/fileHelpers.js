@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const lockfile = require("proper-lockfile");
 
 const CONSTANTS_DIR = "constants";
 const DEPLOYED_ADDRESSES_FILE = "deployedAddresses.json";
@@ -125,60 +126,124 @@ const readLastDeployedAddress = function (
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * @description Update nonce used on network to used on destination
+ * @description Write the last used nonce for a specific user a specific network to a JSON file.
  *
- * @dev Format: "lastOriginNonce": { "sepolia": 0, "allfeat": 0 }
- * @dev Used by deposit scripts
+ * @dev This function creates the necessary directory and file if they do not exist.
+ * @dev The nonce is added to the existing list for the specified network.
+ * @dev This function uses file locking to prevent concurrent writes to the nonce file.
+ * @dev It ensures that only one process can write to the file at a time, preventing data corruption.
  *
- * @param { string } network The network to read.
- * @param { number } nonce The current nonce used.
+ * @param {string} network - The network for which the nonce is being written.
+ * @param {number} nonce - The nonce value to add to the list.
+ * @param {string} userAddress - The address of the user for which the nonce is being written.
  */
-const writeLastUsedNonce = function (network, nonce) {
-  // file and path checks
+const writeLastUsedNonce = function (network, nonce, userAddress) {
+  // File and path checks
   if (!fs.existsSync(CONSTANTS_DIR)) {
     fs.mkdirSync(CONSTANTS_DIR);
   }
 
   if (!fs.existsSync(LAST_NONCE_FILE_PATH)) {
-    fs.writeFileSync(LAST_NONCE_FILE_PATH, "{}");
+    fs.writeFileSync(
+      LAST_NONCE_FILE_PATH,
+      JSON.stringify({ originNonces: {} }, null, 2)
+    );
   }
 
-  // Get json data from file
-  const lastNonce = JSON.parse(fs.readFileSync(LAST_NONCE_FILE_PATH));
+  let release;
+  try {
+    release = lockfile.lockSync(LAST_NONCE_FILE_PATH, { stale: 5000 });
 
-  // Checks if elements exist in the json data and creates them if they don't. Then push the new address
-  if (!lastNonce["lastOriginNonce"]) {
-    lastNonce["lastOriginNonce"] = {};
+    // Get json data from file
+    const fileContent = fs.readFileSync(LAST_NONCE_FILE_PATH, "utf8");
+    let lastNonce = fileContent
+      ? JSON.parse(fileContent)
+      : { originNonces: {} };
+
+    // Initialize the network and user array if it doesn't exist
+    if (!lastNonce.originNonces[network]) {
+      lastNonce.originNonces[network] = {};
+    }
+    if (!lastNonce.originNonces[network][userAddress]) {
+      lastNonce.originNonces[network][userAddress] = [];
+    }
+
+    // Add the nonce to the list then write it back to the file
+    lastNonce.originNonces[network][userAddress].push(nonce);
+    fs.writeFileSync(LAST_NONCE_FILE_PATH, JSON.stringify(lastNonce, null, 2));
+  } catch (error) {
+    console.error("Error while acquiring lock :", error);
+  } finally {
+    if (release) {
+      // Unlock the file
+      release();
+    }
   }
-
-  lastNonce["lastOriginNonce"][network] = nonce;
-
-  fs.writeFileSync(LAST_NONCE_FILE_PATH, JSON.stringify(lastNonce, null, 2));
 };
 
 /**
- * @description Read nonce used on origin network to used on destination
+ * @description Read the first valid nonce for a specific user a specific network and remove it from the list.
  *
- * @dev Format: "lastOriginNonce": { "sepolia": 0, "allfeat": 0 }
- * @dev Used by depositFees scripts
+ * @dev This function locks the file to ensure thread safety while reading the nonce.
+ * @dev It prevents race conditions by ensuring that only one process can read the file at a time.
+ * @dev If the file is empty or not valid JSON, appropriate error messages are logged.
  *
- * @param { string } network The network to read.
- * @returns The last nonce used on origin.
+ * @param {string} network - The network for which the nonce is being read.
+ * @param {string} userAddress - The address of the user for which the nonce is being read.
+ * @returns {number|null} The first available nonce or null if none exists or if an error occurs.
  */
-const readLastUsedNonce = function (network) {
-  const lastNonce = JSON.parse(fs.readFileSync(LAST_NONCE_FILE_PATH));
+const readFirstValidNonce = function (network, userAddress) {
+  let release;
+  try {
+    // Lock the file
+    release = lockfile.lockSync(LAST_NONCE_FILE_PATH, { stale: 5000 });
 
-  if (!lastNonce) {
+    const fileContent = fs.readFileSync(LAST_NONCE_FILE_PATH, "utf8");
+    if (!fileContent) {
+      console.error("Error while reading last used nonce: file is empty");
+      return null;
+    }
+
+    let lastNonce;
+    try {
+      lastNonce = JSON.parse(fileContent);
+    } catch (jsonError) {
+      console.error(
+        "Error while reading last used nonce: file is not a valid JSON",
+        jsonError
+      );
+      return null;
+    }
+    // Check if the requested network and user have any nonces
+    if (
+      !lastNonce ||
+      !lastNonce.originNonces[network] ||
+      !lastNonce.originNonces[network][userAddress]
+    ) {
+      console.error(
+        "Error while reading last used nonce: no nonce found for network"
+      );
+      return null;
+    }
+
+    if (lastNonce.originNonces[network][userAddress].length > 0) {
+      // read the first available nonce to process and remove it from the list
+      const nonceToProcess =
+        lastNonce.originNonces[network][userAddress].shift();
+      fs.writeFileSync(
+        LAST_NONCE_FILE_PATH,
+        JSON.stringify(lastNonce, null, 2)
+      );
+      return nonceToProcess;
+    }
     return null;
+  } catch (error) {
+    console.error("Error while acquiring lock :", error);
+  } finally {
+    if (release) {
+      release();
+    }
   }
-
-  if (
-    lastNonce["lastOriginNonce"] &&
-    lastNonce["lastOriginNonce"][network] != null
-  ) {
-    return lastNonce["lastOriginNonce"][network];
-  }
-  return null;
 };
 
 /**
@@ -208,7 +273,7 @@ module.exports = {
   writeDeployedAddress,
   readLastDeployedAddress,
   writeLastUsedNonce,
-  readLastUsedNonce,
+  readFirstValidNonce,
   readNetworks,
   logCurrentFileName,
 };

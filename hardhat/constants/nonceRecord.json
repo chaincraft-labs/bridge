@@ -1,7 +1,7 @@
 {
-  "lastOriginNonce": {
-    "sepolia": 0,
-    "allfeat": 0,
-    "localhost": 21
+  "originNonces": {
+    "allfeat": {
+      "0xCAfDB1c46c5036A83e2778CCc85e0F12Ce21Eb06": []
+    }
   }
 }

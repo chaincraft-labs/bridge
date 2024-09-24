@@ -1,4 +1,4 @@
-This file serves as a comprehensive guide for developers and users of the repository. It provides concise documentation on configuration as well as essential commands to facilitate the integration and use of the project. This helps to reduce errors and accelerate the development process, ensuring that everyone has the necessary information to work effectively with the code
+This file serves as a comprehensive guide for developers and users of the repository. It provides concise documentation on configuration as well as essential commands to facilitate the integration and use of the project. This helps to reduce errors and accelerate the development process, ensuring that everyone has the necessary information to work effectively with the code.
 
 # TOC
 

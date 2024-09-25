@@ -4,6 +4,7 @@ require("solidity-coverage");
 require("dotenv").config();
 
 require("./tasks/start-node");
+require("./tasks/config-tasks");
 require("./tasks/call-write");
 require("./tasks/call-read");
 require("./tasks/func-printSigners");

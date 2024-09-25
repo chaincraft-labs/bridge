@@ -1,7 +1,10 @@
 {
   "originNonces": {
     "allfeat": {
-      "0xCAfDB1c46c5036A83e2778CCc85e0F12Ce21Eb06": []
+      "0xCAfDB1c46c5036A83e2778CCc85e0F12Ce21Eb06": [
+        12,
+        13
+      ]
     }
   }
 }

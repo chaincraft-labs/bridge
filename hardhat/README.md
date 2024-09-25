@@ -27,9 +27,19 @@ To get started with this project, follow these steps:
 
 3. Install Hardhat:
    If Hardhat is not installed globally, you can install it using:
+
    ```shell
    npx hardhat
    ```
+
+4. Install jq:
+
+   - On MacOS: `brew install jq`
+   - On Debian/Ubuntu: `sudo apt-get install jq`
+   - On Fedora: `sudo dnf install jq`
+   - On CentOS: `sudo yum install jq`
+
+   Check the installation by running `jq --version`.
 
 ## Usage
 

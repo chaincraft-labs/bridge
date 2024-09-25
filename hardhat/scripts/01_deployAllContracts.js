@@ -13,8 +13,10 @@ const {
   getChainIdByNetworkName,
   networkParams,
   tokenParams,
+  usedNetworks,
+  usedTokens,
 } = require("../helpers/configHelper");
-const { usedNetworks, usedTokens } = require("../constants/deploymentConfig");
+// const { usedNetworks, usedTokens } = require("../constants/deploymentConfig");
 
 const serverAddress = process.env.SERVER_ADDRESS;
 

@@ -9,16 +9,32 @@
 # Filter out comments, spaces, and quotes
 # Exclude the const usedNetworks = [ part
 
-# compatible on macOs and wsl
-usedNetworks=$(awk '/^const usedNetworks = \[/{print}' constants/deploymentConfig.js | sed 's/.*const usedNetworks = \[\([^]]*\)\].*/\1/' | tr -d '",' | tr ' ' '\n')
+# @todo REMOVE these lines when solution validated
+# compatible on macOs and wsl / need to install jq on macOs
+# usedNetworks=$(awk '/^const usedNetworks = \[/{print}' constants/deploymentConfig.js | sed 's/.*const usedNetworks = \[\([^]]*\)\].*/\1/' | tr -d '",' | tr ' ' '\n')
 
+# Get the usedNetworks from the deploymentConfig.json file
+# json_file="./constants/deploymentConfig.json"
+# usedNetworks=$(jq -r '.usedNetworks | join(" ")' "$json_file")
 
-if [ -z "$usedNetworks" ]; then
-    echo "No networks found in usedNetwork."
+# Get the usedNetworks from the deploymentConfig.json file
+json_file="./constants/deploymentConfig.json"
+activeConfig=$(jq -r '.activeConfig' "$json_file")
+
+# Check if the activeConfig exists in usedConfigs
+if jq -e ".usedConfigs | has(\"$activeConfig\")" "$json_file" > /dev/null; then
+    # Extract the usedNetworks from the activeConfig
+    usedNetworks=$(jq -r ".usedConfigs.$activeConfig.usedNetworks | join(\" \")" "$json_file")
+
+    if [ -z "$usedNetworks" ]; then
+        echo "No networks found in usedNetwork."
+        exit 1
+    fi
+    echo "Used networks for active config ($activeConfig): $usedNetworks"
+else
+    echo "Le label '$activeConfig' n'existe pas dans usedConfigs."
     exit 1
 fi
-echo "Used networks:"
-echo "$usedNetworks"
 
 networkCount=$(echo "$usedNetworks" | wc -l)
 totalCommands=$((networkCount * 2))

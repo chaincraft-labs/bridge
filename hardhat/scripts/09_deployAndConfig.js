@@ -1,5 +1,5 @@
 const { execSync, spawn } = require("child_process");
-const { usedNetworks } = require("../constants/deploymentConfig");
+const { usedNetworks } = require("../helpers/configHelper");
 const scriptFolder = "./scripts/";
 const scriptFileNames = ["01_deployAllContracts.js", "02_setTokens.js"];
 

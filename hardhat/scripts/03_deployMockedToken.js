@@ -8,8 +8,8 @@ const {
   deployAndSaveAddress,
 } = require("../helpers/functionHelpers");
 const { getContext } = require("../helpers/contextHelper");
-const { tokenParams } = require("../helpers/configHelper");
-const { usedNetworks } = require("../constants/deploymentConfig");
+const { tokenParams, usedNetworks } = require("../helpers/configHelper");
+// const { usedNetworks } = require("../constants/deploymentConfig");
 
 /**
  * @description This script will deploy a new mocked Token and set its address in storage

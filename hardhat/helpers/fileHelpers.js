@@ -10,6 +10,182 @@ const DEPLOYED_ADDRESSES_FILE_PATH = path.join(
 );
 const LAST_NONCE_FILE = "nonceRecord.json";
 const LAST_NONCE_FILE_PATH = path.join(CONSTANTS_DIR, LAST_NONCE_FILE);
+const CONFIG_PARAMS_FILE = "deploymentConfig.json";
+const CONFIG_PARAMS_FILE_PATH = path.join(CONSTANTS_DIR, CONFIG_PARAMS_FILE);
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//                RESET JSON FILES (DEPLOYED ADDRESSES & NONCE RECORD)
+//
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description Reset the deployed addresses and nonce record JSON files.
+ *
+ * @dev This function will overwrite the existing files with empty objects.
+ * @dev It is used to clear the data from the files when needed.
+ */
+const resetJsonFiles = function () {
+  if (fs.existsSync(DEPLOYED_ADDRESSES_FILE_PATH)) {
+    fs.writeFileSync(DEPLOYED_ADDRESSES_FILE_PATH, "{}");
+  }
+
+  if (fs.existsSync(LAST_NONCE_FILE_PATH))
+    fs.writeFileSync(
+      LAST_NONCE_FILE_PATH,
+      JSON.stringify({ originNonces: {} })
+    );
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//                CONFIG FILES HELPERS
+//
+///////////////////////////////////////////////////////////////////////////////
+// @todo refactor inside loop
+/**
+ * @description Get networkParams, tokenParams from config files
+ *
+ * @dev This function reads the networkParams from the config files and create tokenParams
+ * @dev It is used to get the parameters for the operations & deployments in the scripts
+ *
+ * @dev networkParams: for each network give its chainId, native token name and symbol, and deployed tokens
+ * @dev format: { networkName: { chainId, nativeToken: { name, symbol }, deployedTokens: [] } }
+ *
+ * @dev tokenParams: for each token give its description, if it's a native coin and which chain is its origin chain
+ * @dev format: { tokenName: { tokenName, tokenSymbol, originChainId: [], isNative } }
+ *
+ * @returns {Object} The networkParams and tokenParams from the config file
+ */
+const getConfigParams = function () {
+  const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
+  // Test if networkParams and tokenParams are present in the config file
+  if (!configParams.networkParams) {
+    throw new Error("Network params not found in config file!");
+  }
+
+  const networkParams = configParams.networkParams;
+  const tokenParams = {};
+
+  // Loop through the networkParams to get the deployedTokens and nativeToken
+  for (const networkName in networkParams) {
+    // Add the native token to the tokenParams
+    const nativeToken = networkParams[networkName].nativeToken;
+    if (!tokenParams[nativeToken.name]) {
+      tokenParams[nativeToken.name] = {
+        tokenName: nativeToken.name,
+        tokenSymbol: nativeToken.symbol,
+        originChainId: [],
+      };
+    }
+    tokenParams[nativeToken.name].originChainId.push(
+      networkParams[networkName].chainId
+    );
+    tokenParams[nativeToken.name].isNative = true;
+
+    // Loop through the deployedTokens to get the tokenParams
+    const deployedTokens = networkParams[networkName].deployedTokens;
+    deployedTokens.forEach((token) => {
+      if (!tokenParams[token.name]) {
+        tokenParams[token.name] = {
+          tokenName: token.name,
+          tokenSymbol: token.symbol,
+          originChainId: [networkParams[networkName].chainId],
+        };
+      } else {
+        if (
+          !tokenParams[token.name].originChainId.includes(
+            networkParams[networkName].chainId
+          )
+        ) {
+          tokenParams[token.name].originChainId.push(
+            networkParams[networkName].chainId
+          );
+        }
+      }
+    });
+  }
+  return {
+    networkParams,
+    tokenParams,
+  };
+};
+
+/**
+ * @description Get usedNetworks and usedTokens from config files
+ *
+ * @dev usedNetworks: list of networks to use for the deployment and scripts
+ * @dev usedTokens: list of tokens to use for the deployment and scripts
+ * @dev Theses lists are used to restrict the deployment and operations
+ * @dev And to automate the deployment of tokens and contracts
+ * @returns {Object} The usedNetworks and usedTokens from the config file
+ */
+const getUsedNetworksAndTokens = function () {
+  const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
+  // Test if usedNetworks and usedTokens are present in the config file
+  if (!configParams.activeConfig) {
+    throw new Error("No active config found!");
+  }
+  // Test if usedNetworks and usedTokens are present in the config file
+  if (!configParams.usedConfigs) {
+    throw new Error("Used configs not found in config file!");
+  }
+  if (!configParams.usedConfigs[configParams.activeConfig]) {
+    throw new Error("Used config not found for this active config!");
+  }
+  if (
+    !configParams.usedConfigs[configParams.activeConfig].usedNetworks ||
+    !configParams.usedConfigs[configParams.activeConfig].usedTokens
+  ) {
+    throw new Error(
+      `Used Networks or Tokens not found for the config ${configParams.activeConfig}!`
+    );
+  }
+
+  return {
+    usedNetworks:
+      configParams.usedConfigs[configParams.activeConfig].usedNetworks,
+    usedTokens: configParams.usedConfigs[configParams.activeConfig].usedTokens,
+  };
+};
+
+function setActiveConfig(name) {
+  const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
+  if (configParams.usedConfigs[name]) {
+    configParams.activeConfig = name;
+    fs.writeFileSync(
+      DEPLOYED_ADDRESSES_FILE_PATH,
+      JSON.stringify(configParams, null, 2)
+    );
+  } else {
+    throw new Error(`Le label '${name}' n'existe pas dans usedConfigs.`);
+  }
+}
+
+function getUsedConfigs() {
+  const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
+  return configParams.usedConfigs;
+}
+
+async function addUsedConfig(name, networks, tokens) {
+  try {
+    const data = fs.readFileSync(CONFIG_PARAMS_FILE_PATH, "utf8");
+    const configParams = JSON.parse(data);
+    if (configParams.usedConfigs[name]) {
+      throw new Error(`usedConfig '${name}' already exists.`);
+    }
+    configParams.usedConfigs[name] = {
+      usedNetworks: networks,
+      usedTokens: tokens,
+    };
+    fs.writeFileSync(
+      CONFIG_PARAMS_FILE_PATH,
+      JSON.stringify(configParams, null, 2)
+    );
+  } catch (error) {
+    console.error(`Erreur lors de l'ajout du usedConfig : ${error.message}`);
+    throw error; // Rejeter l'erreur pour la gestion dans la tâche
+  }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -246,6 +422,12 @@ const readFirstValidNonce = function (network, userAddress) {
   }
 };
 
+///////////////////////////////////////////////////////////////////////////////
+//
+//               OTHER FILE HELPERS
+//
+///////////////////////////////////////////////////////////////////////////////
+
 /**
  * @description Get networks used for previous deployments
  */
@@ -276,4 +458,10 @@ module.exports = {
   readFirstValidNonce,
   readNetworks,
   logCurrentFileName,
+  resetJsonFiles,
+  getConfigParams,
+  getUsedNetworksAndTokens,
+  setActiveConfig,
+  getUsedConfigs,
+  addUsedConfig,
 };

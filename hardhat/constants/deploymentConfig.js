@@ -3,7 +3,8 @@
 //             Networks used for deployments
 //
 ///////////////////////////////////////////////////////////////
-const usedNetworks = ["allfeat", "sepolia"];
+// const usedNetworks = ["allfeat", "sepolia"];
+const usedNetworks = ["localhost", "allfeat"];
 
 ////////////////////////////////////////////////////////////////
 //

@@ -7,11 +7,13 @@ const { getMaxAddress, computeTokenSymbol } = require("../utils/util");
 const {
   tokenParams,
   getChainIdByNetworkName,
+  usedNetworks,
+  usedTokens,
 } = require("../helpers/configHelper");
 const { getContext } = require("../helpers/contextHelper");
 const { deploymentCheck } = require("../helpers/functionHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
-const { usedNetworks, usedTokens } = require("../constants/deploymentConfig");
+// const { usedNetworks, usedTokens } = require("../constants/deploymentConfig");
 
 /**
  * @description set token addresses by chain Id
@@ -63,6 +65,7 @@ async function main() {
 
     for (const usedToken in usedTokens) {
       const tokenToSet = usedTokens[usedToken];
+
       const chainIdToSet = getChainIdByNetworkName(networkToSet);
       tokensDataToSet.names.push(tokenToSet);
       tokensDataToSet.chainIds.push(chainIdToSet);

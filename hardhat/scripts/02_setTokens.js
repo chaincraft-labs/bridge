@@ -14,7 +14,6 @@ const {
 const { getContext } = require("../helpers/contextHelper");
 const { deploymentCheck } = require("../helpers/functionHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
-// const { usedNetworks, usedTokens } = require("../constants/deploymentConfig");
 
 /**
  * @description set token addresses by chain Id

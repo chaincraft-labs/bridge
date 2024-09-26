@@ -16,7 +16,6 @@ const {
   usedNetworks,
   usedTokens,
 } = require("../helpers/configHelper");
-// const { usedNetworks, usedTokens } = require("../constants/deploymentConfig");
 
 const serverAddress = process.env.SERVER_ADDRESS;
 
@@ -163,7 +162,6 @@ async function main() {
 
   for (const tokenToDeploy of currentNetworkTokens) {
     try {
-      // @todo CHECK MODIF ICI & SUPPRIMER COMMENTAIRE pour tokenAddress
       let tokenAddress;
       if (!tokenToDeploy.address) {
         // Not a real token so deploy the mocked token

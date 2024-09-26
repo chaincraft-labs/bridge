@@ -5,18 +5,6 @@
 # The script is intended to be run from the root of the project
 # It uses the network names specified in the deploymentConfig.js file
 
-# Parse the usedNetworks from the deploymentConfig.js file
-# Filter out comments, spaces, and quotes
-# Exclude the const usedNetworks = [ part
-
-# @todo REMOVE these lines when solution validated
-# compatible on macOs and wsl / need to install jq on macOs
-# usedNetworks=$(awk '/^const usedNetworks = \[/{print}' constants/deploymentConfig.js | sed 's/.*const usedNetworks = \[\([^]]*\)\].*/\1/' | tr -d '",' | tr ' ' '\n')
-
-# Get the usedNetworks from the deploymentConfig.json file
-# json_file="./constants/deploymentConfig.json"
-# usedNetworks=$(jq -r '.usedNetworks | join(" ")' "$json_file")
-
 # Get the usedNetworks from the deploymentConfig.json file
 json_file="./constants/deploymentConfig.json"
 activeConfig=$(jq -r '.activeConfig' "$json_file")

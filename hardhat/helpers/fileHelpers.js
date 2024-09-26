@@ -42,16 +42,27 @@ const resetJsonFiles = function () {
 //
 ///////////////////////////////////////////////////////////////////////////////
 /**
- * @description Get forkPorts from config files
- * @returns {Object} The forkPorts from the config file
+ * @description Get config params from config files
+ *
+ * @dev Composed of networkParams, usedConfigs, activeConfig, forkPorts
+ * @returns {Object} The config params from the config file
  */
-const getForkPorts = function () {
+const getConfigParams = function () {
   const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
-  if (!configParams.forkPorts) {
-    throw new Error("Fork ports not found in config file!");
-  }
-  return configParams.forkPorts;
+  return configParams;
 };
+
+// /**
+//  * @description Get forkPorts from config files
+//  * @returns {Object} The forkPorts from the config file
+//  */
+// const getForkPorts = function () {
+//   const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
+//   if (!configParams.forkPorts) {
+//     throw new Error("Fork ports not found in config file!");
+//   }
+//   return configParams.forkPorts;
+// };
 
 // @todo refactor inside loop
 /**
@@ -68,59 +79,59 @@ const getForkPorts = function () {
  *
  * @returns {Object} The networkParams and tokenParams from the config file
  */
-const getConfigParams = function () {
-  const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
-  // Test if networkParams and tokenParams are present in the config file
-  if (!configParams.networkParams) {
-    throw new Error("Network params not found in config file!");
-  }
+// const getConfigParams2 = function () {
+//   const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
+//   // Test if networkParams and tokenParams are present in the config file
+//   if (!configParams.networkParams) {
+//     throw new Error("Network params not found in config file!");
+//   }
 
-  const networkParams = configParams.networkParams;
-  const tokenParams = {};
+//   const networkParams = configParams.networkParams;
+//   const tokenParams = {};
 
-  // Loop through the networkParams to get the deployedTokens and nativeToken
-  for (const networkName in networkParams) {
-    // Add the native token to the tokenParams
-    const nativeToken = networkParams[networkName].nativeToken;
-    if (!tokenParams[nativeToken.name]) {
-      tokenParams[nativeToken.name] = {
-        tokenName: nativeToken.name,
-        tokenSymbol: nativeToken.symbol,
-        originChainId: [],
-      };
-    }
-    tokenParams[nativeToken.name].originChainId.push(
-      networkParams[networkName].chainId
-    );
-    tokenParams[nativeToken.name].isNative = true;
+//   // Loop through the networkParams to get the deployedTokens and nativeToken
+//   for (const networkName in networkParams) {
+//     // Add the native token to the tokenParams
+//     const nativeToken = networkParams[networkName].nativeToken;
+//     if (!tokenParams[nativeToken.name]) {
+//       tokenParams[nativeToken.name] = {
+//         tokenName: nativeToken.name,
+//         tokenSymbol: nativeToken.symbol,
+//         originChainId: [],
+//       };
+//     }
+//     tokenParams[nativeToken.name].originChainId.push(
+//       networkParams[networkName].chainId
+//     );
+//     tokenParams[nativeToken.name].isNative = true;
 
-    // Loop through the deployedTokens to get the tokenParams
-    const deployedTokens = networkParams[networkName].deployedTokens;
-    deployedTokens.forEach((token) => {
-      if (!tokenParams[token.name]) {
-        tokenParams[token.name] = {
-          tokenName: token.name,
-          tokenSymbol: token.symbol,
-          originChainId: [networkParams[networkName].chainId],
-        };
-      } else {
-        if (
-          !tokenParams[token.name].originChainId.includes(
-            networkParams[networkName].chainId
-          )
-        ) {
-          tokenParams[token.name].originChainId.push(
-            networkParams[networkName].chainId
-          );
-        }
-      }
-    });
-  }
-  return {
-    networkParams,
-    tokenParams,
-  };
-};
+//     // Loop through the deployedTokens to get the tokenParams
+//     const deployedTokens = networkParams[networkName].deployedTokens;
+//     deployedTokens.forEach((token) => {
+//       if (!tokenParams[token.name]) {
+//         tokenParams[token.name] = {
+//           tokenName: token.name,
+//           tokenSymbol: token.symbol,
+//           originChainId: [networkParams[networkName].chainId],
+//         };
+//       } else {
+//         if (
+//           !tokenParams[token.name].originChainId.includes(
+//             networkParams[networkName].chainId
+//           )
+//         ) {
+//           tokenParams[token.name].originChainId.push(
+//             networkParams[networkName].chainId
+//           );
+//         }
+//       }
+//     });
+//   }
+//   return {
+//     networkParams,
+//     tokenParams,
+//   };
+// };
 
 /**
  * @description Get usedNetworks and usedTokens from config files
@@ -131,140 +142,146 @@ const getConfigParams = function () {
  * @dev And to automate the deployment of tokens and contracts
  * @returns {Object} The usedNetworks and usedTokens from the config file
  */
-const getUsedNetworksAndTokens = function () {
-  const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
-  // Test if usedNetworks and usedTokens are present in the config file
-  if (!configParams.activeConfig) {
-    throw new Error("No active config found!");
-  }
-  // Test if usedNetworks and usedTokens are present in the config file
-  if (!configParams.usedConfigs) {
-    throw new Error("Used configs not found in config file!");
-  }
-  if (!configParams.usedConfigs[configParams.activeConfig]) {
-    throw new Error("Used config not found for this active config!");
-  }
-  if (
-    !configParams.usedConfigs[configParams.activeConfig].usedNetworks ||
-    !configParams.usedConfigs[configParams.activeConfig].usedTokens
-  ) {
-    throw new Error(
-      `Used Networks or Tokens not found for the config ${configParams.activeConfig}!`
-    );
-  }
+// const getUsedNetworksAndTokens = function () {
+//   const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
+//   // Test if usedNetworks and usedTokens are present in the config file
+//   if (!configParams.activeConfig) {
+//     throw new Error("No active config found!");
+//   }
+//   // Test if usedNetworks and usedTokens are present in the config file
+//   if (!configParams.usedConfigs) {
+//     throw new Error("Used configs not found in config file!");
+//   }
+//   if (!configParams.usedConfigs[configParams.activeConfig]) {
+//     throw new Error("Used config not found for this active config!");
+//   }
+//   if (
+//     !configParams.usedConfigs[configParams.activeConfig].usedNetworks ||
+//     !configParams.usedConfigs[configParams.activeConfig].usedTokens
+//   ) {
+//     throw new Error(
+//       `Used Networks or Tokens not found for the config ${configParams.activeConfig}!`
+//     );
+//   }
 
-  return {
-    usedNetworks:
-      configParams.usedConfigs[configParams.activeConfig].usedNetworks,
-    usedTokens: configParams.usedConfigs[configParams.activeConfig].usedTokens,
-  };
-};
+//   return {
+//     usedNetworks:
+//       configParams.usedConfigs[configParams.activeConfig].usedNetworks,
+//     usedTokens: configParams.usedConfigs[configParams.activeConfig].usedTokens,
+//   };
+// };
 
-function setActiveConfig(name) {
-  const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
-  if (configParams.usedConfigs[name]) {
-    configParams.activeConfig = name;
-    fs.writeFileSync(
-      DEPLOYED_ADDRESSES_FILE_PATH,
-      JSON.stringify(configParams, null, 2)
-    );
-  } else {
-    throw new Error(`Le label '${name}' n'existe pas dans usedConfigs.`);
-  }
-}
-
-function getActiveConfig() {
-  const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
-  return configParams.activeConfig;
-}
-
-function getUsedConfigs() {
-  const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
-  return configParams.usedConfigs;
-}
-
-async function addUsedConfig(name, networks, tokens) {
-  try {
-    const data = fs.readFileSync(CONFIG_PARAMS_FILE_PATH, "utf8");
-    const configParams = JSON.parse(data);
-    if (configParams.usedConfigs[name]) {
-      throw new Error(`usedConfig '${name}' already exists.`);
-    }
-    configParams.usedConfigs[name] = {
-      usedNetworks: networks,
-      usedTokens: tokens,
-    };
-    fs.writeFileSync(
-      CONFIG_PARAMS_FILE_PATH,
-      JSON.stringify(configParams, null, 2)
-    );
-  } catch (error) {
-    console.error(`Erreur lors de l'ajout du usedConfig : ${error.message}`);
-    throw error; // Rejeter l'erreur pour la gestion dans la tâche
-  }
-}
-
-// Fonction pour ajouter un token déployé à un réseau
-function addDeployedToken(networkName, tokenName, tokenSymbol, tokenAddress) {
-  const data = fs.readFileSync(CONFIG_PARAMS_FILE_PATH, "utf8");
-  const configParams = JSON.parse(data);
-
-  // Vérifier si le réseau existe
-  if (!configParams.networkParams || !configParams.networkParams[networkName]) {
-    throw new Error(
-      `Le réseau '${networkName}' n'existe pas dans networkParams.`
-    );
-  }
-
-  const network = configParams.networkParams[networkName];
-
-  // Checks if 'mocked' in name: no address else throw error
-  if (tokenName.includes("mocked") && tokenAddress) {
-    throw new Error(
-      `L'adresse du token ne doit pas être fournie pour les tokens mockés.`
-    );
-  }
-  if (!tokenName.includes("mocked") && !tokenAddress) {
-    throw new Error(
-      `L'adresse du token  doit  être fournie pour les vrais tokens .`
-    );
-  }
-
-  // Vérifier les conditions pour l'ajout du token
-  if (tokenName.includes("mocked")) {
-    // Ajouter le token directement avec son nom et symbole
-    network.deployedTokens.push({ name: tokenName, symbol: tokenSymbol });
-  } else {
-    // Vérifier les conditions pour les forks
-    // if (!networkName.includes("Fork")) {
-    //   throw new Error(
-    //     `Le réseau '${networkName}' ne permet pas l'ajout de tokens non mockés.`
-    //   );
-    // }
-
-    if (!tokenAddress) {
-      throw new Error(
-        `L'adresse du token doit être fournie pour les tokens non mockés.`
-      );
-    }
-
-    // Ajouter le token avec l'adresse
-    network.deployedTokens.push({
-      name: tokenName,
-      symbol: tokenSymbol,
-      address: tokenAddress,
-    });
-  }
-
-  // Écrire le fichier JSON mis à jour
+function updateConfigParams(configParams) {
   fs.writeFileSync(
     CONFIG_PARAMS_FILE_PATH,
     JSON.stringify(configParams, null, 2)
   );
-  // console.log(
-  //   `Le token '${tokenName}' a été ajouté au réseau '${networkName}'.`
-  // );
 }
+// function setActiveConfig(name) {
+//   const configParams = getConfigParams();
+//   if (configParams.usedConfigs[name]) {
+//     configParams.activeConfig = name;
+//     fs.writeFileSync(
+//       DEPLOYED_ADDRESSES_FILE_PATH,
+//       JSON.stringify(configParams, null, 2)
+//     );
+//   } else {
+//     throw new Error(`Le label '${name}' n'existe pas dans usedConfigs.`);
+//   }
+// }
+
+// function getActiveConfig() {
+//   const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
+//   return configParams.activeConfig;
+// }
+
+// function getUsedConfigs() {
+//   const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
+//   return configParams.usedConfigs;
+// }
+
+// async function addUsedConfig(name, networks, tokens) {
+//   try {
+//     const data = fs.readFileSync(CONFIG_PARAMS_FILE_PATH, "utf8");
+//     const configParams = JSON.parse(data);
+//     if (configParams.usedConfigs[name]) {
+//       throw new Error(`usedConfig '${name}' already exists.`);
+//     }
+//     configParams.usedConfigs[name] = {
+//       usedNetworks: networks,
+//       usedTokens: tokens,
+//     };
+//     fs.writeFileSync(
+//       CONFIG_PARAMS_FILE_PATH,
+// JSON.stringify(configParams, null, 2)
+//     );
+//   } catch (error) {
+//     console.error(`Erreur lors de l'ajout du usedConfig : ${error.message}`);
+//     throw error; // Rejeter l'erreur pour la gestion dans la tâche
+//   }
+// }
+
+// // Fonction pour ajouter un token déployé à un réseau
+// function addDeployedToken(networkName, tokenName, tokenSymbol, tokenAddress) {
+//   const data = fs.readFileSync(CONFIG_PARAMS_FILE_PATH, "utf8");
+//   const configParams = JSON.parse(data);
+
+//   // Vérifier si le réseau existe
+//   if (!configParams.networkParams || !configParams.networkParams[networkName]) {
+//     throw new Error(
+//       `Le réseau '${networkName}' n'existe pas dans networkParams.`
+//     );
+//   }
+
+//   const network = configParams.networkParams[networkName];
+
+//   // Checks if 'mocked' in name: no address else throw error
+//   if (tokenName.includes("mocked") && tokenAddress) {
+//     throw new Error(
+//       `L'adresse du token ne doit pas être fournie pour les tokens mockés.`
+//     );
+//   }
+//   if (!tokenName.includes("mocked") && !tokenAddress) {
+//     throw new Error(
+//       `L'adresse du token  doit  être fournie pour les vrais tokens .`
+//     );
+//   }
+
+//   // Vérifier les conditions pour l'ajout du token
+//   if (tokenName.includes("mocked")) {
+//     // Ajouter le token directement avec son nom et symbole
+//     network.deployedTokens.push({ name: tokenName, symbol: tokenSymbol });
+//   } else {
+//     // Vérifier les conditions pour les forks
+//     // if (!networkName.includes("Fork")) {
+//     //   throw new Error(
+//     //     `Le réseau '${networkName}' ne permet pas l'ajout de tokens non mockés.`
+//     //   );
+//     // }
+
+//     if (!tokenAddress) {
+//       throw new Error(
+//         `L'adresse du token doit être fournie pour les tokens non mockés.`
+//       );
+//     }
+
+//     // Ajouter le token avec l'adresse
+//     network.deployedTokens.push({
+//       name: tokenName,
+//       symbol: tokenSymbol,
+//       address: tokenAddress,
+//     });
+//   }
+
+//   // Écrire le fichier JSON mis à jour
+//   fs.writeFileSync(
+//     CONFIG_PARAMS_FILE_PATH,
+//     JSON.stringify(configParams, null, 2)
+//   );
+//   // console.log(
+//   //   `Le token '${tokenName}' a été ajouté au réseau '${networkName}'.`
+//   // );
+// }
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -539,11 +556,12 @@ module.exports = {
   logCurrentFileName,
   resetJsonFiles,
   getConfigParams,
-  getUsedNetworksAndTokens,
-  setActiveConfig,
-  getUsedConfigs,
-  addUsedConfig,
-  addDeployedToken,
-  getForkPorts,
-  getActiveConfig,
+  updateConfigParams,
+  // getUsedNetworksAndTokens,
+  // setActiveConfig,
+  // getUsedConfigs,
+  // addUsedConfig,
+  // addDeployedToken,
+  // getForkPorts,
+  // getActiveConfig,
 };

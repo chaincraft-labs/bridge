@@ -2,62 +2,16 @@
   "activeConfig": "testnet",
   "usedConfigs": {
     "localNode": {
-      "usedNetworks": [
-        "geth",
-        "allfeatLocal"
-      ],
-      "usedTokens": [
-        "ethereum",
-        "allfeat",
-        "mockedDai",
-        "mockedUsdc"
-      ]
+      "usedNetworks": ["geth", "allfeatLocal"],
+      "usedTokens": ["ethereum", "allfeat", "mockedDai", "mockedUsdc"]
     },
     "local": {
-      "usedNetworks": [
-        "localhost",
-        "sepoliaFork"
-      ],
-      "usedTokens": [
-        "ethereum",
-        "allfeat",
-        "mockedDai",
-        "mockedUsdc"
-      ]
+      "usedNetworks": ["localhost", "sepoliaFork"],
+      "usedTokens": ["ethereum", "allfeat", "mockedDai", "mockedUsdc"]
     },
     "testnet": {
-      "usedNetworks": [
-        "allfeat",
-        "sepolia"
-      ],
-      "usedTokens": [
-        "ethereum",
-        "allfeat",
-        "mockedDai",
-        "mockedUsdc"
-      ]
-    },
-    "TEST": {
-      "usedNetworks": [
-        "sepolia",
-        "licorne",
-        "tothemoon"
-      ],
-      "usedTokens": [
-        "millionscoins",
-        "doit",
-        "youcan"
-      ]
-    },
-    "newUsedConfig": {
-      "usedNetworks": [
-        "localhost",
-        "sepolia"
-      ],
-      "usedTokens": [
-        "myToken",
-        "myNewToken"
-      ]
+      "usedNetworks": ["allfeat", "sepolia"],
+      "usedTokens": ["ethereum", "allfeat", "mockedDai", "mockedUsdc"]
     }
   },
   "forkPorts": {
@@ -85,141 +39,6 @@
         {
           "name": "mockedUsdc",
           "symbol": "USDC"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "myToken",
-          "symbol": "MTK",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "myNewToken",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "myNewToken",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
-        },
-        {
-          "name": "mockedToken",
-          "symbol": "MTK"
         }
       ]
     },
@@ -290,98 +109,8 @@
           "symbol": "USDC"
         },
         {
-          "name": "faketoken",
+          "name": "fakeToken",
           "symbol": "FTK",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
-          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        },
-        {
-          "name": "myNewToken2",
-          "symbol": "MNT",
           "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
         }
       ]
@@ -503,73 +232,6 @@
         "symbol": "MATIC"
       },
       "deployedTokens": []
-    }
-  },
-  "tokenParams": {
-    "ethereum": {
-      "tokenName": "ethereum",
-      "tokenSymbol": "ETH",
-      "originChainId": [
-        1,
-        1337,
-        31337,
-        11155111
-      ],
-      "isNative": true
-    },
-    "allfeat": {
-      "tokenName": "allfeat",
-      "tokenSymbol": "AFT",
-      "originChainId": [
-        440,
-        441
-      ],
-      "isNative": true
-    },
-    "matic": {
-      "tokenName": "matic",
-      "tokenSymbol": "MATIC",
-      "originChainId": [
-        137
-      ],
-      "isNative": true
-    },
-    "dai": {
-      "tokenName": "dai",
-      "tokenSymbol": "DAI",
-      "originChainId": [
-        1
-      ],
-      "isNative": false
-    },
-    "mockedDai": {
-      "tokenName": "mockedDai",
-      "tokenSymbol": "DAI",
-      "originChainId": [
-        1337,
-        31337,
-        11155111
-      ],
-      "isNative": false
-    },
-    "mockedUsdc": {
-      "tokenName": "mockedUsdc",
-      "tokenSymbol": "USDC",
-      "originChainId": [
-        1337,
-        31337,
-        11155111
-      ],
-      "isNative": false
-    },
-    "newCoin4": {
-      "tokenName": "newCoin4",
-      "tokenSymbol": "NCT",
-      "originChainId": [
-        31337,
-        11155111
-      ],
-      "isNative": false
     }
   }
 }

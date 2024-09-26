@@ -12,7 +12,6 @@ const {
 const { getContext } = require("../helpers/contextHelper");
 const { deploymentCheck } = require("../helpers/functionHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
-// const { usedNetworks } = require("../constants/deploymentConfig");
 
 /**
  * @description This script set addresses of a new token in Storage of each chain used

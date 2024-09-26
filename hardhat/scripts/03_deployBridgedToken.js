@@ -8,7 +8,6 @@ const { computeTokenSymbol } = require("../utils/util");
 const { deploymentCheck } = require("../helpers/functionHelpers");
 const { getContext } = require("../helpers/contextHelper");
 const { tokenParams, usedNetworks } = require("../helpers/configHelper");
-// const { usedNetworks } = require("../constants/deploymentConfig");
 
 /**
  * @description This script will deploy a new bridged Token and set its address in storage

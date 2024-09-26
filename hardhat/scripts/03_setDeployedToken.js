@@ -3,17 +3,13 @@ const {
   readLastDeployedAddress,
 } = require("../helpers/fileHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
-const {
-  deploymentCheck,
-  deployAndSaveAddress,
-} = require("../helpers/functionHelpers");
+const { deploymentCheck } = require("../helpers/functionHelpers");
 const { getContext } = require("../helpers/contextHelper");
 const {
   tokenParams,
   networkParams,
   usedNetworks,
 } = require("../helpers/configHelper");
-// const { usedNetworks } = require("../constants/deploymentConfig");
 
 /**
  * @description This script will set this address of a real deployed token in storage
@@ -30,7 +26,6 @@ async function main() {
   display.h1(`Script: ${logCurrentFileName()}...`);
 
   const context = await getContext();
-  const owner = context.accounts[0];
 
   const options = process.env.MOCKED_TOKEN_OPTION;
   const tokenInfo = options.split(",");

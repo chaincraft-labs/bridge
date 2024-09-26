@@ -81,9 +81,6 @@ async function main() {
   if (!nonce) {
     throw "No valid nonce found!";
   }
-  // @todo remove logs (testing new nonce record)
-  // console.log(operationParams[0]);
-  // console.log(getNetworkNameByChainId(operationParams[0]));
 
   display.depositSignerInfo(userWallet.address, nonce);
 

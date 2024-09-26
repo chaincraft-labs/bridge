@@ -1,32 +1,57 @@
+const { task } = require("hardhat/config");
 const {
   addUsedConfig,
   setActiveConfig,
   getUsedConfigs,
   addDeployedToken,
-} = require("../helpers/fileHelpers");
+  addToConfig,
+  removeConfig,
+} = require("../helpers/configHelper");
+const { resetJsonFiles } = require("../helpers/fileHelpers");
 const { toStyle } = require("../helpers/loggingHelper");
 
-// Tâche pour changer activeConfig
-task("set-active-config", "Change le activeConfig")
-  .addParam("name", "Le nom du nouveau activeConfig")
+//////////////////////// JSON files TASKS ////////////////////////
+
+// Task to reset deployed addresses and nonce records
+task(
+  "reset-config",
+  "Reset the deployed addresses and nonce records"
+).setAction(async () => {
+  try {
+    await resetJsonFiles();
+    console.log(
+      `${toStyle.bold(
+        "Deployed addresses and nonce records"
+      )} reset with success !`
+    );
+  } catch (error) {
+    console.error(error.message);
+  }
+});
+
+//////////////////////// usedConfig TASKS ////////////////////////
+
+// Task to set the activeConfig
+task("set-active-config", "Set the activeConfig")
+  .addParam("name", "The name of the activeConfig")
   .setAction(async (taskArgs) => {
     try {
       setActiveConfig(taskArgs.name);
       console.log(
-        `${toStyle.bold("activeConfig")} changé en '${toStyle.blueItalic(
+        `${toStyle.bold("activeConfig")} changed to '${toStyle.blueItalic(
           taskArgs.name
-        )}' avec succès !`
+        )}' with success !`
       );
     } catch (error) {
       console.error(error.message);
     }
   });
 
-// Tâche pour ajouter un nouveau usedConfig
-task("add-used-config", "Ajoute un nouveau usedConfig")
-  .addParam("name", "Le nom du usedConfig")
-  .addParam("networks", "Le tableau de réseaux (séparés par des virgules)")
-  .addParam("tokens", "Le tableau de tokens (séparés par des virgules)")
+// Task to add a new usedConfig
+task("add-used-config", "Add a new usedConfig")
+  .addParam("name", "The name of the usedConfig")
+  .addParam("networks", "The array of networks (separated by commas)")
+  .addParam("tokens", "The array of tokens (separated by commas)")
   .setAction(async (taskArgs) => {
     const networksArray = taskArgs.networks
       .split(",")
@@ -34,57 +59,94 @@ task("add-used-config", "Ajoute un nouveau usedConfig")
     const tokensArray = taskArgs.tokens.split(",").map((item) => item.trim());
 
     try {
-      await addUsedConfig(taskArgs.name, networksArray, tokensArray); // Attendre l'exécution de la fonction
+      await addUsedConfig(taskArgs.name, networksArray, tokensArray);
       console.log(
-        `${toStyle.bold("Nouveau usedConfig")} '${toStyle.blueItalic(
+        `${toStyle.bold("New usedConfig")} '${toStyle.blueItalic(
           taskArgs.name
-        )}' ajouté avec succès !`
+        )}' added with success !`
       );
     } catch (error) {
-      console.error(`Erreur lors de l'ajout du usedConfig : ${error.message}`);
+      console.error(`Error while adding the usedConfig: ${error.message}`);
     }
   });
 
-// Tâche pour afficher les usedConfigs (optionnel, pour vérification)
-task("list-used-configs", "Affiche les usedConfigs disponible").setAction(
-  async () => {
-    const usedConfigs = getUsedConfigs();
-    console.log(
-      `${toStyle.bold("Listed usedConfig")}: ${JSON.stringify(
-        usedConfigs,
-        null,
-        2
-      )}`
-    );
-  }
-);
+// Task to list the usedConfigs
+task("list-used-configs", "List the usedConfigs").setAction(async () => {
+  const usedConfigs = getUsedConfigs();
+  console.log(
+    `${toStyle.bold("Listed usedConfig")}: ${JSON.stringify(
+      usedConfigs,
+      null,
+      2
+    )}`
+  );
+});
 
+// Task to add a network or a token to a usedConfig
+task("add-to-config", "Add a network or a token to a usedConfig")
+  .addParam("name", "The name of the usedConfig")
+  .addParam("type", "The type of the element to add (network or token name)")
+  .addParam("element", "The element to add")
+  .setAction(async (taskArgs) => {
+    try {
+      await addToConfig(taskArgs.name, taskArgs.type, taskArgs.element);
+      console.log(
+        `${toStyle.bold("Element")} '${toStyle.blueItalic(
+          taskArgs.element
+        )}' added to the usedConfig '${toStyle.blueItalic(
+          taskArgs.name
+        )}' with success !`
+      );
+    } catch (error) {
+      console.error(`Error while adding the element: ${error.message}`);
+    }
+  });
+
+// Task to remove a usedConfig
+task("remove-used-config", "Remove a usedConfig")
+  .addParam("name", "The name of the usedConfig")
+  .setAction(async (taskArgs) => {
+    try {
+      await removeConfig(taskArgs.name);
+      console.log(
+        `${toStyle.bold("UsedConfig")} '${toStyle.blueItalic(
+          taskArgs.name
+        )}' removed with success !`
+      );
+    } catch (error) {
+      console.error(`Error while removing the usedConfig: ${error.message}`);
+    }
+  });
+
+//////////////////////// networkParams TASKS ////////////////////////
+
+// Task to add a deployed token to networkParams
 task(
   "add-deployed-token",
-  "Ajoute un nouveau deployedToken à un réseau existant"
+  "Add a deployed token to the network in networkParams"
 )
-  .addParam("net", "Le nom du réseau")
+  .addParam("networkName", "The network name")
   .addParam(
     "name",
-    "Le nom du token, if mocked MUST contains be prefixed with 'mocked'"
+    "The name of the token (should contain 'mocked' if it's a mocked token)"
   )
-  .addParam("symbol", "Le symbole du token")
+  .addParam("symbol", "The symbol of the token")
   .addOptionalParam(
     "address",
-    "L'adresse du token (name shouldn't contain 'mocked')"
+    "The address of the token (only for non mocked tokens)"
   )
   .setAction(async (taskArgs) => {
     try {
       addDeployedToken(
-        taskArgs.net,
+        taskArgs.networkName,
         taskArgs.name,
         taskArgs.symbol,
         taskArgs.address
       );
       console.log(
-        `Le token '${taskArgs.name}' a été ajouté avec succès au réseau '${taskArgs.net}'.`
+        `Token '${taskArgs.name}' added to the deployed tokens list with success !`
       );
     } catch (error) {
-      console.error(`Erreur lors de l'ajout du token : ${error.message}`);
+      console.error(`Error while adding the token: ${error.message}`);
     }
   });

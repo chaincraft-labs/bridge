@@ -1,5 +1,5 @@
 const { convertParamsStringToArray } = require("../helpers/functionHelpers");
-const { getSignerFromOption } = require("../utils/util");
+const { getSigner } = require("../utils/util");
 /**
  * @dev Get the signature of the hash of args (operation hash)
  */
@@ -12,7 +12,7 @@ task("func-getMsgSignature", "Get the signature of operation hash.")
       "                Optional - default: 0 (deployer/default signer)."
   )
   .setAction(async (taskArgs, hre) => {
-    let userWallet = await getSignerFromOption(hre, taskArgs.signer);
+    let userWallet = await getSigner(hre, taskArgs.signer);
 
     const paramsTypes = [
       "address", // from

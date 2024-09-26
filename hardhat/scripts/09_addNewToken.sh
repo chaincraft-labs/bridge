@@ -6,20 +6,17 @@
 # Chains used are defined in constants/deploymentConfig::usedNetworks
 # The script is intended to be run from the root of the project
 # The new mocked token MUST BE config in helpers/configHelper::tokenParams BEFORE!
-# ARGS: tokenName tokenSymbol nativeNetwork
+# ARGS: tokenName tokenSymbol nativeNetwork [tokenAddress if not a mocked token]
 
 # Get the args
 if [ "$#" -lt 3 ]; then
-    echo "Usage: $0 <tokenName> <tokenSymbol> <nativeNetwork>"
+    echo "Usage: $0 <tokenName> <tokenSymbol> <nativeNetwork> [tokenAddress if not a mocked token]"
     exit 1
 fi
 tokenName=$1
 tokenSymbol=$2
 nativeNetwork=$3
-
-# Parse the usedNetworks from the deploymentConfig.js file
-# Filter out comments, spaces, and quotes
-# Exclude the const usedNetworks = [ part
+tokenAddress=$4
 
 # Get the usedNetworks from the deploymentConfig.json file
 json_file="./constants/deploymentConfig.json"
@@ -36,7 +33,7 @@ if jq -e ".usedConfigs | has(\"$activeConfig\")" "$json_file" > /dev/null; then
     fi
     echo "Used networks for active config ($activeConfig): $usedNetworks"
 else
-    echo "Le label '$activeConfig' n'existe pas dans usedConfigs."
+    echo "The label: '$activeConfig' does not exist in usedConfigs."
     exit 1
 fi
 
@@ -44,10 +41,22 @@ networkCount=$(echo "$usedNetworks" | wc -l)
 totalCommands=$((networkCount * 2))
 commandCount=0
 
-# Deploy the mocked token on its native network
+# Check if it's a mocked token by checking if name contains 'mocked'
 commandCount=$((commandCount + 1))
-echo "Deploying mocked token on network: $nativeNetwork - Commands: $commandCount/$totalCommands"
-MOCKED_TOKEN_OPTION="$tokenName,$tokenSymbol" npx hardhat run ./scripts/03_deployMockedToken.js --network $nativeNetwork
+if [[ $tokenName != *"mocked"* ]]; then
+    # Check if the token address is provided
+    if [ -z "$tokenAddress" ]; then
+        echo "Token address is required for non-mocked tokens."
+        exit 1
+    fi
+    # Set address of the real deployed token
+    echo "Setting token address on network: $nativeNetwork - Commands: $commandCount/$totalCommands"
+    TOKEN_OPTION="$tokenName,$tokenSymbol,$tokenAddress" npx hardhat run ./scripts/03_setDeployedToken.js --network $nativeNetwork
+else
+    # Deploy the mocked token on its native network
+    echo "Deploying mocked token on network: $nativeNetwork - Commands: $commandCount/$totalCommands"
+    MOCKED_TOKEN_OPTION="$tokenName,$tokenSymbol" npx hardhat run ./scripts/03_deployMockedToken.js --network $nativeNetwork
+fi
 
 # Loop over the networks to deploy the bridged contracts
 for networkToDeploy in $usedNetworks; do

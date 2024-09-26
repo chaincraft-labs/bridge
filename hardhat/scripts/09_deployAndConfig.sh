@@ -32,7 +32,7 @@ if jq -e ".usedConfigs | has(\"$activeConfig\")" "$json_file" > /dev/null; then
     fi
     echo "Used networks for active config ($activeConfig): $usedNetworks"
 else
-    echo "Le label '$activeConfig' n'existe pas dans usedConfigs."
+    echo "The label: '$activeConfig' does not exist in usedConfigs."
     exit 1
 fi
 

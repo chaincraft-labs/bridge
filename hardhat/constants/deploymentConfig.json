@@ -48,6 +48,16 @@
         "doit",
         "youcan"
       ]
+    },
+    "newUsedConfig": {
+      "usedNetworks": [
+        "localhost",
+        "sepolia"
+      ],
+      "usedTokens": [
+        "myToken",
+        "myNewToken"
+      ]
     }
   },
   "forkPorts": {
@@ -75,6 +85,141 @@
         {
           "name": "mockedUsdc",
           "symbol": "USDC"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "myToken",
+          "symbol": "MTK",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "myNewToken",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "myNewToken",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
+        },
+        {
+          "name": "mockedToken",
+          "symbol": "MTK"
         }
       ]
     },
@@ -143,6 +288,101 @@
         {
           "name": "mockedUsdc",
           "symbol": "USDC"
+        },
+        {
+          "name": "faketoken",
+          "symbol": "FTK",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "name": "myNewToken2",
+          "symbol": "MNT",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
         }
       ]
     },
@@ -160,6 +400,11 @@
         {
           "name": "mockedUsdc",
           "symbol": "USDC"
+        },
+        {
+          "name": "Wrapped Ether",
+          "symbol": "WETH",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
         }
       ]
     },

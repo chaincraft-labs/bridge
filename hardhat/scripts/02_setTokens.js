@@ -5,6 +5,7 @@ const {
 } = require("../helpers/fileHelpers");
 const { getMaxAddress, computeTokenSymbol } = require("../utils/util");
 const {
+  networkParams,
   tokenParams,
   getChainIdByNetworkName,
   usedNetworks,
@@ -62,11 +63,12 @@ async function main() {
   ///////////////////////////////////////////////////////////////////////////////
   for (const index in networksToSet) {
     const networkToSet = networksToSet[index];
+    const chainIdToSet = getChainIdByNetworkName(networkToSet);
+    const deployedTokens = networkParams[networkToSet].deployedTokens;
 
     for (const usedToken in usedTokens) {
       const tokenToSet = usedTokens[usedToken];
 
-      const chainIdToSet = getChainIdByNetworkName(networkToSet);
       tokensDataToSet.names.push(tokenToSet);
       tokensDataToSet.chainIds.push(chainIdToSet);
 
@@ -78,6 +80,17 @@ async function main() {
 
           continue;
         }
+
+        // Real token whose address is already set take this one
+        let tokenToSetObject = deployedTokens.find(
+          (element) => element.name === tokenToSet
+        );
+        if (tokenToSetObject && tokenToSetObject.address) {
+          tokensDataToSet.addresses.push(tokenToSetObject.address);
+
+          continue;
+        }
+
         // Mocked token on chainIdToSet
         let address = await readLastDeployedAddress(
           networkToSet,

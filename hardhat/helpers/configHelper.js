@@ -1,4 +1,8 @@
-const { getConfigParams, getUsedNetworksAndTokens } = require("./fileHelpers");
+const {
+  getConfigParams,
+  getUsedNetworksAndTokens,
+  getForkPorts,
+} = require("./fileHelpers");
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -35,6 +39,15 @@ const { networkParams, tokenParams } = getConfigParams();
  * @returns { usedNetworks, usedTokens } object
  */
 const { usedNetworks, usedTokens } = getUsedNetworksAndTokens();
+
+/**
+ * @description Description of the ports used for forking
+ *
+ * @dev forkPorts: read in the 'deploymentConfig.json' file
+ * @dev format: forkPorts: { network: port }
+ * @dev used to launch nodes and task on the desired network
+ */
+const forkPorts = getForkPorts();
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -97,4 +110,5 @@ module.exports = {
   getNativeToken,
   usedNetworks,
   usedTokens,
+  forkPorts,
 };

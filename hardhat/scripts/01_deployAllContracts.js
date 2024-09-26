@@ -150,6 +150,8 @@ async function main() {
 
   /*
    * ===> Mocked tokens: checks whether tokens should be deployed on this network & deploy them
+   *
+   * ===> Real deployed tokens: checks wether an address is provided in the deploymentConfig file
    */
   console.log(toStyle.bold(`* Mocked tokens:`));
   // Load the tokens declared in networkParams & filtered the ones included in usedNetworks
@@ -161,23 +163,33 @@ async function main() {
 
   for (const tokenToDeploy of currentNetworkTokens) {
     try {
-      // Deploy the mocked token
-      const token = await deployAndSaveAddress(context.network, "MockedToken", [
-        owner,
-        tokenToDeploy.name,
-        tokenToDeploy.symbol,
-      ]);
+      // @todo CHECK MODIF ICI & SUPPRIMER COMMENTAIRE pour tokenAddress
+      let tokenAddress;
+      if (!tokenToDeploy.address) {
+        // Not a real token so deploy the mocked token
+        const token = await deployAndSaveAddress(
+          context.network,
+          "MockedToken",
+          [owner, tokenToDeploy.name, tokenToDeploy.symbol]
+        );
+        tokenAddress = token.target;
+      } else {
+        // Real token so set its address in storage
+        tokenAddress = tokenToDeploy.address;
+      }
       // Store its address in storage for this chainId
       const tx = await storage.addNewTokenAddressByChainId(
         tokenToDeploy.name,
         context.chainId,
-        token.target
+        tokenAddress
       );
       await tx.wait();
-      display.tokenSet(tokenToDeploy.name, token.target, context.chainId);
+      display.tokenSet(tokenToDeploy.name, tokenAddress, context.chainId);
     } catch (err) {
       console.log(
-        `${toStyle.error("Error: ")} Deploying mocked token...\n${err.message}`
+        `${toStyle.error(
+          "Error: "
+        )} Deploying mocked token or setting token...\n${err.message}`
       );
     }
   }

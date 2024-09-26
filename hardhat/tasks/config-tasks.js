@@ -2,6 +2,7 @@ const {
   addUsedConfig,
   setActiveConfig,
   getUsedConfigs,
+  addDeployedToken,
 } = require("../helpers/fileHelpers");
 const { toStyle } = require("../helpers/loggingHelper");
 
@@ -57,3 +58,33 @@ task("list-used-configs", "Affiche les usedConfigs disponible").setAction(
     );
   }
 );
+
+task(
+  "add-deployed-token",
+  "Ajoute un nouveau deployedToken à un réseau existant"
+)
+  .addParam("net", "Le nom du réseau")
+  .addParam(
+    "name",
+    "Le nom du token, if mocked MUST contains be prefixed with 'mocked'"
+  )
+  .addParam("symbol", "Le symbole du token")
+  .addOptionalParam(
+    "address",
+    "L'adresse du token (name shouldn't contain 'mocked')"
+  )
+  .setAction(async (taskArgs) => {
+    try {
+      addDeployedToken(
+        taskArgs.net,
+        taskArgs.name,
+        taskArgs.symbol,
+        taskArgs.address
+      );
+      console.log(
+        `Le token '${taskArgs.name}' a été ajouté avec succès au réseau '${taskArgs.net}'.`
+      );
+    } catch (error) {
+      console.error(`Erreur lors de l'ajout du token : ${error.message}`);
+    }
+  });

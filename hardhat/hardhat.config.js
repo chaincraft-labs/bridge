@@ -158,6 +158,9 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
   },
+  gasReporter: {
+    enabled: process.env.REPORT_GAS ? true : false,
+  },
   verify: {
     etherscan: {
       apiKey: `${etherscanApiKey}`,

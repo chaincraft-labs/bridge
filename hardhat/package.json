@@ -4,7 +4,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "deploy": "hardhat run scripts/deploy.js",
+    "deploy": "node ./scripts/09_deployAndConfig.sh",
     "bsc": "NETWORK=bsc NETWORK_URL=https://rpc.ankr.com/bsc FROM_BLOCK=22828104 CHAIN_ID=100 npx hardhat node --port 8541",
     "eth": "NETWORK=eth NETWORK_URL=https://rpc.ankr.com/eth CHAIN_ID=101 npx hardhat node --port 8542",
     "avax": "NETWORK=avax NETWORK_URL=https://api.avax.network/ext/bc/C/rpc CHAIN_ID=102 npx hardhat node --port 8543",

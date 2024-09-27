@@ -5,6 +5,7 @@
 - [Installation](#installation)
 - [Usage](#usage)
 - [Folder structure](#folder-structure)
+- [Deployed contracts](#deployed-contracts)
 - [Useful links](#useful-links)
 
 ## Installation
@@ -32,7 +33,7 @@ To get started with this project, follow these steps:
    npx hardhat
    ```
 
-4. Install jq:
+4. Install jq (if not already installed):
 
    - On MacOS: `brew install jq`
    - On Debian/Ubuntu: `sudo apt-get install jq`
@@ -72,7 +73,7 @@ The value sent with the tx if it's a native transfer should be equal to amount, 
 depositFees(bytes32 operationHash, uint256 chainIdFrom, uint256 chainIdTo)
 ```
 
-Where `operationHash` is the hash of the params given to `createBridgeOperation` less the signature.
+Where `operationHash` is the hash of the params given to `createBridgeOperation` (without the signature).
 
 The value sent with the tx should be equal to the needed fees.
 
@@ -113,6 +114,10 @@ Here’s a brief overview of the main folder structure:
     |-COMMANDS.md: Contains guide to available commands.
     |-NOTES.md: Contains ideas to dig and a todo list of stuff to implement
 ```
+
+### Deployed contracts:
+
+TO BE UPDATED
 
 ### Useful links:
 

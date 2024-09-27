@@ -3,6 +3,8 @@ This file serves as a comprehensive guide for developers and users of the reposi
 # TOC
 
 - [Config](#config)
+  - [Files and variables](#files-and-variables)
+  - [CLI : tasks available to modify the configuration:](#cli--tasks-available-to-modify-the-configuration)
 - [Tests](#tests)
 - [Nodes](#nodes)
   - [Hardhat](#hardhat)
@@ -19,51 +21,141 @@ This file serves as a comprehensive guide for developers and users of the reposi
 
 # CONFIG
 
-The configuration items needed to deploy and use the bridge.
+### Files and variables
 
-Generally speaking, the networks, tokens available are those defined in these configuration files. Add new ones as you need.  
-But those allowed for the deployment and therefore the use of the bridge are those defined in `usedNetworks` and `usedToken`.
+Few files are used to configure the project. Some data are to be set in the files other have tasks to be done with the CLI below.
 
-- .env:
+- `.env` file:
+  It contains the private data needed to deploy and use the bridge.
 
   - DEPLOYER: the deployer, bridge admin and default signer for non local networks
   - USER<1-20>: other optional signers for non local networks
   - SERVER_ADDRESS: is the address of the off-chain server
 
-- hardhat.config.js: MUST CONTAIN the networks used with valid params
+  > Set your private data in the `.env` file.
+
+- `hardhat.config.js` file:
+  It contains the networks used with valid params: RPC_URL, accounts.
 
   - The signers will be those set in the .env file for non local networks
-    or the default hardhat signers for local networks
+    or the default hardhat signers for local networks, the seed used can be changed in .env file.
   - Signers are available with 'accounts' array. Index 0: the deployer, then the other users.
 
-- Networks, tokens (name and symbol), chainIds used MUST BE configured in `helpers/configHelpers.js::networkParams`
+  > Add the networks you want to use in the hardhat config file if not already present.
 
-- Tokens used MUST BE also in `helpers/configHelpers.js::tokenParams`
+- `nonceRecord.json` file:
+  It stores the current nonces used to create an operation on a chain to use it for fees deposit on destination chain.
+  It managed nonces for each network and each user and give an array of nonces for each user. As soon as a nonce is used for fees deposit, it is removed from the array.
 
-- **Write elements used for deployment** in `constants/deploymentConfig.js`
+  A deposit script will add a nonce a the end of the array and a fees deposit script will remove the first nonce of the array. It works as a FIFO.
 
-  - networks: in `usedNetworks` array (you can not duplicate a local network, i.e. localhost and hardhat)
-  - token names: in `usedTokens` array
+  > It's used by the scripts, so it's better to not modify it manually.
 
-- constants folder:
+- `deployedAddresses.json` file:
+  It stores the addresses of the deployed contracts on each network. It's used to interact with the contracts.
 
-  This folder is used to store elements needed to interact with deployed contracts
+  > It's used by the scripts, so it's better to not modify it manually.
 
-  - `deployedAddresses.json` stores the last deployed address of each contract for each network
-  - `nonceRecord.json` stores the current nonce used to create an operation on a chain to use it for fees deposit on destination chain
-  - `simulationParams.js` can be used to store inputs used for differents actions to simulate, automatize actions...
+- `simulationParams.js` can be used to store inputs used for differents actions to simulate, automatize actions... as scenarios, user actions...
 
-# TESTS @todo CLEAN GREP
+- `deploymentConfig.json` file:
+  It stores the networks, tokens, chainIds used and the elements needed to interact with deployed contracts.
+  It provides some objects to use in the scripts and tests:
+
+  - **forkPorts**: the ports used for forks. It allows to launch a fork on a specific port to avoid conflicts. And
+    it allows to run automatically script on forks with the associated network defined in the hardhat config file.
+
+  - **networkParams**: networks allowed and their params. It should correspond to the networks defined in hardhat config. For each network are defined:
+
+    - chainId: the chainId of the network
+    - nativeToken: {name, symbol} of the native token of the network
+    - deployedTokens: array of {name, symbol, <address>} of the tokens deployed on the network
+      You should add the networks you want to use in the `networkParams` object if you add a network in the hardhat config file.
+
+  It represents all the networks and tokens the system know and can interact with.
+  Mocked tokens used for dev/test should be added **BEFORE** using them in the scripts.
+
+  - **activeConfig**: the name of the usedConfig object active for the deployment and the scripts. It should be set to the name of the object you want to use in the scripts and tests.
+
+  - **usedConfigs**: an array of 'usedConfig' you can set to use in the scripts and tests. It should contain the name of the objects you want to use in the scripts and tests. `activeConfig` should be one of them.
+
+    Each one is composed of:
+
+    - usedNetworks: array of network names used for deployment and scripts
+    - usedTokens: array of token names used for deployment and scripts
+
+  > NOTE: scripts run only on networks defined in `usedNetworks` of the `activeConfig` and with its tokens in `usedTokens`.
+
+  > Hardhat config and networkParams contains available networks and tokens, but only those in `usedNetworks` and `usedTokens` of the `activeConfig` are used/authorized for scripts.
+
+### CLI : tasks available to modify the configuration:
+
+- **Reset json files:**
+  It allows to reset the nonceRecord and deployedAddresses files. It will remove all the data in the files.
+
+  ```shell
+  npx hardhat reset-config
+  ```
+
+- **Set the activeConfig in the deploymentConfig:**
+  It allows to set the activeConfig in the deploymentConfig file. This config will be used for the scripts and tests.
+
+  ```shell
+  npx hardhat set-activeConfig --name <configName>
+  ```
+
+- **List the usedConfigs in the deploymentConfig:**
+  It allows to list the usedConfigs in the deploymentConfig file.
+
+  ```shell
+  npx hardhat list-used-configs
+  ```
+
+- **Add a usedConfig to the deploymentConfig:**
+  It allows to set a new usedConfig in the deploymentConfig file with its authorized networks and tokens.
+
+  ```shell
+  npx hardhat add-used-config --name <configName> --networks <networks> --tokens <tokens>
+  ```
+
+  Where networks and tokens are strings of comma separated values.
+
+- **Add a token or a network to a usedConfig:**
+  It allows to add a token or a network to a usedConfig in the deploymentConfig file to expand the authorized networks and tokens.
+
+  ```shell
+  npx hardhat add-to-config --name <configName> --type <"network"|"token"> --element <name of the network or token>
+  ```
+
+- **Remove a usedConfig from the usedConfigs:**
+
+  ```shell
+  npx hardhat remove-used-config --name <usedConfigName>
+  ```
+
+- **Add a token to networkParams:**
+  It allows to declared a new token on a network in the networkParams object, in order to use it in scripts or to deploy it (case of mocked tokens).
+
+  ```shell
+  npx hardhat add-deployed-token --networkName <network of the token> --name <name of the token> --symbol <symbol of the token> [--tokenAddress <address of the NON mocked token >]
+  ```
+
+  The tokenAddress is optional and should be used only for tokens already deployed on the network.
+
+# TESTS AND COVERAGE
+
+Some 'describe' blocks are tagged with '@skip' to avoid running them or '@only' to run only them. Uncomment the '@skip' to run the tests.
 
 ```shell
+# To run tests:
 npx hardhat test [--network <network-name>]
 
-file hardhat test ./test/testfile.js.
-add and convert, the command:
-
+# To run a specific test file:
+npx hardhat test ./test/testfile.js.
+# Or use a rule to filter tests:
 npx hardhat test --grep "add|con?vert"
 
-
+# To run tests with coverage:
 npx hardhat coverage
 ```
 
@@ -71,12 +163,6 @@ npx hardhat coverage
 
 ```shell
 REPORT_GAS=true npx hardhat test
-```
-
-To save in a file the gas report:
-
-```shell
-REPORT_GAS=true npx hardhat test  | awk '{gsub(/\033\[[0-9;]*m/, "")} /·-------------------/{found=1} found && !/passing/' > gas_report.txt
 ```
 
 # NODES
@@ -227,36 +313,50 @@ Before using these script, the token should be configured in `constants/deployme
 
 The networks used are those present in `constants/deploymentConfig.js::usedNetworks`.
 
-- **Deploy mocked token:**  
-  Args: the token name and symbol of the mocked token
-
-  ```shell
-  MOCKED_TOKEN_OPTION=<"tokenName,tokenSymbol"> npx hardhat run scripts/03_deployMockedToken.js --network <networkName>
-  ```
-
-- **Deploy bridged token:**  
-  Args: the token name and symbol of the **mocked** token
-
-  ```shell
-  MOCKED_TOKEN_OPTION=<"tokenName,tokenSymbol"> npx hardhat run scripts/03_deployBridgedToken.js --network <networkName>
-  ```
-
-- **Set the new addresses in Storage for each network:**  
-  Args: the token name of the mocked token
-
-  ```shell
-  TOKEN_OPTION=<"tokenName"> npx hardhat run scripts/04_setNewToken.js --network <networkName>
-  ```
-
 - **Automation of all steps:**  
-  It will the deploy the mocked token on the specified network and its bridged tokens on each other networks.
-  It will then register in the 'Storage' contracts of each network the new addresses with their associated 'chainId' fo the token.
+  It will the deploy the mocked token on the specified network and its bridged tokens on each other networks (those configured in `usedNetworks` array of the `activeConfig`).
+  It will then register in the 'Storage' contracts of each network the new addresses with their associated 'chainId' for the token.
 
   Args: the token name and symbol of the mocked token and its origin network
 
   ```shell
   ./scripts/09_deployAndConfig.sh tokenName tokenSymbol originNetwork
   ```
+
+  This script use the following scripts in the order:
+
+- **Deploy and set a new token step by step:**
+
+  - **Add address of a deployed token:**  
+    This is use to add the address of a token already deployed on a network to the Storage contract of another network.
+    In order to deploy its bridged version on the other networks.
+    Args: the token name and symbol of the mocked token
+
+    ```shell
+    TOKEN_OPTION=<"tokenName,tokenSymbol,tokenAddress"> npx hardhat run scripts/03_setDeployedToken.js --network <networkName>
+    ```
+
+  - **Deploy mocked token:**  
+    This is use to deploy a new mocked token on a network. In order to deploy its bridged version on the other networks.
+    Args: the token name and symbol of the mocked token
+
+    ```shell
+    MOCKED_TOKEN_OPTION=<"tokenName,tokenSymbol"> npx hardhat run scripts/03_deployMockedToken.js --network <networkName>
+    ```
+
+  - **Deploy bridged token:**  
+    Args: the token name and symbol of the **mocked** token
+
+    ```shell
+    MOCKED_TOKEN_OPTION=<"tokenName,tokenSymbol"> npx hardhat run scripts/03_deployBridgedToken.js --network <networkName>
+    ```
+
+  - **Set the new addresses in Storage for each network:**  
+    Args: the token name of the mocked token
+
+    ```shell
+    TOKEN_OPTION=<"tokenName"> npx hardhat run scripts/04_setNewToken.js --network <networkName>
+    ```
 
 ### User actions:
 

@@ -6,12 +6,12 @@ const {
 } = require("../helpers/fileHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
 const { getContext } = require("../helpers/contextHelper");
-const { getNetworkNameByChainId } = require("../helpers/configHelper");
+// const { getNetworkNameByChainId } = require("../helpers/configHelper");
 const {
   convertToOperationParams,
   getFeesAmount,
 } = require("../helpers/functionHelpers");
-const { getSigner } = require("../utils/util");
+const { getSigner, getNetworkNameByChainId } = require("../utils/util");
 
 /**
  * @description User fees deposit script

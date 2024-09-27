@@ -3,12 +3,12 @@ const {
   readLastDeployedAddress,
   logCurrentFileName,
 } = require("../helpers/fileHelpers");
-const { getMaxAddress, computeTokenSymbol } = require("../utils/util");
 const {
-  tokenParams,
+  getMaxAddress,
+  computeTokenSymbol,
   getChainIdByNetworkName,
-  usedNetworks,
-} = require("../helpers/configHelper");
+} = require("../utils/util");
+const { tokenParams, usedNetworks } = require("../helpers/configHelper");
 const { getContext } = require("../helpers/contextHelper");
 const { deploymentCheck } = require("../helpers/functionHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");

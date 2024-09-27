@@ -7,8 +7,15 @@ const { simulationParams } = require("../constants/simulationParams");
 //                CHECKS FOR DEPLOYMENT SCRIPTS
 //
 ///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description Check the deploymentConfig.js file for errors
+ * @dev Used in deployment scripts
+ */
 const deploymentCheck = {
-  // Check we don't have localhost AND hardhat in network used (same id)
+  /**
+   * @description Check if "localhost" and "hardhat" are not used at the same time
+   * @param {Array} usedNetworks
+   */
   noLocalChainDuplicate: (usedNetworks) => {
     if (
       usedNetworks.includes("localhost") &&
@@ -21,8 +28,10 @@ const deploymentCheck = {
       )}!\n`;
     }
   },
-  // to be removed as L2s share the same coin
-  // Check we don't have duplicate chains used (same chainID or native token)
+  /**
+   * @description Check if there are no duplicate chains in usedNetworks
+   * @param {Array} usedNetworks
+   */
   noDuplicateChains: (usedNetworks) => {
     const seenChains = {};
 
@@ -49,7 +58,12 @@ const deploymentCheck = {
     });
   },
 
-  // Check if we deploy to a network from the deploymentConfig (deployment security)
+  /**
+   * @description Check if the current network is included in usedNetworks
+   *
+   * @param {Array} usedNetworks
+   * @param {string} currentNetwork
+   */
   deploymentOnUsedNetworks: (usedNetworks, currentNetwork) => {
     if (!usedNetworks.includes(currentNetwork)) {
       throw `${toStyle.error(
@@ -59,8 +73,11 @@ const deploymentCheck = {
       )}!`;
     }
   },
-
-  // Check if the networks in deploymentConfig are amongst networkParams (to have their data)
+  /**
+   * @description Check if usedNetworks are included in networkParams
+   *
+   * @param {Array} usedNetworks
+   */
   usedNetworksSetInConfig: (usedNetworks) => {
     const networkKeys = Object.keys(networkParams);
     usedNetworks.forEach((usedNetwork) => {
@@ -71,7 +88,12 @@ const deploymentCheck = {
       }
     });
   },
-
+  /**
+   * @description Check the deploymentConfig.js file for errors
+   *
+   * @param {Array} usedNetworks
+   * @param {string} currentNetwork
+   */
   validateNetworks: function (usedNetworks, currentNetwork) {
     deploymentCheck.noLocalChainDuplicate(usedNetworks);
     deploymentCheck.deploymentOnUsedNetworks(usedNetworks, currentNetwork);

@@ -1,17 +1,40 @@
 {
-  "activeConfig": "testnet",
+  "activeConfig": "local",
   "usedConfigs": {
     "localNode": {
-      "usedNetworks": ["geth", "allfeatLocal"],
-      "usedTokens": ["ethereum", "allfeat", "mockedDai", "mockedUsdc"]
+      "usedNetworks": [
+        "geth",
+        "allfeatLocal"
+      ],
+      "usedTokens": [
+        "ethereum",
+        "allfeat",
+        "mockedDai",
+        "mockedUsdc"
+      ]
     },
     "local": {
-      "usedNetworks": ["localhost", "sepoliaFork"],
-      "usedTokens": ["ethereum", "allfeat", "mockedDai", "mockedUsdc"]
+      "usedNetworks": [
+        "localhost"
+      ],
+      "usedTokens": [
+        "ethereum",
+        "allfeat",
+        "mockedDai",
+        "mockedUsdc"
+      ]
     },
     "testnet": {
-      "usedNetworks": ["allfeat", "sepolia"],
-      "usedTokens": ["ethereum", "allfeat", "mockedDai", "mockedUsdc"]
+      "usedNetworks": [
+        "allfeat",
+        "sepolia"
+      ],
+      "usedTokens": [
+        "ethereum",
+        "allfeat",
+        "mockedDai",
+        "mockedUsdc"
+      ]
     }
   },
   "forkPorts": {

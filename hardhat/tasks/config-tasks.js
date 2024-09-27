@@ -72,7 +72,13 @@ task("add-used-config", "Add a new usedConfig")
 
 // Task to list the usedConfigs
 task("list-used-configs", "List the usedConfigs").setAction(async () => {
-  const usedConfigs = getUsedConfigs();
+  const usedConfigs = JSON.parse(JSON.stringify(getUsedConfigs()));
+  // Format the usedConfigs for a better display
+  Object.values(usedConfigs).forEach((usedConfig) => {
+    usedConfig.usedNetworks = usedConfig.usedNetworks.join(", ");
+    usedConfig.usedTokens = usedConfig.usedTokens.join(", ");
+  });
+
   console.log(
     `${toStyle.bold("Listed usedConfig")}: ${JSON.stringify(
       usedConfigs,

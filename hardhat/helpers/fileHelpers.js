@@ -15,6 +15,100 @@ const CONFIG_PARAMS_FILE_PATH = path.join(CONSTANTS_DIR, CONFIG_PARAMS_FILE);
 
 ///////////////////////////////////////////////////////////////////////////////
 //
+//                UTILS
+//
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description Ensure that a path exists, creating it if it does not.
+ *
+ * @param {string} path The path to ensure exists.
+ */
+function ensurePathExists(path) {
+  if (!fs.existsSync(path)) {
+    fs.mkdirSync(path);
+  }
+}
+
+/**
+ * @description Ensure that a file exists, creating it with initial content if it does not.
+ *
+ * @param {string} filePath The path to the file to ensure exists.
+ * @param {Object} initialContent The initial content to write to the file if it does not exist.
+ */
+function ensureFileExists(filePath, initialContent = {}) {
+  if (!fs.existsSync(filePath)) {
+    writeFile(filePath, initialContent);
+  }
+}
+
+/**
+ * @description Ensure that a key exists in an object, creating it with a default value if it does not.
+ *
+ * @param {Object} object The object to ensure the key exists in.
+ * @param {string} key The key to ensure exists in the object.
+ * @param {any} defaultValue The default value to assign to the key if it does not exist.
+ */
+function ensureExists(object, key, defaultValue = {}) {
+  if (!object[key]) {
+    object[key] = defaultValue;
+  }
+}
+
+/**
+ * @description Write data to a file.
+ *
+ * @param {string} filePath
+ * @param {Object} data
+ * @throws {Error} If an error occurs while writing the file.
+ */
+const writeFile = (filePath, data) => {
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error("Error writing file:", error);
+    throw error;
+  }
+};
+
+/**
+ * @description Read data from a file.
+ *
+ * @param {string} filePath
+ * @returns {Object} The data read from the file.
+ * @throws {Error} If an error occurs while reading the file.
+ */
+const readFile = (filePath) => {
+  try {
+    const fileContent = fs.readFileSync(filePath, "utf8");
+    return JSON.parse(fileContent);
+  } catch (error) {
+    console.error("Error reading file:", error);
+    throw error;
+  }
+};
+
+/**
+ * @description Read data from a file while locking it to prevent concurrent writes.
+ *
+ * @param {string} filePath
+ * @returns {Object} The data read from the file and a release function to unlock the file.
+ * @throws {Error} If an error occurs while reading the file.
+ * @throws {Error} If an error occurs while locking the file.
+ */
+const readLockedFile = (filePath) => {
+  let release;
+  try {
+    release = lockfile.lockSync(filePath, { stale: 5000 });
+    const data = readFile(filePath); // Utilisation de readFile
+    return { data, release };
+  } catch (error) {
+    console.error("Error reading locked file:", error);
+    throw error;
+  }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//
 //                RESET JSON FILES (DEPLOYED ADDRESSES & NONCE RECORD)
 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,15 +119,11 @@ const CONFIG_PARAMS_FILE_PATH = path.join(CONSTANTS_DIR, CONFIG_PARAMS_FILE);
  * @dev It is used to clear the data from the files when needed.
  */
 const resetJsonFiles = function () {
-  if (fs.existsSync(DEPLOYED_ADDRESSES_FILE_PATH)) {
-    fs.writeFileSync(DEPLOYED_ADDRESSES_FILE_PATH, "{}");
-  }
+  ensureFileExists(DEPLOYED_ADDRESSES_FILE_PATH);
+  writeFile(DEPLOYED_ADDRESSES_FILE_PATH, {});
 
-  if (fs.existsSync(LAST_NONCE_FILE_PATH))
-    fs.writeFileSync(
-      LAST_NONCE_FILE_PATH,
-      JSON.stringify({ originNonces: {} })
-    );
+  ensureFileExists(LAST_NONCE_FILE_PATH, { originNonces: {} });
+  writeFile(LAST_NONCE_FILE_PATH, { originNonces: {} });
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,240 +138,18 @@ const resetJsonFiles = function () {
  * @returns {Object} The config params from the config file
  */
 const getConfigParams = function () {
-  const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
+  const configParams = readFile(CONFIG_PARAMS_FILE_PATH);
   return configParams;
 };
 
-// /**
-//  * @description Get forkPorts from config files
-//  * @returns {Object} The forkPorts from the config file
-//  */
-// const getForkPorts = function () {
-//   const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
-//   if (!configParams.forkPorts) {
-//     throw new Error("Fork ports not found in config file!");
-//   }
-//   return configParams.forkPorts;
-// };
-
-// @todo refactor inside loop
 /**
- * @description Get networkParams, tokenParams from config files
+ * @description Update config params in config files
  *
- * @dev This function reads the networkParams from the config files and create tokenParams
- * @dev It is used to get the parameters for the operations & deployments in the scripts
- *
- * @dev networkParams: for each network give its chainId, native token name and symbol, and deployed tokens
- * @dev format: { networkName: { chainId, nativeToken: { name, symbol }, deployedTokens: [] } }
- *
- * @dev tokenParams: for each token give its description, if it's a native coin and which chain is its origin chain
- * @dev format: { tokenName: { tokenName, tokenSymbol, originChainId: [], isNative } }
- *
- * @returns {Object} The networkParams and tokenParams from the config file
+ * @param {Object} configParams The new config params to write to the file.
  */
-// const getConfigParams2 = function () {
-//   const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
-//   // Test if networkParams and tokenParams are present in the config file
-//   if (!configParams.networkParams) {
-//     throw new Error("Network params not found in config file!");
-//   }
-
-//   const networkParams = configParams.networkParams;
-//   const tokenParams = {};
-
-//   // Loop through the networkParams to get the deployedTokens and nativeToken
-//   for (const networkName in networkParams) {
-//     // Add the native token to the tokenParams
-//     const nativeToken = networkParams[networkName].nativeToken;
-//     if (!tokenParams[nativeToken.name]) {
-//       tokenParams[nativeToken.name] = {
-//         tokenName: nativeToken.name,
-//         tokenSymbol: nativeToken.symbol,
-//         originChainId: [],
-//       };
-//     }
-//     tokenParams[nativeToken.name].originChainId.push(
-//       networkParams[networkName].chainId
-//     );
-//     tokenParams[nativeToken.name].isNative = true;
-
-//     // Loop through the deployedTokens to get the tokenParams
-//     const deployedTokens = networkParams[networkName].deployedTokens;
-//     deployedTokens.forEach((token) => {
-//       if (!tokenParams[token.name]) {
-//         tokenParams[token.name] = {
-//           tokenName: token.name,
-//           tokenSymbol: token.symbol,
-//           originChainId: [networkParams[networkName].chainId],
-//         };
-//       } else {
-//         if (
-//           !tokenParams[token.name].originChainId.includes(
-//             networkParams[networkName].chainId
-//           )
-//         ) {
-//           tokenParams[token.name].originChainId.push(
-//             networkParams[networkName].chainId
-//           );
-//         }
-//       }
-//     });
-//   }
-//   return {
-//     networkParams,
-//     tokenParams,
-//   };
-// };
-
-/**
- * @description Get usedNetworks and usedTokens from config files
- *
- * @dev usedNetworks: list of networks to use for the deployment and scripts
- * @dev usedTokens: list of tokens to use for the deployment and scripts
- * @dev Theses lists are used to restrict the deployment and operations
- * @dev And to automate the deployment of tokens and contracts
- * @returns {Object} The usedNetworks and usedTokens from the config file
- */
-// const getUsedNetworksAndTokens = function () {
-//   const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
-//   // Test if usedNetworks and usedTokens are present in the config file
-//   if (!configParams.activeConfig) {
-//     throw new Error("No active config found!");
-//   }
-//   // Test if usedNetworks and usedTokens are present in the config file
-//   if (!configParams.usedConfigs) {
-//     throw new Error("Used configs not found in config file!");
-//   }
-//   if (!configParams.usedConfigs[configParams.activeConfig]) {
-//     throw new Error("Used config not found for this active config!");
-//   }
-//   if (
-//     !configParams.usedConfigs[configParams.activeConfig].usedNetworks ||
-//     !configParams.usedConfigs[configParams.activeConfig].usedTokens
-//   ) {
-//     throw new Error(
-//       `Used Networks or Tokens not found for the config ${configParams.activeConfig}!`
-//     );
-//   }
-
-//   return {
-//     usedNetworks:
-//       configParams.usedConfigs[configParams.activeConfig].usedNetworks,
-//     usedTokens: configParams.usedConfigs[configParams.activeConfig].usedTokens,
-//   };
-// };
-
 function updateConfigParams(configParams) {
-  fs.writeFileSync(
-    CONFIG_PARAMS_FILE_PATH,
-    JSON.stringify(configParams, null, 2)
-  );
+  writeFile(CONFIG_PARAMS_FILE_PATH, configParams);
 }
-// function setActiveConfig(name) {
-//   const configParams = getConfigParams();
-//   if (configParams.usedConfigs[name]) {
-//     configParams.activeConfig = name;
-//     fs.writeFileSync(
-//       DEPLOYED_ADDRESSES_FILE_PATH,
-//       JSON.stringify(configParams, null, 2)
-//     );
-//   } else {
-//     throw new Error(`Le label '${name}' n'existe pas dans usedConfigs.`);
-//   }
-// }
-
-// function getActiveConfig() {
-//   const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
-//   return configParams.activeConfig;
-// }
-
-// function getUsedConfigs() {
-//   const configParams = JSON.parse(fs.readFileSync(CONFIG_PARAMS_FILE_PATH));
-//   return configParams.usedConfigs;
-// }
-
-// async function addUsedConfig(name, networks, tokens) {
-//   try {
-//     const data = fs.readFileSync(CONFIG_PARAMS_FILE_PATH, "utf8");
-//     const configParams = JSON.parse(data);
-//     if (configParams.usedConfigs[name]) {
-//       throw new Error(`usedConfig '${name}' already exists.`);
-//     }
-//     configParams.usedConfigs[name] = {
-//       usedNetworks: networks,
-//       usedTokens: tokens,
-//     };
-//     fs.writeFileSync(
-//       CONFIG_PARAMS_FILE_PATH,
-// JSON.stringify(configParams, null, 2)
-//     );
-//   } catch (error) {
-//     console.error(`Erreur lors de l'ajout du usedConfig : ${error.message}`);
-//     throw error; // Rejeter l'erreur pour la gestion dans la tâche
-//   }
-// }
-
-// // Fonction pour ajouter un token déployé à un réseau
-// function addDeployedToken(networkName, tokenName, tokenSymbol, tokenAddress) {
-//   const data = fs.readFileSync(CONFIG_PARAMS_FILE_PATH, "utf8");
-//   const configParams = JSON.parse(data);
-
-//   // Vérifier si le réseau existe
-//   if (!configParams.networkParams || !configParams.networkParams[networkName]) {
-//     throw new Error(
-//       `Le réseau '${networkName}' n'existe pas dans networkParams.`
-//     );
-//   }
-
-//   const network = configParams.networkParams[networkName];
-
-//   // Checks if 'mocked' in name: no address else throw error
-//   if (tokenName.includes("mocked") && tokenAddress) {
-//     throw new Error(
-//       `L'adresse du token ne doit pas être fournie pour les tokens mockés.`
-//     );
-//   }
-//   if (!tokenName.includes("mocked") && !tokenAddress) {
-//     throw new Error(
-//       `L'adresse du token  doit  être fournie pour les vrais tokens .`
-//     );
-//   }
-
-//   // Vérifier les conditions pour l'ajout du token
-//   if (tokenName.includes("mocked")) {
-//     // Ajouter le token directement avec son nom et symbole
-//     network.deployedTokens.push({ name: tokenName, symbol: tokenSymbol });
-//   } else {
-//     // Vérifier les conditions pour les forks
-//     // if (!networkName.includes("Fork")) {
-//     //   throw new Error(
-//     //     `Le réseau '${networkName}' ne permet pas l'ajout de tokens non mockés.`
-//     //   );
-//     // }
-
-//     if (!tokenAddress) {
-//       throw new Error(
-//         `L'adresse du token doit être fournie pour les tokens non mockés.`
-//       );
-//     }
-
-//     // Ajouter le token avec l'adresse
-//     network.deployedTokens.push({
-//       name: tokenName,
-//       symbol: tokenSymbol,
-//       address: tokenAddress,
-//     });
-//   }
-
-//   // Écrire le fichier JSON mis à jour
-//   fs.writeFileSync(
-//     CONFIG_PARAMS_FILE_PATH,
-//     JSON.stringify(configParams, null, 2)
-//   );
-//   // console.log(
-//   //   `Le token '${tokenName}' a été ajouté au réseau '${networkName}'.`
-//   // );
-// }
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -310,42 +178,23 @@ const writeDeployedAddress = function (
   tokenSymbol = null
 ) {
   // file and path checks
-  if (!fs.existsSync(CONSTANTS_DIR)) {
-    fs.mkdirSync(CONSTANTS_DIR);
-  }
-
-  if (!fs.existsSync(DEPLOYED_ADDRESSES_FILE_PATH)) {
-    fs.writeFileSync(DEPLOYED_ADDRESSES_FILE_PATH, "{}");
-  }
+  ensurePathExists(CONSTANTS_DIR);
+  ensureFileExists(DEPLOYED_ADDRESSES_FILE_PATH);
 
   // Get json data from file
-  const deployedAddresses = JSON.parse(
-    fs.readFileSync(DEPLOYED_ADDRESSES_FILE_PATH)
-  );
+  const deployedAddresses = readFile(DEPLOYED_ADDRESSES_FILE_PATH);
 
-  // Checks if elements exist in the json data and creates them if they don't. Then push the new address
-  if (!deployedAddresses[network]) {
-    deployedAddresses[network] = {};
-  }
+  ensureExists(deployedAddresses, network);
+  ensureExists(deployedAddresses[network], contractName, tokenSymbol ? {} : []);
 
-  if (!deployedAddresses[network][contractName]) {
-    deployedAddresses[network][contractName] = tokenSymbol ? {} : [];
-  }
-
-  if (tokenSymbol && !deployedAddresses[network][contractName][tokenSymbol]) {
-    deployedAddresses[network][contractName][tokenSymbol] = [];
-  }
-
-  if (!tokenSymbol) {
-    deployedAddresses[network][contractName].push(address);
-  } else {
+  if (tokenSymbol) {
+    ensureExists(deployedAddresses[network][contractName], tokenSymbol, []);
     deployedAddresses[network][contractName][tokenSymbol].push(address);
+  } else {
+    deployedAddresses[network][contractName].push(address);
   }
 
-  fs.writeFileSync(
-    DEPLOYED_ADDRESSES_FILE_PATH,
-    JSON.stringify(deployedAddresses, null, 2)
-  );
+  writeFile(DEPLOYED_ADDRESSES_FILE_PATH, deployedAddresses);
 };
 
 /**
@@ -368,23 +217,18 @@ const readLastDeployedAddress = function (
   contractName,
   tokenSymbol = null
 ) {
-  const deployedAddresses = JSON.parse(
-    fs.readFileSync(DEPLOYED_ADDRESSES_FILE_PATH)
-  );
+  const deployedAddresses = readFile(DEPLOYED_ADDRESSES_FILE_PATH);
 
   if (!deployedAddresses) {
     return null;
   }
   if (deployedAddresses[network] && deployedAddresses[network][contractName]) {
+    const addresses = deployedAddresses[network][contractName];
     if (!tokenSymbol) {
-      return deployedAddresses[network][contractName][
-        deployedAddresses[network][contractName].length - 1
-      ];
+      return addresses[addresses.length - 1];
     } else {
-      if (deployedAddresses[network][contractName][tokenSymbol]) {
-        return deployedAddresses[network][contractName][tokenSymbol][
-          deployedAddresses[network][contractName][tokenSymbol].length - 1
-        ];
+      if (addresses[tokenSymbol]) {
+        return addresses[tokenSymbol][addresses[tokenSymbol].length - 1];
       }
     }
   }
@@ -410,41 +254,24 @@ const readLastDeployedAddress = function (
  * @param {string} userAddress - The address of the user for which the nonce is being written.
  */
 const writeLastUsedNonce = function (network, nonce, userAddress) {
-  // File and path checks
-  if (!fs.existsSync(CONSTANTS_DIR)) {
-    fs.mkdirSync(CONSTANTS_DIR);
-  }
-
-  if (!fs.existsSync(LAST_NONCE_FILE_PATH)) {
-    fs.writeFileSync(
-      LAST_NONCE_FILE_PATH,
-      JSON.stringify({ originNonces: {} }, null, 2)
-    );
-  }
+  ensurePathExists(CONSTANTS_DIR);
+  ensureFileExists(LAST_NONCE_FILE_PATH, { originNonces: {} });
 
   let release;
   try {
-    release = lockfile.lockSync(LAST_NONCE_FILE_PATH, { stale: 5000 });
+    // Lock then read file and get json data
+    const { data: lastNonce, release: rel } =
+      readLockedFile(LAST_NONCE_FILE_PATH);
+    release = rel;
 
-    // Get json data from file
-    const fileContent = fs.readFileSync(LAST_NONCE_FILE_PATH, "utf8");
-    let lastNonce = fileContent
-      ? JSON.parse(fileContent)
-      : { originNonces: {} };
-
-    // Initialize the network and user array if it doesn't exist
-    if (!lastNonce.originNonces[network]) {
-      lastNonce.originNonces[network] = {};
-    }
-    if (!lastNonce.originNonces[network][userAddress]) {
-      lastNonce.originNonces[network][userAddress] = [];
-    }
+    ensureExists(lastNonce.originNonces, network);
+    ensureExists(lastNonce.originNonces[network], userAddress, []);
 
     // Add the nonce to the list then write it back to the file
     lastNonce.originNonces[network][userAddress].push(nonce);
-    fs.writeFileSync(LAST_NONCE_FILE_PATH, JSON.stringify(lastNonce, null, 2));
+    writeFile(LAST_NONCE_FILE_PATH, lastNonce);
   } catch (error) {
-    console.error("Error while acquiring lock :", error);
+    console.error("Error writing nonce while acquiring lock :", error);
   } finally {
     if (release) {
       // Unlock the file
@@ -467,50 +294,25 @@ const writeLastUsedNonce = function (network, nonce, userAddress) {
 const readFirstValidNonce = function (network, userAddress) {
   let release;
   try {
-    // Lock the file
-    release = lockfile.lockSync(LAST_NONCE_FILE_PATH, { stale: 5000 });
+    // Lock then read file and get json data
+    const { data: lastNonce, release: rel } =
+      readLockedFile(LAST_NONCE_FILE_PATH);
+    release = rel;
 
-    const fileContent = fs.readFileSync(LAST_NONCE_FILE_PATH, "utf8");
-    if (!fileContent) {
-      console.error("Error while reading last used nonce: file is empty");
+    if (!lastNonce) return null;
+    const nonces = lastNonce.originNonces[network]?.[userAddress];
+    if (!nonces || nonces.length === 0) {
+      console.error("Error: No nonce found for network or user.");
       return null;
     }
 
-    let lastNonce;
-    try {
-      lastNonce = JSON.parse(fileContent);
-    } catch (jsonError) {
-      console.error(
-        "Error while reading last used nonce: file is not a valid JSON",
-        jsonError
-      );
-      return null;
-    }
-    // Check if the requested network and user have any nonces
-    if (
-      !lastNonce ||
-      !lastNonce.originNonces[network] ||
-      !lastNonce.originNonces[network][userAddress]
-    ) {
-      console.error(
-        "Error while reading last used nonce: no nonce found for network"
-      );
-      return null;
-    }
-
-    if (lastNonce.originNonces[network][userAddress].length > 0) {
-      // read the first available nonce to process and remove it from the list
-      const nonceToProcess =
-        lastNonce.originNonces[network][userAddress].shift();
-      fs.writeFileSync(
-        LAST_NONCE_FILE_PATH,
-        JSON.stringify(lastNonce, null, 2)
-      );
-      return nonceToProcess;
-    }
-    return null;
+    // Read and remove the first available nonce
+    const nonceToProcess = nonces.shift();
+    // Update the file with the remaining nonce list
+    writeFile(LAST_NONCE_FILE_PATH, lastNonce);
+    return nonceToProcess;
   } catch (error) {
-    console.error("Error while acquiring lock :", error);
+    console.error("Error reading nonce while acquiring lock :", error);
   } finally {
     if (release) {
       release();
@@ -528,9 +330,7 @@ const readFirstValidNonce = function (network, userAddress) {
  * @description Get networks used for previous deployments
  */
 const readNetworks = function () {
-  const deployedAddresses = JSON.parse(
-    fs.readFileSync(DEPLOYED_ADDRESSES_FILE_PATH)
-  );
+  const deployedAddresses = readFile(DEPLOYED_ADDRESSES_FILE_PATH);
   return Object.keys(deployedAddresses);
 };
 
@@ -557,11 +357,4 @@ module.exports = {
   resetJsonFiles,
   getConfigParams,
   updateConfigParams,
-  // getUsedNetworksAndTokens,
-  // setActiveConfig,
-  // getUsedConfigs,
-  // addUsedConfig,
-  // addDeployedToken,
-  // getForkPorts,
-  // getActiveConfig,
 };

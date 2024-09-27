@@ -3,14 +3,16 @@ const {
   logCurrentFileName,
 } = require("../helpers/fileHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
-const { computeTokenSymbol } = require("../utils/util");
+const {
+  computeTokenSymbol,
+  getChainIdByNetworkName,
+} = require("../utils/util");
 const {
   deploymentCheck,
   deployAndSaveAddress,
 } = require("../helpers/functionHelpers");
 const { getContext } = require("../helpers/contextHelper");
 const {
-  getChainIdByNetworkName,
   networkParams,
   tokenParams,
   usedNetworks,

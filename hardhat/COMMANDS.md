@@ -53,10 +53,17 @@ But those allowed for the deployment and therefore the use of the bridge are tho
   - `nonceRecord.json` stores the current nonce used to create an operation on a chain to use it for fees deposit on destination chain
   - `simulationParams.js` can be used to store inputs used for differents actions to simulate, automatize actions...
 
-# TESTS
+# TESTS @todo CLEAN GREP
 
 ```shell
 npx hardhat test [--network <network-name>]
+
+file hardhat test ./test/testfile.js.
+add and convert, the command:
+
+npx hardhat test --grep "add|con?vert"
+
+
 npx hardhat coverage
 ```
 

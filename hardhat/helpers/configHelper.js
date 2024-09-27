@@ -1,9 +1,4 @@
-const {
-  getConfigParams,
-  updateConfigParams,
-  // getUsedNetworksAndTokens,
-  // getForkPorts,
-} = require("./fileHelpers");
+const { getConfigParams, updateConfigParams } = require("./fileHelpers");
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -15,15 +10,118 @@ const FEES_AMOUNT = 1_000_000_000_000_000n; //0.001
 
 ///////////////////////////////////////////////////////////////////////////////
 //
+//                UTILS
+//
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description Check if a key exists in an object
+ *
+ * @param {Object} obj The object to check
+ * @param {string} key The key to check
+ * @param {boolean} shouldExist If the key should exist or not
+ * @throws {Error} If the key should exist and does not exist
+ * @throws {Error} If the key should not exist and does exist
+ */
+function checkExistence(obj, key, shouldExist = true) {
+  if (shouldExist && !obj[key]) {
+    throw new Error(`'${key}' does not exist.`);
+  }
+  if (!shouldExist && obj[key]) {
+    throw new Error(`'${key}' already exists.`);
+  }
+}
+
+/**
+ * @description Ensure that a key exists in an object and set it to a default value if it does not
+ *
+ * @param {Object} obj The object to check
+ * @param {string} key The key to check
+ * @param {any} defaultValue The default value to set the key to
+ */
+function ensureExist(obj, key, defaultValue) {
+  if (!obj[key]) {
+    obj[key] = defaultValue;
+  }
+}
+
+/**
+ * @description Add an item to a list if it is not already in the list
+ *
+ * @param {any} item The item to add to the list
+ * @param {Array} list The list to add the item to
+ */
+function addItemToList(item, list) {
+  if (!list.includes(item)) {
+    list.push(item);
+  }
+}
+
+/**
+ * @description Ensure that a token exists in the registry
+ *
+ * @param {Object} registry The registry to check (tokenParams)
+ * @param {Object} token The token to check
+ */
+function ensureTokenExists(registry, token) {
+  if (!registry[token.name]) {
+    registry[token.name] = {
+      tokenName: token.name,
+      tokenSymbol: token.symbol,
+      originChainId: [],
+    };
+  }
+}
+
+/**
+ * @description Build a token entry for the networkParams
+ *
+ * @param {string} tokenName The name of the token
+ * @param {string} tokenSymbol The symbol of the token
+ * @param {string} tokenAddress The address of the token
+ * @returns {Object} The token entry
+ * @throws {Error} If the address is not provided for non-mocked tokens
+ * @throws {Error} If the address is provided for mocked tokens
+ */
+function buildTokenEntry(tokenName, tokenSymbol, tokenAddress) {
+  const isMocked = tokenName.includes("mocked");
+  if (!isMocked && !tokenAddress) {
+    throw new Error(
+      `The address of the token must be provided for non-mocked tokens.`
+    );
+  }
+  if (isMocked && tokenAddress) {
+    throw new Error(
+      `The address of the token must not be provided for mocked tokens.`
+    );
+  }
+  const tokenToAdd = {
+    name: tokenName,
+    symbol: tokenSymbol,
+  };
+  if (tokenAddress) {
+    tokenToAdd.address = tokenAddress;
+  }
+
+  return tokenToAdd;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
 //                DESCRIPTION OF NETWORKS AND TOKENS:
 //
 ///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @description Get all the config parameters from the config file
+ *
+ * @returns {Object} The networkParams from the config file
+ */
 const configParams = getConfigParams();
 
 /**
- * @description Get networkParams, tokenParams from config files
+ * @description Get networkParams, tokenParams from configParams
  *
- * @dev This function reads the networkParams from the config files and create tokenParams
+ * @dev This function reads the networkParams and create tokenParams
  * @dev It is used to get the parameters for the operations & deployments in the scripts
  *
  * @dev networkParams: for each network give its chainId, native token name and symbol, and deployed tokens
@@ -35,10 +133,7 @@ const configParams = getConfigParams();
  * @returns {Object} The networkParams and tokenParams from the config file
  */
 const getNetworkAndTokenParams = () => {
-  // Test if networkParams and tokenParams are present in the config file
-  if (!configParams.networkParams) {
-    throw new Error("Network params not found in config file!");
-  }
+  checkExistence(configParams, "networkParams");
 
   const networkParams = configParams.networkParams;
   const tokenParams = {};
@@ -47,38 +142,22 @@ const getNetworkAndTokenParams = () => {
   for (const networkName in networkParams) {
     // Add the native token to the tokenParams
     const nativeToken = networkParams[networkName].nativeToken;
-    if (!tokenParams[nativeToken.name]) {
-      tokenParams[nativeToken.name] = {
-        tokenName: nativeToken.name,
-        tokenSymbol: nativeToken.symbol,
-        originChainId: [],
-      };
-    }
-    tokenParams[nativeToken.name].originChainId.push(
-      networkParams[networkName].chainId
+
+    ensureTokenExists(tokenParams, nativeToken);
+    addItemToList(
+      networkParams[networkName].chainId,
+      tokenParams[nativeToken.name].originChainId
     );
     tokenParams[nativeToken.name].isNative = true;
 
     // Loop through the deployedTokens to get the tokenParams
     const deployedTokens = networkParams[networkName].deployedTokens;
     deployedTokens.forEach((token) => {
-      if (!tokenParams[token.name]) {
-        tokenParams[token.name] = {
-          tokenName: token.name,
-          tokenSymbol: token.symbol,
-          originChainId: [networkParams[networkName].chainId],
-        };
-      } else {
-        if (
-          !tokenParams[token.name].originChainId.includes(
-            networkParams[networkName].chainId
-          )
-        ) {
-          tokenParams[token.name].originChainId.push(
-            networkParams[networkName].chainId
-          );
-        }
-      }
+      ensureTokenExists(tokenParams, token);
+      addItemToList(
+        networkParams[networkName].chainId,
+        tokenParams[token.name].originChainId
+      );
     });
   }
   return {
@@ -99,105 +178,83 @@ const getNetworkAndTokenParams = () => {
  */
 const { networkParams, tokenParams } = getNetworkAndTokenParams();
 
-// Fonction pour ajouter un token déployé à un réseau
+/**
+ * @description Add a token to the networkParams deployedTokens
+ *
+ * @param {string} networkName The name of the network
+ * @param {string} tokenName The name of the token
+ * @param {string} tokenSymbol The symbol of the token
+ * @param {string} tokenAddress The address of the token
+ * @throws {Error} If the network does not exist in networkParams
+ * @throws {Error} If the token already exists in the network
+ * @throws {Error} If the address is not provided for non-mocked tokens
+ * @throws {Error} If the address is provided for mocked tokens
+ */
 function addDeployedToken(networkName, tokenName, tokenSymbol, tokenAddress) {
-  // const data = fs.readFileSync(CONFIG_PARAMS_FILE_PATH, "utf8");
-  // const configParams = JSON.parse(data);
-
-  // Vérifier si le réseau existe
   if (!configParams.networkParams || !configParams.networkParams[networkName]) {
     throw new Error(
-      `Le réseau '${networkName}' n'existe pas dans networkParams.`
+      `The network '${networkName}' does not exist in the networkParams.`
     );
   }
 
   const network = configParams.networkParams[networkName];
-
-  // Checks if 'mocked' in name: no address else throw error
-  if (tokenName.includes("mocked") && tokenAddress) {
-    throw new Error(
-      `L'adresse du token ne doit pas être fournie pour les tokens mockés.`
-    );
-  }
-  if (!tokenName.includes("mocked") && !tokenAddress) {
-    throw new Error(
-      `L'adresse du token  doit  être fournie pour les vrais tokens .`
-    );
-  }
-
-  // Checks if token already exists in the network
-  if (network.deployedTokens.find((element) => element.name === tokenName)) {
+  if (network.deployedTokens.find((token) => token.name === tokenName)) {
     throw new Error(
       `The token '${tokenName}' already exists in the network '${networkName}'.`
     );
   }
 
-  // Vérifier les conditions pour l'ajout du token
-  if (tokenName.includes("mocked")) {
-    // Ajouter le token directement avec son nom et symbole
-    network.deployedTokens.push({ name: tokenName, symbol: tokenSymbol });
-  } else {
-    // Vérifier les conditions pour les forks
-    // if (!networkName.includes("Fork")) {
-    //   throw new Error(
-    //     `Le réseau '${networkName}' ne permet pas l'ajout de tokens non mockés.`
-    //   );
-    // }
+  const tokenToAdd = buildTokenEntry(tokenName, tokenSymbol, tokenAddress);
+  network.deployedTokens.push(tokenToAdd);
 
-    if (!tokenAddress) {
-      throw new Error(
-        `L'adresse du token doit être fournie pour les tokens non mockés.`
-      );
-    }
-
-    // Ajouter le token avec l'adresse
-    network.deployedTokens.push({
-      name: tokenName,
-      symbol: tokenSymbol,
-      address: tokenAddress,
-    });
-  }
-
-  // Écrire le fichier JSON mis à jour
-  fs.writeFileSync(
-    CONFIG_PARAMS_FILE_PATH,
-    JSON.stringify(configParams, null, 2)
-  );
-  // console.log(
-  //   `Le token '${tokenName}' a été ajouté au réseau '${networkName}'.`
-  // );
+  updateConfigParams(configParams);
 }
 
-///////// CONGIG: ACTIVE CONFIG AND USED CONFIGS /////////////
+///////////////////////////////////////////////////////////////////////////////
+//
+//                USED CONFIGS
+//
+///////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @description Get the active config from config files
+ *
+ * @dev activeConfig: the name of the usedConfigs to use for the deployment and scripts
+ */
 function getActiveConfig() {
-  if (!configParams.activeConfig) {
-    throw new Error("Active config not found in config file!");
-  }
+  checkExistence(configParams, "activeConfig");
   return configParams.activeConfig;
 }
 
+/**
+ * @description Get the usedConfigs from config files
+ */
 function getUsedConfigs() {
-  if (!configParams.usedConfigs) {
-    throw new Error("Used configs not found in config file!");
-  }
+  checkExistence(configParams, "usedConfigs");
   return configParams.usedConfigs;
 }
 
+/**
+ * @description Set the active config to switch between usedConfigs used
+ */
 function setActiveConfig(name) {
-  if (configParams.usedConfigs[name]) {
-    configParams.activeConfig = name;
-    updateConfigParams(configParams);
-  } else {
-    throw new Error(`The used config ${name} does not exist!`);
-  }
+  checkExistence(configParams.usedConfigs, name);
+
+  configParams.activeConfig = name;
+  updateConfigParams(configParams);
 }
 
+/**
+ * @description Add a usedConfig to the config files
+ *
+ * @dev add a config with its usedNetworks and usedTokens
+ * @param {string} name The name of the usedConfig
+ * @param {Array} networks The used networks
+ * @param {Array} tokens The used tokens
+ */
 function addUsedConfig(name, networks, tokens) {
   try {
-    if (configParams.usedConfigs[name]) {
-      throw new Error(`usedConfig '${name}' already exists.`);
-    }
+    checkExistence(configParams.usedConfigs, name, false);
 
     configParams.usedConfigs[name] = {
       usedNetworks: networks,
@@ -210,21 +267,26 @@ function addUsedConfig(name, networks, tokens) {
   }
 }
 
+/**
+ * @description Add a network or a token to a usedConfig
+ *
+ * @param {string} config The name of the usedConfig
+ * @param {string} label The label of the list to add to (usedNetworks or usedTokens)
+ * @param {string} value The value to add to the list
+ */
 function addToConfig(config, label, value) {
   try {
     if (label !== "usedNetworks" && label !== "usedTokens") {
       throw new Error(`Label '${label}' not recognized.`);
     }
-    if (!configParams.usedConfigs[config]) {
-      throw new Error(`Config '${config}' not found in config file.`);
-    }
-    if (!configParams.usedConfigs[config][label]) {
-      configParams.usedConfigs[config][label] = [];
-    }
+
+    checkExistence(configParams.usedConfigs, config);
+    ensureExist(configParams.usedConfigs[config], label, []);
     // Check if the value is already in the list
     if (configParams.usedConfigs[config][label].includes(value)) {
       throw new Error(`Value '${value}' already in the list.`);
     }
+
     configParams.usedConfigs[config][label].push(value);
     updateConfigParams(configParams);
   } catch (error) {
@@ -233,11 +295,15 @@ function addToConfig(config, label, value) {
   }
 }
 
-async function removeConfig(config) {
+/**
+ * @description Remove a config from the usedConfigs
+ *
+ * @param {string} config The name of the usedConfig
+ * @throws {Error} If the config does not exist
+ */
+function removeConfig(config) {
   try {
-    if (!configParams.usedConfigs[config]) {
-      throw new Error(`Config '${config}' not found in config file.`);
-    }
+    checkExistence(configParams.usedConfigs, config, true);
     delete configParams.usedConfigs[config];
     updateConfigParams(configParams);
   } catch (error) {
@@ -285,7 +351,6 @@ const getUsedNetworksAndTokens = function () {
   };
 };
 
-//////////////////////// FORK PORTS ////////////////////////
 /**
  * @description Get the desired networks and tokens to be used
  *
@@ -297,6 +362,11 @@ const getUsedNetworksAndTokens = function () {
  */
 const { usedNetworks, usedTokens } = getUsedNetworksAndTokens();
 
+///////////////////////////////////////////////////////////////////////////////
+//
+//                FORK PORTS
+//
+///////////////////////////////////////////////////////////////////////////////
 /**
  * @description Get forkPorts from config files
  * @returns {Object} The forkPorts from the config file
@@ -323,10 +393,16 @@ const forkPorts = getForkPorts();
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @description Get the chainId of a network by its name
+ */
 const getChainIdByNetworkName = (name) => {
   return networkParams[name].chainId;
 };
 
+/**
+ * @description Get the network name by its chainId
+ */
 const getNetworkNameByChainId = (chainId) => {
   const networkEntry = Object.entries(networkParams).find(
     ([network, params]) => params.chainId === chainId
@@ -334,55 +410,9 @@ const getNetworkNameByChainId = (chainId) => {
   return networkEntry ? networkEntry[0] : null;
 };
 
-///////////////////////////////////////////////////////////////////////////////
-//
-//                SYMBOL HELPERS
-//
-///////////////////////////////////////////////////////////////////////////////
-
-// const computeTokenSymbol = (network, symbol) => {
-//   // nbSSS => n for network, b for bridge, SSS for symbol
-//   const firstLetter = network.charAt(0).toLowerCase();
-//   return `${firstLetter}b${symbol}`;
-// };
-
-////////////////////////////////////////////////////////////////
-//
-//             AS_CLI HELPERS
-//
-///////////////////////////////////////////////////////////////
-// moved from constants/token.js to reduce files numbers
-// const nativeTokens = {
-//   31337: "ethereum",
-//   1337: "ethereum",
-//   440: "allfeat",
-//   11155111: "ethereum",
-//   441: "allfeat",
-// };
-
-// const getNativeToken = (chainId) => {
-//   try {
-//     return nativeTokens[chainId];
-//   } catch (err) {
-//     throw "Invalid chainId!";
-//   }
-// };
-
-// module.exports = {
-//   networkParams,
-//   getChainIdByNetworkName,
-//   getNetworkNameByChainId,
-//   computeTokenSymbol,
-//   tokenParams,
-//   FEES_AMOUNT,
-//   usedNetworks,
-//   usedTokens,
-//   forkPorts,
-// };
 module.exports = {
   getChainIdByNetworkName,
   getNetworkNameByChainId,
-  // computeTokenSymbol,
   FEES_AMOUNT,
   forkPorts,
   networkParams,

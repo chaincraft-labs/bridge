@@ -15,9 +15,10 @@ require("./tasks/func-getMsgHash");
 require("./tasks/func-getMsgSignature");
 
 const { ethers } = require("ethers");
-const { forkPorts } = require("./constants/deploymentConfig");
+const { buildRpcUrl } = require("./helpers/functionHelpers");
 
-const USER_COUNT = 20;
+// number of users to make accounts for (excluding deployer)
+const USER_COUNT = 19;
 
 const providerApiKey = process.env.ALCHEMY_API_KEY || "";
 const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "";
@@ -26,7 +27,7 @@ const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "";
 // Real accounts:
 const deployerPvtKey = process.env.DEPLOYER_PRIVATE_KEY || "";
 const usersPvtKeys = [];
-for (let i = 0; i < USER_COUNT - 1; i++) {
+for (let i = 1; i <= USER_COUNT; i++) {
   const userPvtKey = process.env[`USER${i}_PRIVATE_KEY`];
   if (userPvtKey) {
     usersPvtKeys.push(userPvtKey);
@@ -40,7 +41,7 @@ const hhWallet = ethers.HDNodeWallet.fromMnemonic(
   hhMnemonic,
   defaultDerivationPath //`m/44'/60'/0'/0`
 );
-for (let i = 0; i < USER_COUNT; i++) {
+for (let i = 0; i <= USER_COUNT; i++) {
   const childWallet = hhWallet.deriveChild(i);
   hardhatPvtKeys.push(childWallet.privateKey);
 }
@@ -66,11 +67,11 @@ module.exports = {
       // },
     },
     anvilLocal: {
-      url: `http://127.0.0.1:8545`,
+      url: buildRpcUrl("anvilLocal"),
       accounts: hardhatPvtKeys,
     },
     geth: {
-      url: `http://127.0.0.1:8545`,
+      url: buildRpcUrl("geth"),
       accounts: hardhatPvtKeys,
     },
     sepolia: {
@@ -78,7 +79,7 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     sepoliaFork: {
-      url: `http://127.0.0.1:${forkPorts["sepolia"]}`,
+      url: buildRpcUrl("sepoliaFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     mainnet: {
@@ -86,11 +87,11 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     mainnetFork: {
-      url: `http://127.0.0.1:${forkPorts["mainnet"]}`,
+      url: buildRpcUrl("mainnetFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     allfeatLocal: {
-      url: `http://127.0.0.1:9944`,
+      url: buildRpcUrl("allfeatLocal"),
       accounts: hardhatPvtKeys,
     },
     harmonie: {
@@ -122,7 +123,7 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     fantomTestnetFork: {
-      url: `http://127.0.0.1:${forkPorts["fantomTestnet"]}`,
+      url: buildRpcUrl("fantomTestnetFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     fantom: {
@@ -130,7 +131,7 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     fantomFork: {
-      url: `http://127.0.0.1:${forkPorts["fantom"]}`,
+      url: buildRpcUrl("fantomFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     optimismSepolia: {
@@ -146,7 +147,7 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     polygonAmoyFork: {
-      url: `http://127.0.0.1:${forkPorts["polygonAmoy"]}`,
+      url: buildRpcUrl("polygonAmoyFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     polygon: {
@@ -154,7 +155,7 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     polygonFork: {
-      url: `http://127.0.0.1:${forkPorts["polygon"]}`,
+      url: buildRpcUrl("polygonFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
   },

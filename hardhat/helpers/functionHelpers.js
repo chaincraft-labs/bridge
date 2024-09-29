@@ -1,7 +1,10 @@
 const { toStyle, display } = require("./loggingHelper");
-const { networkParams, FEES_AMOUNT } = require("./configHelper");
-const { writeDeployedAddress } = require("../helpers/fileHelpers");
-const { simulationParams } = require("../constants/simulationParams");
+const {
+  networkParams,
+  FEES_AMOUNT,
+  getSimulationParams,
+} = require("./configHelper");
+const { writeDeployedAddress } = require("./fileHelpers");
 ///////////////////////////////////////////////////////////////////////////////
 //
 //                CHECKS FOR DEPLOYMENT SCRIPTS
@@ -175,9 +178,8 @@ const convertToOperationParams = (paramsOption = "defaultOrigin,sepolia") => {
 
     return [chainIdFrom, chainIdTo, tokenName, amount];
   }
-
   const [simName, simOriginChain] = paramsOption.split(",");
-  const simParams = simulationParams[simName][simOriginChain];
+  const simParams = getSimulationParams(simName, simOriginChain);
 
   if (!simParams || Object.keys(simParams).length === 0) {
     throw "Simulation Params not found!";
@@ -186,7 +188,7 @@ const convertToOperationParams = (paramsOption = "defaultOrigin,sepolia") => {
     simParams.chainIdFrom,
     simParams.chainIdTo,
     simParams.tokenName,
-    simParams.amount,
+    BigInt(simParams.amount),
   ];
   return params;
 };
@@ -221,7 +223,7 @@ const getFeesAmount = (feesOption) => {
   if (!simParams || Object.keys(simParams).length === 0) {
     throw "Simulation Params not found!";
   }
-  return simParams.feesAmount;
+  return BigInt(simParams.feesAmount);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -316,10 +318,50 @@ const convertParamsStringToArray = (argsString) => {
   return args;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+//
+//                URL / PORT HELPERS
+//
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description Converts fork | local network name to port .env variable
+ *
+ * @dev Naming convention:
+ *  forkNetworkName = [networkName]Fork
+ *  localNetworkName = [networkName]Local
+ * @param { string } forkNetworkName
+ * @returns the port
+ */
+function networkNameToPortName(networkName) {
+  return `PORT_${networkName.replace(/(Fork|Local)/g, "_$1").toUpperCase()}`;
+}
+
+/**
+ * @description Get the rpc url for a forked or local network
+ *
+ * @dev Naming convention:
+ *  forkNetworkName = [networkName]Fork
+ *  localNetworkName = [networkName]Local | geth
+ * @param { string } forkNetworkName
+ * @returns the rpc url
+ */
+function buildRpcUrl(networkName) {
+  // insert '_' before exact words: Fork or Local and convert to uppercase
+  const envName =
+    networkName == "geth" ? "PORT_GETH" : networkNameToPortName(networkName);
+  const port = process.env[envName];
+  if (!port) {
+    throw new Error(`No port specified for ${networkName}`);
+  }
+  return `http://127.0.0.1:${port}`;
+}
+
 module.exports = {
   deploymentCheck,
   deployAndSaveAddress,
   convertParamsStringToArray,
   convertToOperationParams,
   getFeesAmount,
+  networkNameToPortName,
+  buildRpcUrl,
 };

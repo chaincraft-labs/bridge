@@ -166,7 +166,4 @@ module.exports = {
   hexToNum,
   getRandomBytes,
   shortenAddress,
-  checkExistence,
-  ensureExists,
-  addItemToList,
 };

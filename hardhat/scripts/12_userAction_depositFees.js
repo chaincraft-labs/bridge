@@ -73,9 +73,15 @@ async function main() {
   const paramsOption = process.env.PARAMS_OPTION;
   let operationParams = convertToOperationParams(paramsOption);
 
-  // read nonce from file depending on the network 'chainId from'
+  const chainIdFrom = operationParams[0];
+  const originBridgeAddress = await readLastDeployedAddress(
+    getNetworkNameByChainId(chainIdFrom),
+    "BridgeBase"
+  );
+  // read nonce from file depending on 'chainId from', last deployed bridge address on it and user address
   let nonce = await readFirstValidNonce(
     getNetworkNameByChainId(operationParams[0]),
+    originBridgeAddress,
     userWallet.address
   );
   if (!nonce) {

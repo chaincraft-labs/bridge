@@ -1,4 +1,9 @@
-const { getConfigParams, updateConfigParams } = require("./fileHelpers");
+const {
+  getConfigParams,
+  updateConfigParams,
+  getSimulationConfig,
+  updateSimulationConfig,
+} = require("./fileHelpers");
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -18,7 +23,7 @@ const FEES_AMOUNT = 1_000_000_000_000_000n; //0.001
  *
  * @param {Object} obj The object to check
  * @param {string} key The key to check
- * @param {boolean} shouldExist If the key should exist or not
+ * @param {boolean} shouldExist Default: true. If the key should exist or not
  * @throws {Error} If the key should exist and does not exist
  * @throws {Error} If the key should not exist and does exist
  */
@@ -114,7 +119,10 @@ function buildTokenEntry(tokenName, tokenSymbol, tokenAddress) {
 /**
  * @description Get all the config parameters from the config file
  *
- * @returns {Object} The networkParams from the config file
+ * @dev This function reads the config file and returns the config params
+ * @dev structure: { networkParams, usedConfigs, activeConfig }
+ *
+ * @returns {Object} The config params from the config file
  */
 const configParams = getConfigParams();
 
@@ -364,28 +372,39 @@ const { usedNetworks, usedTokens } = getUsedNetworksAndTokens();
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-//                FORK PORTS
+//                SIMULATION PARAMS HELPERS
 //
 ///////////////////////////////////////////////////////////////////////////////
 /**
- * @description Get forkPorts from config files
- * @returns {Object} The forkPorts from the config file
+ * @description All the simulation parameters from the config file
  */
-const getForkPorts = function () {
-  if (!configParams.forkPorts) {
-    throw new Error("Fork ports not found in config file!");
-  }
-  return configParams.forkPorts;
-};
+const simulationParams = getSimulationConfig();
 
 /**
- * @description Description of the ports used for forking
+ * @description Get params for a specific scenario & network
  *
- * @dev forkPorts: read in the 'deploymentConfig.json' file
- * @dev format: forkPorts: { network: port }
- * @dev used to launch nodes and task on the desired network
+ * @param {string} scenario The scenario to get the params for
+ * @param {string} network The network to get the params for
+ * @returns {Object} The params for the scenario and network
  */
-const forkPorts = getForkPorts();
+function getSimulationParams(scenario, network) {
+  checkExistence(simulationParams, scenario);
+  checkExistence(simulationParams[scenario], network);
+  return simulationParams[scenario][network];
+}
+
+/**
+ * @description Update the simulation params for a specific scenario & network
+ *
+ *  @param {string} scenario The scenario to update the params for
+ * @param {string} network The network to update the params for
+ * @param {Object} params The new params for the scenario and network
+ */
+function updateSimulationParams(scenario, network, params) {
+  checkExistence(simulationParams, scenario);
+  simulationParams[scenario][network] = params;
+  updateSimulationConfig(simulationParams);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -414,7 +433,6 @@ module.exports = {
   getChainIdByNetworkName,
   getNetworkNameByChainId,
   FEES_AMOUNT,
-  forkPorts,
   networkParams,
   tokenParams,
   addDeployedToken,
@@ -427,4 +445,6 @@ module.exports = {
   addUsedConfig,
   addToConfig,
   removeConfig,
+  simulationParams,
+  getSimulationParams,
 };

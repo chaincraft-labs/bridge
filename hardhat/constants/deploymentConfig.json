@@ -1,51 +1,18 @@
 {
-  "activeConfig": "local",
+  "activeConfig": "testnet",
   "usedConfigs": {
     "localNode": {
-      "usedNetworks": [
-        "geth",
-        "allfeatLocal"
-      ],
-      "usedTokens": [
-        "ethereum",
-        "allfeat",
-        "mockedDai",
-        "mockedUsdc"
-      ]
+      "usedNetworks": ["geth", "allfeatLocal"],
+      "usedTokens": ["ethereum", "allfeat", "mockedDai", "mockedUsdc"]
     },
     "local": {
-      "usedNetworks": [
-        "localhost"
-      ],
-      "usedTokens": [
-        "ethereum",
-        "allfeat",
-        "mockedDai",
-        "mockedUsdc"
-      ]
+      "usedNetworks": ["localhost"],
+      "usedTokens": ["ethereum", "allfeat", "mockedDai", "mockedUsdc"]
     },
     "testnet": {
-      "usedNetworks": [
-        "allfeat",
-        "sepolia"
-      ],
-      "usedTokens": [
-        "ethereum",
-        "allfeat",
-        "mockedDai",
-        "mockedUsdc"
-      ]
+      "usedNetworks": ["allfeat", "sepolia"],
+      "usedTokens": ["ethereum", "allfeat", "mockedDai", "mockedUsdc"]
     }
-  },
-  "forkPorts": {
-    "harmonie": "8540",
-    "allfeat": "8541",
-    "sepolia": "8544",
-    "mainnet": "8545",
-    "polygonAmoy": "8546",
-    "polygon": "8547",
-    "fantomTestnet": "8548",
-    "fantom": "8549"
   },
   "networkParams": {
     "localhost": {

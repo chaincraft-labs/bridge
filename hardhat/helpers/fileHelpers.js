@@ -12,6 +12,11 @@ const LAST_NONCE_FILE = "nonceRecord.json";
 const LAST_NONCE_FILE_PATH = path.join(CONSTANTS_DIR, LAST_NONCE_FILE);
 const CONFIG_PARAMS_FILE = "deploymentConfig.json";
 const CONFIG_PARAMS_FILE_PATH = path.join(CONSTANTS_DIR, CONFIG_PARAMS_FILE);
+const SIMULATION_CONFIG_FILE = "simulationConfig.json";
+const SIMULATION_CONFIG_FILE_PATH = path.join(
+  CONSTANTS_DIR,
+  SIMULATION_CONFIG_FILE
+);
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -80,6 +85,7 @@ const writeFile = (filePath, data) => {
 const readFile = (filePath) => {
   try {
     const fileContent = fs.readFileSync(filePath, "utf8");
+
     return JSON.parse(fileContent);
   } catch (error) {
     console.error("Error reading file:", error);
@@ -134,7 +140,7 @@ const resetJsonFiles = function () {
 /**
  * @description Get config params from config files
  *
- * @dev Composed of networkParams, usedConfigs, activeConfig, forkPorts
+ * @dev Composed of networkParams, usedConfigs, activeConfig
  * @returns {Object} The config params from the config file
  */
 const getConfigParams = function () {
@@ -149,6 +155,32 @@ const getConfigParams = function () {
  */
 function updateConfigParams(configParams) {
   writeFile(CONFIG_PARAMS_FILE_PATH, configParams);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//                SCENARIO HELPERS
+//
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description Get the simulation/prepared params from the simulationParams file
+ *
+ * @dev format: { simulationName: { networkName: { params } } }
+ * @returns {Object} The simulation params from the simulationParams file
+ */
+const getSimulationConfig = function () {
+  const simulationParams = readFile(SIMULATION_CONFIG_FILE_PATH);
+
+  return simulationParams;
+};
+
+/**
+ * @description Update the simulation/prepared params in the simulationParams file
+ *
+ * @param {Object} simulationParams The new simulation params to write to the file.
+ */
+function updateSimulationConfig(simulationParams) {
+  writeFile(SIMULATION_CONFIG_FILE_PATH, simulationParams);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -253,7 +285,12 @@ const readLastDeployedAddress = function (
  * @param {number} nonce - The nonce value to add to the list.
  * @param {string} userAddress - The address of the user for which the nonce is being written.
  */
-const writeLastUsedNonce = function (network, nonce, userAddress) {
+const writeLastUsedNonce = function (
+  network,
+  bridgeAddress,
+  userAddress,
+  nonce
+) {
   ensurePathExists(CONSTANTS_DIR);
   ensureFileExists(LAST_NONCE_FILE_PATH, { originNonces: {} });
 
@@ -265,10 +302,12 @@ const writeLastUsedNonce = function (network, nonce, userAddress) {
     release = rel;
 
     ensureExists(lastNonce.originNonces, network);
-    ensureExists(lastNonce.originNonces[network], userAddress, []);
+    const networkNonces = lastNonce.originNonces[network];
+    ensureExists(networkNonces, bridgeAddress, {});
+    ensureExists(networkNonces[bridgeAddress], userAddress, []);
 
     // Add the nonce to the list then write it back to the file
-    lastNonce.originNonces[network][userAddress].push(nonce);
+    networkNonces[bridgeAddress][userAddress].push(nonce);
     writeFile(LAST_NONCE_FILE_PATH, lastNonce);
   } catch (error) {
     console.error("Error writing nonce while acquiring lock :", error);
@@ -291,7 +330,7 @@ const writeLastUsedNonce = function (network, nonce, userAddress) {
  * @param {string} userAddress - The address of the user for which the nonce is being read.
  * @returns {number|null} The first available nonce or null if none exists or if an error occurs.
  */
-const readFirstValidNonce = function (network, userAddress) {
+const readFirstValidNonce = function (network, bridgeAddress, userAddress) {
   let release;
   try {
     // Lock then read file and get json data
@@ -300,12 +339,12 @@ const readFirstValidNonce = function (network, userAddress) {
     release = rel;
 
     if (!lastNonce) return null;
-    const nonces = lastNonce.originNonces[network]?.[userAddress];
+    const nonces =
+      lastNonce.originNonces[network]?.[bridgeAddress]?.[userAddress];
     if (!nonces || nonces.length === 0) {
       console.error("Error: No nonce found for network or user.");
       return null;
     }
-
     // Read and remove the first available nonce
     const nonceToProcess = nonces.shift();
     // Update the file with the remaining nonce list
@@ -357,4 +396,6 @@ module.exports = {
   resetJsonFiles,
   getConfigParams,
   updateConfigParams,
+  getSimulationConfig,
+  updateSimulationConfig,
 };

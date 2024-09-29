@@ -17,6 +17,7 @@ coverage.json
 constants/*.json
 # except for the following files
 !constants/deploymentConfig.json
+!constants/simulationConfig.json
 
 # Hardhat files
 cache

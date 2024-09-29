@@ -24,9 +24,10 @@ else
     exit 1
 fi
 
-networkCount=$(echo "$usedNetworks" | wc -l)
+networkCount=$(echo "$usedNetworks" | wc -w)
 totalCommands=$((networkCount * 2))
 commandCount=0
+
 
 # Loop over the networks to deploy the contracts
 for networkToDeploy in $usedNetworks; do

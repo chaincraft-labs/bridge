@@ -49,12 +49,12 @@ Few files are used to configure the project. Some data are to be set in the file
 
   A deposit script will add a nonce a the end of the array and a fees deposit script will remove the first nonce of the array. It works as a FIFO.
 
-  > It's used by the scripts, so it's better to not modify it manually.
+  > This file is created and managed by the scripts, so it's better to not modify it manually.
 
 - `deployedAddresses.json` file:
   It stores the addresses of the deployed contracts on each network. It's used to interact with the contracts.
 
-  > It's used by the scripts, so it's better to not modify it manually.
+  > This file is created and managed by the scripts, so it's better to not modify it manually.
 
 - `simulationParams.js` can be used to store inputs used for differents actions to simulate, automatize actions... as scenarios, user actions...
 
@@ -102,6 +102,9 @@ Few files are used to configure the project. Some data are to be set in the file
 
   ```shell
   npx hardhat set-activeConfig --name <configName>
+
+  # example:
+  npx hardhat set-activeConfig --name "my-localNet-config"
   ```
 
 - **List the usedConfigs in the deploymentConfig:**
@@ -116,6 +119,9 @@ Few files are used to configure the project. Some data are to be set in the file
 
   ```shell
   npx hardhat add-used-config --name <configName> --networks <networks> --tokens <tokens>
+
+  # example:
+  npx hardhat add-used-config --name "my-localNet-config" --networks "sepolia,allfeat" --tokens "ethereum,myToken"
   ```
 
   Where networks and tokens are strings of comma separated values.
@@ -125,12 +131,18 @@ Few files are used to configure the project. Some data are to be set in the file
 
   ```shell
   npx hardhat add-to-config --name <configName> --type <"network"|"token"> --element <name of the network or token>
+
+  # example:
+  npx hardhat add-to-config --name "my-localNet-config" --type "network" --element "sepolia"
   ```
 
 - **Remove a usedConfig from the usedConfigs:**
 
   ```shell
   npx hardhat remove-used-config --name <usedConfigName>
+
+  # example:
+  npx hardhat remove-used-config --name "my-localNet-config"
   ```
 
 - **Add a token to networkParams:**
@@ -138,6 +150,11 @@ Few files are used to configure the project. Some data are to be set in the file
 
   ```shell
   npx hardhat add-deployed-token --networkName <network of the token> --name <name of the token> --symbol <symbol of the token> [--tokenAddress <address of the NON mocked token >]
+
+  # example (mockedToken):
+  npx hardhat add-deployed-token --networkName "sepolia" --name "mockedDai" --symbol "mDAI"
+  # example (non mockedToken):
+  npx hardhat add-deployed-token --networkName "sepolia" --name "DAI" --symbol "DAI" --tokenAddress "0x6B175474E89094C44Da98b954EedeAC495271d0F"
   ```
 
   The tokenAddress is optional and should be used only for tokens already deployed on the network.
@@ -187,7 +204,7 @@ npx hardhat node --fork https://<rpc-url-to-fork> --port <port-to-use>
 ```
 
 - **Task:**  
-  It will use the port defined in `constants/deploymentConfig.js::forkPorts`
+  It will use the port defined in `constants/deploymentConfig.json::forkPorts` and corresponding to the network in the hardhat config file.
 
 ```shell
 npx hardhat start-node --networkToFork sepolia
@@ -320,14 +337,18 @@ The networks used are those present in `constants/deploymentConfig.js::usedNetwo
   Args: the token name and symbol of the mocked token and its origin network
 
   ```shell
-  ./scripts/09_deployAndConfig.sh tokenName tokenSymbol originNetwork
+  ./scripts/09_addNewToken.sh tokenName tokenSymbol originNetwork
+
+  # example:
+  # this will deploy a mocked token 'mDAI' on sepolia and its bridged tokens on networks in 'usedNetworks' array of 'activeConfig' and set the addresses in the Storage contracts on each network.
+  ./scripts/09_addNewToken.sh mockedDai mDAI sepolia
   ```
 
   This script use the following scripts in the order:
 
 - **Deploy and set a new token step by step:**
 
-  - **Add address of a deployed token:**  
+  - **Add address of a deployed token** (case of non mocked token):  
     This is use to add the address of a token already deployed on a network to the Storage contract of another network.
     In order to deploy its bridged version on the other networks.
     Args: the token name and symbol of the mocked token
@@ -369,8 +390,10 @@ The networks used are those present in `constants/deploymentConfig.js::usedNetwo
   - Examples:
 
     ```shell
+    # This will use default values from the constants/simulationParams.js file for the operation
     npx hardhat run scripts/11_userAction_deposit.js --network sepolia
 
+    # This will use the values given in the PARAMS_OPTION for the operation
     SIGNER_OPTION=1 PARAMS_OPTION="11155111,441,ethereum,0.05" npx hardhat run scripts/11_userAction_deposit.js --network sepolia
     ```
 
@@ -397,8 +420,10 @@ The networks used are those present in `constants/deploymentConfig.js::usedNetwo
   - Examples:
 
     ```shell
+    # This will use default values from the constants/simulationParams.js file for the operation
     npx hardhat run scripts/12_userAction_depositFees.js --network allfeat
 
+    # This will use the values given in the PARAMS_OPTION for the operation
     SIGNER_OPTION=1 PARAMS_OPTION="11155111,441,ethereum,0.05" npx hardhat run scripts/12_userAction_depositFees.js --network allfeat
     ```
 
@@ -466,6 +491,7 @@ npx hardhat func-printSigners --network <network>
 ```shell
 npx hardhat func-balanceOf --user <userAddress> [--token <tokenAddress>] --network <network>
 
+# example:
 npx hardhat func-balanceOf --user 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --token 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 --network localhost
 ```
 
@@ -474,6 +500,7 @@ npx hardhat func-balanceOf --user 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --t
 ```shell
 npx hardhat func-mintBridgedToken --to <recipient> --token <tokenAddress> --amount <amountToMint> --network <network>
 
+# example:
 npx hardhat func-mintBridgedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --token 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000 --network localhost
 ```
 
@@ -482,6 +509,7 @@ npx hardhat func-mintBridgedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C
 ```shell
 npx hardhat func-transferMockedToken --to <recipient> --token <tokenAddress> --amount <amountToTransfer> --network <network>
 
+# example:
 npx hardhat func-transferMockedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --token 0xCafac3dD18aC6c6e92c921884f9E4176737C052c --amount 1000000000000000000 --network localhost
 ```
 
@@ -490,6 +518,7 @@ npx hardhat func-transferMockedToken --to 0x70997970C51812dc3A010C7d01b50e0d17dc
 ```shell
 npx hardhat func-getMsgHash --args <"userAddress userAddress chainIdFrom chainIdTo tokenName amount nonce"> --network <network>
 
+# example:
 npx hardhat func-getMsgHash --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90 0xbfae728Cf6D20DFba443c5A297dC9b344108de90 11155111 441 mockedDai 10000000000000000n 0" --network localhost
 ```
 
@@ -503,6 +532,7 @@ signer:
 ```shell
 npx hardhat func-getMsgSignature --args <"userAddress userAddress chainIdFrom chainIdTo tokenName amount nonce"> [--signer <index>] --network <network>
 
+# examples:
 npx hardhat func-getMsgSignature --args "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 11155111 441 mockedDai 10000000000000000n 0" --network localhost
 
 npx hardhat func-getMsgSignature --args "0xD850badD41F9f7B5Fdc4387C14A9e7938E57619C 0xD850badD41F9f7B5Fdc4387C14A9e7938E57619C 11155111 441 mockedDai 10000000000000000n 0" --signer 1 --network sepolia

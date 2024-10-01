@@ -3,8 +3,8 @@ const { expect } = require("chai");
 const sinon = require("sinon");
 
 // Comment/Uncomment describe.skip/describe.only to run/skip the tests
-// describe.only("func-getMsgSignature task", function () {
-describe.skip("func-getMsgHash task", function () {
+describe("func-getMsgSignature task", function () {
+  // describe.skip("func-getMsgHash task", function () {
   it("should calculate the correct operation hash signature", async function () {
     const [user] = await hre.ethers.getSigners();
 

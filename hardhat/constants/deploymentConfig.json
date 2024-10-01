@@ -2,16 +2,16 @@
   "activeConfig": "testnet",
   "usedConfigs": {
     "localNode": {
-      "usedNetworks": ["geth", "allfeatLocal"],
-      "usedTokens": ["ethereum", "allfeat", "mockedDai", "mockedUsdc"]
+      "usedNetworks": ["geth", "harmonieLocal"],
+      "usedTokens": ["ethereum", "harmonie", "mockedDai", "mockedUsdc"]
     },
     "local": {
       "usedNetworks": ["localhost"],
-      "usedTokens": ["ethereum", "allfeat", "mockedDai", "mockedUsdc"]
+      "usedTokens": ["ethereum", "harmonie", "mockedDai", "mockedUsdc"]
     },
     "testnet": {
-      "usedNetworks": ["allfeat", "sepolia"],
-      "usedTokens": ["ethereum", "allfeat", "mockedDai", "mockedUsdc"]
+      "usedNetworks": ["harmonie", "sepolia"],
+      "usedTokens": ["ethereum", "harmonie", "mockedDai", "mockedUsdc"]
     }
   },
   "networkParams": {
@@ -127,19 +127,19 @@
         }
       ]
     },
-    "allfeatLocal": {
+    "harmonieLocal": {
       "chainId": 440,
       "nativeToken": {
-        "name": "allfeat",
-        "symbol": "AFT"
+        "name": "harmonie",
+        "symbol": "HMY"
       },
       "deployedTokens": []
     },
-    "allfeat": {
+    "harmonie": {
       "chainId": 441,
       "nativeToken": {
-        "name": "allfeat",
-        "symbol": "AFT"
+        "name": "harmonie",
+        "symbol": "HMY"
       },
       "deployedTokens": []
     },

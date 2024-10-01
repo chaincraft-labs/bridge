@@ -121,7 +121,7 @@ Few files are used to configure the project. Some data are to be set in the file
   npx hardhat add-used-config --name <configName> --networks <networks> --tokens <tokens>
 
   # example:
-  npx hardhat add-used-config --name "my-localNet-config" --networks "sepolia,allfeat" --tokens "ethereum,myToken"
+  npx hardhat add-used-config --name "my-localNet-config" --networks "sepolia,harmonie" --tokens "ethereum,myToken"
   ```
 
   Where networks and tokens are strings of comma separated values.
@@ -287,9 +287,9 @@ You can deploy and initialize network-by-network contracts using method 1 or aut
 
   ```shell
   npx hardhat run scripts/01_deployAllContracts.js --network sepolia
-  npx hardhat run scripts/01_deployAllContracts.js --network allfeat
+  npx hardhat run scripts/01_deployAllContracts.js --network harmonie
   npx hardhat run scripts/02_setTokens.js --network sepolia
-  npx hardhat run scripts/02_setTokens.js --network allfeat
+  npx hardhat run scripts/02_setTokens.js --network harmonie
   ```
 
 - Method 2:
@@ -421,10 +421,10 @@ The networks used are those present in `constants/deploymentConfig.js::usedNetwo
 
     ```shell
     # This will use default values from the constants/simulationParams.js file for the operation
-    npx hardhat run scripts/12_userAction_depositFees.js --network allfeat
+    npx hardhat run scripts/12_userAction_depositFees.js --network harmonie
 
     # This will use the values given in the PARAMS_OPTION for the operation
-    SIGNER_OPTION=1 PARAMS_OPTION="11155111,441,ethereum,0.05" npx hardhat run scripts/12_userAction_depositFees.js --network allfeat
+    SIGNER_OPTION=1 PARAMS_OPTION="11155111,441,ethereum,0.05" npx hardhat run scripts/12_userAction_depositFees.js --network harmonie
     ```
 
   - Options:
@@ -545,7 +545,7 @@ npx hardhat call-readFunc --contract "Storage" --func "getOperator" --args "brid
 
 npx hardhat call-writeFunc --contract "Storage" --func "updateOperator" --args "bridge 0xbfae728Cf6D20DFba443c5A297dC9b344108de90" --network sepolia
 
-npx hardhat call-writeFunc --contract "Storage" --func "addTokenNameToList" --args "mockedDai" --network allfeat
+npx hardhat call-writeFunc --contract "Storage" --func "addTokenNameToList" --args "mockedDai" --network harmonie
 
 npx hardhat call-writeFunc --contract "Storage" --func "addChainIdToList" --args "441" --network sepolia
 
@@ -563,7 +563,7 @@ npx hardhat call-readFunc --contract "BridgeBase" --func "getNewUserNonce" --arg
 
 npx hardhat call-writeFunc --contract "BridgeBase" --func "createBridgeOperation" --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90 0xbfae728Cf6D20DFba443c5A297dC9b344108de90 11155111 441 mockedDai 10000000000000000n 0 0x993dab3dd91f5c6dc28e17439be475478f5635c92a56e17e82349d3fb2f166196f466c0b4e0c146f285204f0dcb13e5ae67bc33f4b888ec32dfe0a063e8f3f781b" --signer 1 --network sepolia
 
-npx hardhat call-writeFunc --contract "BridgeBase" --func "depositFees" --args "0x5e2c8f1e3c6f1c4e8d5b5e8f8c5a8e29e1f4b7c3a2c8e1d4c5e2e8f2a1b8c4e5 11155111 441" --network allfeat
+npx hardhat call-writeFunc --contract "BridgeBase" --func "depositFees" --args "0x5e2c8f1e3c6f1c4e8d5b5e8f8c5a8e29e1f4b7c3a2c8e1d4c5e2e8f2a1b8c4e5 11155111 441" --network harmonie
 
 npx hardhat call-readFunc --contract "RelayerBase" --func "getUserOperations" --args "0xbfae728Cf6D20DFba443c5A297dC9b344108de90" --network sepolia
 

@@ -413,9 +413,9 @@ describe("Storage", function () {
 
     it("should add new chain to list to authorize it", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
-      await storage.addChainIdToList(constants.aftChainId);
+      await storage.addChainIdToList(constants.hmyChainId);
       expect(await storage.getChainIdsList()).to.include(
-        BigInt(constants.aftChainId)
+        BigInt(constants.hmyChainId)
       );
     });
 
@@ -437,18 +437,18 @@ describe("Storage", function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       await tx.wait();
-      tx = await storage.addChainIdToList(constants.aftChainId);
+      tx = await storage.addChainIdToList(constants.hmyChainId);
       await tx.wait();
       tx = await storage.addNewTokenAddressByChainId(
         mocked.mockedTokenName,
-        constants.aftChainId,
+        constants.hmyChainId,
         mocked.mockedTokenAddress
       );
       await tx.wait();
       expect(
         await storage.getTokenAddressByChainId(
           mocked.mockedTokenName,
-          BigInt(constants.aftChainId)
+          BigInt(constants.hmyChainId)
         )
       ).to.equal(mocked.mockedTokenAddress);
     });
@@ -459,11 +459,11 @@ describe("Storage", function () {
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       await tx.wait();
-      tx = await storage.addChainIdToList(BigInt(constants.aftChainId));
+      tx = await storage.addChainIdToList(BigInt(constants.hmyChainId));
       await tx.wait();
       tx = await storage.addNewTokenAddressByChainId(
         mocked.mockedTokenName,
-        constants.aftChainId,
+        constants.hmyChainId,
         mocked.mockedTokenAddress
       );
       await tx.wait();
@@ -472,7 +472,7 @@ describe("Storage", function () {
       await expect(
         storage.addNewTokenAddressByChainId(
           mocked.mockedTokenName,
-          constants.aftChainId,
+          constants.hmyChainId,
           preparedTokenAddress
         )
       ).to.be.revertedWithCustomError(
@@ -487,11 +487,11 @@ describe("Storage", function () {
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       await tx.wait();
-      tx = await storage.addChainIdToList(constants.aftChainId);
+      tx = await storage.addChainIdToList(constants.hmyChainId);
       await tx.wait();
       tx = await storage.addNewTokenAddressByChainId(
         mocked.mockedTokenName,
-        constants.aftChainId,
+        constants.hmyChainId,
         mocked.mockedTokenAddress
       );
       tx.wait();
@@ -500,20 +500,20 @@ describe("Storage", function () {
       expect(
         await storage.getTokenAddressByChainId(
           mocked.mockedTokenName,
-          constants.aftChainId
+          constants.hmyChainId
         )
       ).to.equal(mocked.mockedTokenAddress);
 
       tx = await storage.updateTokenAddressByChainId(
         mocked.mockedTokenName,
-        constants.aftChainId,
+        constants.hmyChainId,
         preparedTokenAddress
       );
       tx.wait();
       expect(
         await storage.getTokenAddressByChainId(
           mocked.mockedTokenName,
-          constants.aftChainId
+          constants.hmyChainId
         )
       ).to.equal(preparedTokenAddress);
     });
@@ -526,18 +526,18 @@ describe("Storage", function () {
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       await tx.wait();
-      tx = await storage.addChainIdToList(constants.aftChainId);
+      tx = await storage.addChainIdToList(constants.hmyChainId);
       await tx.wait();
 
       await expect(
         storage.updateTokenAddressByChainId(
           mocked.mockedTokenName,
-          constants.aftChainId,
+          constants.hmyChainId,
           mocked.mockedTokenAddress
         )
       )
         .to.be.revertedWithCustomError(storage, "Storage__TokenAddressNotSet")
-        .withArgs(mocked.mockedTokenName, constants.aftChainId);
+        .withArgs(mocked.mockedTokenName, constants.hmyChainId);
     });
 
     it("should set new tokens addresses", async function () {
@@ -546,20 +546,20 @@ describe("Storage", function () {
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       await tx.wait();
-      tx = await storage.addChainIdToList(constants.aftChainId);
+      tx = await storage.addChainIdToList(constants.hmyChainId);
       await tx.wait();
       tx = await storage.addChainIdToList(constants.sepoliaChainId);
       await tx.wait();
       tx = await storage.batchAddNewTokensAddressesByChainId(
         [mocked.mockedTokenName, mocked.mockedTokenName],
-        [constants.aftChainId, constants.sepoliaChainId],
+        [constants.hmyChainId, constants.sepoliaChainId],
         [mocked.mockedTokenAddress, mockedTokenAddress2]
       );
       tx.wait();
 
       const add1 = await storage.getTokenAddressByChainId(
         mocked.mockedTokenName,
-        constants.aftChainId
+        constants.hmyChainId
       );
       const add2 = await storage.getTokenAddressByChainId(
         mocked.mockedTokenName,
@@ -575,7 +575,7 @@ describe("Storage", function () {
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       await tx.wait();
-      tx = await storage.addChainIdToList(constants.aftChainId);
+      tx = await storage.addChainIdToList(constants.hmyChainId);
       await tx.wait();
       tx = await storage.addChainIdToList(constants.sepoliaChainId);
       await tx.wait();
@@ -583,7 +583,7 @@ describe("Storage", function () {
       await expect(
         storage.batchAddNewTokensAddressesByChainId(
           [mocked.mockedTokenName, mocked.mockedTokenName],
-          [constants.aftChainId, constants.sepoliaChainId],
+          [constants.hmyChainId, constants.sepoliaChainId],
           [mocked.mockedTokenAddress]
         )
       ).to.be.revertedWithCustomError(
@@ -598,13 +598,13 @@ describe("Storage", function () {
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       await tx.wait();
-      tx = await storage.addChainIdToList(constants.aftChainId);
+      tx = await storage.addChainIdToList(constants.hmyChainId);
       await tx.wait();
       tx = await storage.addChainIdToList(constants.sepoliaChainId);
       await tx.wait();
       tx = await storage.addNewTokenAddressByChainId(
         mocked.mockedTokenName,
-        constants.aftChainId,
+        constants.hmyChainId,
         mocked.mockedTokenAddress
       );
       tx.wait();
@@ -612,7 +612,7 @@ describe("Storage", function () {
       await expect(
         storage.batchAddNewTokensAddressesByChainId(
           [mocked.mockedTokenName, mocked.mockedTokenName],
-          [constants.aftChainId, constants.sepoliaChainId],
+          [constants.hmyChainId, constants.sepoliaChainId],
           [mocked.mockedTokenAddress, mockedTokenAddress2]
         )
       ).to.be.revertedWithCustomError(
@@ -627,13 +627,13 @@ describe("Storage", function () {
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       await tx.wait();
-      tx = await storage.addChainIdToList(constants.aftChainId);
+      tx = await storage.addChainIdToList(constants.hmyChainId);
       await tx.wait();
 
       await expect(
         storage.batchAddNewTokensAddressesByChainId(
           [mocked.mockedTokenName, mocked.mockedTokenName],
-          [constants.aftChainId, constants.sepoliaChainId],
+          [constants.hmyChainId, constants.sepoliaChainId],
           [mocked.mockedTokenAddress, mockedTokenAddress2]
         )
       ).to.be.revertedWithCustomError(storage, "Storage__ChainIdNotInList");
@@ -644,13 +644,13 @@ describe("Storage", function () {
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       await tx.wait();
-      tx = await storage.addChainIdToList(constants.aftChainId);
+      tx = await storage.addChainIdToList(constants.hmyChainId);
       await tx.wait();
 
       await expect(
         storage.batchAddNewTokensAddressesByChainId(
           [mocked.mockedTokenName, "Unknown token"],
-          [constants.aftChainId, constants.sepoliaChainId],
+          [constants.hmyChainId, constants.sepoliaChainId],
           [mocked.mockedTokenAddress, mockedTokenAddress2]
         )
       ).to.be.revertedWithCustomError(storage, "Storage__TokenNotInList");
@@ -662,20 +662,20 @@ describe("Storage", function () {
 
       let tx = await storage.addTokenNameToList(mocked.mockedTokenName);
       await tx.wait();
-      tx = await storage.addChainIdToList(constants.aftChainId);
+      tx = await storage.addChainIdToList(constants.hmyChainId);
       await tx.wait();
       tx = await storage.addChainIdToList(constants.sepoliaChainId);
       await tx.wait();
       tx = await storage.batchAddNewTokensAddressesByChainId(
         [mocked.mockedTokenName, mocked.mockedTokenName],
-        [constants.aftChainId, constants.sepoliaChainId],
+        [constants.hmyChainId, constants.sepoliaChainId],
         [mocked.mockedTokenAddress, mockedTokenAddress2]
       );
       tx.wait();
 
       const [add1, add2] = await storage.getTokenAddressesByChainIds(
         mocked.mockedTokenName,
-        constants.aftChainId,
+        constants.hmyChainId,
         constants.sepoliaChainId
       );
 

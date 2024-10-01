@@ -7,7 +7,7 @@
       "amount": "10000000000000000",
       "feesAmount": "1000000000000000"
     },
-    "allfeat": {
+    "harmonie": {
       "chainIdFrom": 441,
       "chainIdTo": 11155111,
       "tokenName": "allfeat",

@@ -39,8 +39,8 @@ const tempConfigPath = path.resolve(
 );
 
 // Comment/Uncomment describe.skip/describe.only to run/skip the tests
-// describe.only("Reset JSON Task", function () {
-describe.skip("Reset JSON Task", function () {
+describe("Reset JSON Task", function () {
+  // describe.skip("Reset JSON Task", function () {
   before(async function () {
     // Before test save the original config file
     fs.copyFileSync(originalAddressesPath, tempAddressesPath);
@@ -85,11 +85,12 @@ describe.skip("Reset JSON Task", function () {
 });
 
 // Comment/Uncomment describe.skip/describe.only to run/skip the tests
-describe.only("Config Tasks", function () {
+describe("Config Tasks", function () {
+  // describe.only("Config Tasks", function () {
   // describe.skip("Config Tasks", function () {
   const mockedConfigName = "mockedConfig";
   const mockedConfig = {
-    usedNetworks: ["allfeat", "sepolia"],
+    usedNetworks: ["harmonie", "sepolia"],
     usedTokens: ["ogToken", "songToken"],
   };
   const mockedNewConfigName = "mockedNewConfig";

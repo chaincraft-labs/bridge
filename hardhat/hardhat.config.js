@@ -90,18 +90,18 @@ module.exports = {
       url: buildRpcUrl("mainnetFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
-    allfeatLocal: {
-      url: buildRpcUrl("allfeatLocal"),
+    harmonieLocal: {
+      url: buildRpcUrl("harmonieLocal"),
       accounts: hardhatPvtKeys,
     },
     harmonie: {
       url: `https://harmonie-endpoint-02.allfeat.io`,
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
-    allfeat: {
-      url: `https://harmonie-endpoint-02.allfeat.io`,
-      accounts: [deployerPvtKey, ...usersPvtKeys],
-    },
+    // allfeat: {
+    //   url: `https://harmonie-endpoint-02.allfeat.io`,
+    //   accounts: [deployerPvtKey, ...usersPvtKeys],
+    // },
     arbitrumSepolia: {
       url: `https://arb-sepolia.g.alchemy.com/v2/${providerApiKey}`,
       accounts: [deployerPvtKey, ...usersPvtKeys],

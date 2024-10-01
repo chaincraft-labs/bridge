@@ -11,8 +11,8 @@ const TOKEN_NAME = "Test Token";
 const TOKEN_SYMBOL = "TT";
 
 // Comment/Uncomment describe.skip/describe.only to run/skip the tests
-// describe.only("func-balanceOf task", function () {
-describe.skip("func-balanceOf task", function () {
+describe("func-balanceOf task", function () {
+  // describe.skip("func-balanceOf task", function () {
   let owner, user;
   let tokenAddress;
   let tokenContract;

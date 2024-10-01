@@ -15,8 +15,8 @@ const argsString =
   "0xABcdEFABcdEFabcdEfAbCdefabcdeFABcDEFabCD 0xABcdEFABcdEFabcdEfAbCdefabcdeFABcDEFabCD 1 2 TokenName 1000000000000000000n 0";
 
 // Comment/Uncomment describe.skip/describe.only to run/skip the tests
-// describe.only("func-getMsgHash task", function () {
-describe.skip("func-getMsgHash task", function () {
+describe("func-getMsgHash task", function () {
+  // describe.skip("func-getMsgHash task", function () {
   it("should calculate the correct operation hash", async function () {
     const consoleLogSpy = sinon.spy(console, "log");
     try {

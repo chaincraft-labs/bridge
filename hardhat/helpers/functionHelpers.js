@@ -324,6 +324,51 @@ const convertParamsStringToArray = (argsString) => {
 //
 ///////////////////////////////////////////////////////////////////////////////
 /**
+ * @description Check if network name is an exception for convention (geth)
+ *
+ * @param { string } networkName
+ * @returns { boolean } true if networkName is an exception
+ */
+function isConventionException(networkName) {
+  const exceptionNetworks = ["geth"];
+  return exceptionNetworks.includes(networkName);
+}
+
+/**
+ * @description Check network name convention for local custom networks
+ *
+ * @dev Only for Fork and Local networks
+ * @dev networkName = [networkName]Fork | [networkName]Local | geth
+ * @param { string } networkName
+ * @throws if networkName is not a local custom network
+ */
+function assertIsLocalNetwork(networkName) {
+  const isException = isConventionException(networkName);
+  const hasSuffix = networkName.match(/(Fork|Local)$/);
+  if (!isException && !hasSuffix) {
+    throw new Error(
+      `Network name ${networkName} is not a valid local custom network!`
+    );
+  }
+}
+
+/**
+ * @description Format network suffix
+ *
+ * @dev convert Fork | Local to _Fork | _Local, only if suffix is present
+ * @param { string } networkName
+ * @returns { string } formatted network name
+ */
+function formatNetworkSuffix(networkName) {
+  assertIsLocalNetwork(networkName);
+
+  if (!isConventionException(networkName)) {
+    return networkName.replace(/(Fork|Local)/g, "_$1");
+  }
+  return networkName;
+}
+
+/**
  * @description Converts fork | local network name to port .env variable
  *
  * @dev Naming convention:
@@ -333,7 +378,7 @@ const convertParamsStringToArray = (argsString) => {
  * @returns the port
  */
 function networkNameToPortName(networkName) {
-  return `PORT_${networkName.replace(/(Fork|Local)/g, "_$1").toUpperCase()}`;
+  return `PORT_${formatNetworkSuffix(networkName).toUpperCase()}`;
 }
 
 /**
@@ -345,10 +390,9 @@ function networkNameToPortName(networkName) {
  * @param { string } forkNetworkName
  * @returns the rpc url
  */
-function buildRpcUrl(networkName) {
+function buildLocalRpcUrl(networkName) {
   // insert '_' before exact words: Fork or Local and convert to uppercase
-  const envName =
-    networkName == "geth" ? "PORT_GETH" : networkNameToPortName(networkName);
+  const envName = networkNameToPortName(networkName);
   const port = process.env[envName];
   if (!port) {
     throw new Error(`No port specified for ${networkName}`);
@@ -363,5 +407,5 @@ module.exports = {
   convertToOperationParams,
   getFeesAmount,
   networkNameToPortName,
-  buildRpcUrl,
+  buildLocalRpcUrl,
 };

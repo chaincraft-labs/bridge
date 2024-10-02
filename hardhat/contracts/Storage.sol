@@ -111,6 +111,13 @@ contract Storage {
         return keccak256(abi.encodePacked(key));
     }
 
+    // @todo: 1 dynamic key and one inferior to 32 bytes
+    // encodePacked don't pad to 32 bytes
+    // in storage mapping used for different field with the same type
+    // It is possible to have a collision potentaillly
+    // Use:
+    // hash of inputs: all will have 32 bytes length
+    // or encode() to pad to 32 bytes
     /**
      * @notice Computes a hash of a composite key formed by the provided 'key' and an Ethereum address.
      *

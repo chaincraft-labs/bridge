@@ -6,7 +6,6 @@ const {
 } = require("../helpers/fileHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
 const { getContext } = require("../helpers/contextHelper");
-// const { getNetworkNameByChainId } = require("../helpers/configHelper");
 const {
   convertToOperationParams,
   getFeesAmount,

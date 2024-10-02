@@ -29,7 +29,7 @@ async function main() {
 
   const options = process.env.MOCKED_TOKEN_OPTION;
   const tokenInfo = options.split(",");
-  if (tokenInfo.length != 3) {
+  if (tokenInfo.length !== 3) {
     throw "Missing data in TOKEN_OPTION to set its address.";
   }
   if (!tokenParams[tokenInfo[0]]) {
@@ -39,7 +39,7 @@ async function main() {
   let tokenToSetObject = deployedTokens.find(
     (element) => element.name === tokenToSet
   );
-  if (!tokenToSetObject.address || tokenInfo[2] != tokenToSetObject.address) {
+  if (!tokenToSetObject.address || tokenInfo[2] !== tokenToSetObject.address) {
     throw "Wrong token address to set, address given don't match the one in deployedAddresses.json!";
   }
 

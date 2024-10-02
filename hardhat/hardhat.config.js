@@ -15,7 +15,7 @@ require("./tasks/func-getMsgHash");
 require("./tasks/func-getMsgSignature");
 
 const { ethers } = require("ethers");
-const { buildRpcUrl } = require("./helpers/functionHelpers");
+const { buildLocalRpcUrl } = require("./helpers/functionHelpers");
 
 // number of users to make accounts for (excluding deployer)
 const USER_COUNT = 19;
@@ -67,11 +67,11 @@ module.exports = {
       // },
     },
     anvilLocal: {
-      url: buildRpcUrl("anvilLocal"),
+      url: buildLocalRpcUrl("anvilLocal"),
       accounts: hardhatPvtKeys,
     },
     geth: {
-      url: buildRpcUrl("geth"),
+      url: buildLocalRpcUrl("geth"),
       accounts: hardhatPvtKeys,
     },
     sepolia: {
@@ -79,7 +79,7 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     sepoliaFork: {
-      url: buildRpcUrl("sepoliaFork"),
+      url: buildLocalRpcUrl("sepoliaFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     mainnet: {
@@ -87,21 +87,17 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     mainnetFork: {
-      url: buildRpcUrl("mainnetFork"),
+      url: buildLocalRpcUrl("mainnetFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     harmonieLocal: {
-      url: buildRpcUrl("harmonieLocal"),
+      url: buildLocalRpcUrl("harmonieLocal"),
       accounts: hardhatPvtKeys,
     },
     harmonie: {
       url: `https://harmonie-endpoint-02.allfeat.io`,
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
-    // allfeat: {
-    //   url: `https://harmonie-endpoint-02.allfeat.io`,
-    //   accounts: [deployerPvtKey, ...usersPvtKeys],
-    // },
     arbitrumSepolia: {
       url: `https://arb-sepolia.g.alchemy.com/v2/${providerApiKey}`,
       accounts: [deployerPvtKey, ...usersPvtKeys],
@@ -123,7 +119,7 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     fantomTestnetFork: {
-      url: buildRpcUrl("fantomTestnetFork"),
+      url: buildLocalRpcUrl("fantomTestnetFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     fantom: {
@@ -131,7 +127,7 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     fantomFork: {
-      url: buildRpcUrl("fantomFork"),
+      url: buildLocalRpcUrl("fantomFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     optimismSepolia: {
@@ -147,7 +143,7 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     polygonAmoyFork: {
-      url: buildRpcUrl("polygonAmoyFork"),
+      url: buildLocalRpcUrl("polygonAmoyFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     polygon: {
@@ -155,7 +151,7 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     polygonFork: {
-      url: buildRpcUrl("polygonFork"),
+      url: buildLocalRpcUrl("polygonFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
   },

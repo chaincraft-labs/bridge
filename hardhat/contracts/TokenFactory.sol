@@ -17,14 +17,15 @@ error TokenFactory__TokenCreationFailed(string message);
  */
 
 contract TokenFactory {
-    address private s_storageAddress;
+    address private immutable s_storageAddress;
+    Storage private immutable s_storage;
 
     mapping(address => bool) private s_isBridgedToken;
     mapping(string => address) private s_symbolToAddress;
     string[] private s_BridgedTokens;
 
     modifier onlyAdmin() {
-        if (!Storage(s_storageAddress).isRole("admin", msg.sender)) {
+        if (!s_storage.isRole("admin", msg.sender)) {
             revert TokenFactory__CallerNotAdmin();
         }
         _;
@@ -39,8 +40,9 @@ contract TokenFactory {
      */
     constructor(address storageAddress) {
         s_storageAddress = storageAddress;
+        s_storage = Storage(storageAddress);
 
-        if (!Storage(s_storageAddress).isRole("admin", msg.sender)) {
+        if (!s_storage.isRole("admin", msg.sender)) {
             revert("TokenFactory: caller is not the admin");
         }
     }
@@ -75,9 +77,9 @@ contract TokenFactory {
 
         BridgedToken token = new BridgedToken(name, symbol);
 
-        Storage(s_storageAddress).addNewTokenAddressByChainId(name, block.chainid, address(token));
+        s_storage.addNewTokenAddressByChainId(name, block.chainid, address(token));
 
-        address vault = Storage(s_storageAddress).getOperator("vault");
+        address vault = s_storage.getOperator("vault");
         BridgedToken(token).updateAdmin(vault);
 
         s_BridgedTokens.push(symbol);

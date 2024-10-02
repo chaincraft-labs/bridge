@@ -14,13 +14,13 @@ task("start-node", "Starts a Hardhat node with forking")
   .setAction(async (taskArgs, hre) => {
     const forkName = taskArgs.networkToFork + "Fork";
     const networkConfig = hre.config.networks[taskArgs.networkToFork];
-    if (!networkConfig || !networkConfig.url) {
+    if (!networkConfig?.url) {
       throw new Error(
         `Network ${taskArgs.networkToFork} is not configured correctly.`
       );
     }
     const forkNetworkConfig = hre.config.networks[forkName];
-    if (!forkNetworkConfig || !forkNetworkConfig.url) {
+    if (!forkNetworkConfig?.url) {
       throw new Error(
         `Fork network ${
           taskArgs.networkToFork + "Fork"

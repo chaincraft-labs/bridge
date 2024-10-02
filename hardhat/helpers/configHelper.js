@@ -27,11 +27,13 @@ const FEES_AMOUNT = 1_000_000_000_000_000n; //0.001
  * @throws {Error} If the key should exist and does not exist
  * @throws {Error} If the key should not exist and does exist
  */
-function checkExistence(obj, key, shouldExist = true) {
-  if (shouldExist && !obj[key]) {
+function assertKeyExistence(obj, key, shouldExist = true) {
+  const exists = key in obj;
+
+  if (shouldExist && !exists) {
     throw new Error(`'${key}' does not exist.`);
   }
-  if (!shouldExist && obj[key]) {
+  if (!shouldExist && exists) {
     throw new Error(`'${key}' already exists.`);
   }
 }
@@ -44,7 +46,7 @@ function checkExistence(obj, key, shouldExist = true) {
  * @param {any} defaultValue The default value to set the key to
  */
 function ensureExist(obj, key, defaultValue) {
-  if (!obj[key]) {
+  if (!(key in obj)) {
     obj[key] = defaultValue;
   }
 }
@@ -68,7 +70,7 @@ function addItemToList(item, list) {
  * @param {Object} token The token to check
  */
 function ensureTokenExists(registry, token) {
-  if (!registry[token.name]) {
+  if (!(token.name in registry)) {
     registry[token.name] = {
       tokenName: token.name,
       tokenSymbol: token.symbol,
@@ -141,7 +143,7 @@ const configParams = getConfigParams();
  * @returns {Object} The networkParams and tokenParams from the config file
  */
 const getNetworkAndTokenParams = () => {
-  checkExistence(configParams, "networkParams");
+  assertKeyExistence(configParams, "networkParams");
 
   const networkParams = configParams.networkParams;
   const tokenParams = {};
@@ -199,7 +201,7 @@ const { networkParams, tokenParams } = getNetworkAndTokenParams();
  * @throws {Error} If the address is provided for mocked tokens
  */
 function addDeployedToken(networkName, tokenName, tokenSymbol, tokenAddress) {
-  if (!configParams.networkParams || !configParams.networkParams[networkName]) {
+  if (!configParams.networkParams?.[networkName]) {
     throw new Error(
       `The network '${networkName}' does not exist in the networkParams.`
     );
@@ -230,7 +232,7 @@ function addDeployedToken(networkName, tokenName, tokenSymbol, tokenAddress) {
  * @dev activeConfig: the name of the usedConfigs to use for the deployment and scripts
  */
 function getActiveConfig() {
-  checkExistence(configParams, "activeConfig");
+  assertKeyExistence(configParams, "activeConfig");
   return configParams.activeConfig;
 }
 
@@ -238,7 +240,7 @@ function getActiveConfig() {
  * @description Get the usedConfigs from config files
  */
 function getUsedConfigs() {
-  checkExistence(configParams, "usedConfigs");
+  assertKeyExistence(configParams, "usedConfigs");
   return configParams.usedConfigs;
 }
 
@@ -246,7 +248,7 @@ function getUsedConfigs() {
  * @description Set the active config to switch between usedConfigs used
  */
 function setActiveConfig(name) {
-  checkExistence(configParams.usedConfigs, name);
+  assertKeyExistence(configParams.usedConfigs, name);
 
   configParams.activeConfig = name;
   updateConfigParams(configParams);
@@ -262,7 +264,7 @@ function setActiveConfig(name) {
  */
 function addUsedConfig(name, networks, tokens) {
   try {
-    checkExistence(configParams.usedConfigs, name, false);
+    assertKeyExistence(configParams.usedConfigs, name, false);
 
     configParams.usedConfigs[name] = {
       usedNetworks: networks,
@@ -284,11 +286,13 @@ function addUsedConfig(name, networks, tokens) {
  */
 function addToConfig(config, label, value) {
   try {
-    if (label !== "usedNetworks" && label !== "usedTokens") {
+    const validLabels = ["usedNetworks", "usedTokens"];
+
+    if (!validLabels.includes(label)) {
       throw new Error(`Label '${label}' not recognized.`);
     }
 
-    checkExistence(configParams.usedConfigs, config);
+    assertKeyExistence(configParams.usedConfigs, config);
     ensureExist(configParams.usedConfigs[config], label, []);
     // Check if the value is already in the list
     if (configParams.usedConfigs[config][label].includes(value)) {
@@ -311,7 +315,7 @@ function addToConfig(config, label, value) {
  */
 function removeConfig(config) {
   try {
-    checkExistence(configParams.usedConfigs, config, true);
+    assertKeyExistence(configParams.usedConfigs, config, true);
     delete configParams.usedConfigs[config];
     updateConfigParams(configParams);
   } catch (error) {
@@ -388,8 +392,8 @@ const simulationParams = getSimulationConfig();
  * @returns {Object} The params for the scenario and network
  */
 function getSimulationParams(scenario, network) {
-  checkExistence(simulationParams, scenario);
-  checkExistence(simulationParams[scenario], network);
+  assertKeyExistence(simulationParams, scenario);
+  assertKeyExistence(simulationParams[scenario], network);
   return simulationParams[scenario][network];
 }
 
@@ -401,7 +405,7 @@ function getSimulationParams(scenario, network) {
  * @param {Object} params The new params for the scenario and network
  */
 function updateSimulationParams(scenario, network, params) {
-  checkExistence(simulationParams, scenario);
+  assertKeyExistence(simulationParams, scenario);
   simulationParams[scenario][network] = params;
   updateSimulationConfig(simulationParams);
 }

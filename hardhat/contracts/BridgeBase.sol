@@ -66,7 +66,7 @@ contract BridgeBase is Utils {
 
     address constant MAX_ADDRESS = address(type(uint160).max); //....... 0xffffFFFfFFffffffffffffffffffffFfFFFfffFFFfF
 
-    address public s_storage;
+    Storage private immutable s_storage;
 
     mapping(address user => uint256 newNonce) public s_nextUserNonce;
     mapping(address user => mapping(uint256 chainIdFrom => mapping(uint256 => bool))) public s_destinationNonces;
@@ -78,14 +78,14 @@ contract BridgeBase is Utils {
     //****************************************************************** */
 
     modifier onlyRole(string memory role) {
-        if (!Storage(s_storage).isRole(role, msg.sender)) {
+        if (!s_storage.isRole(role, msg.sender)) {
             revert BridgeBase__CallerHasNotRole(role, "");
         }
         _;
     }
 
     modifier onlyRoles(string memory role1, string memory role2) {
-        if (!Storage(s_storage).isRole(role1, msg.sender) && !Storage(s_storage).isRole(role2, msg.sender)) {
+        if (!s_storage.isRole(role1, msg.sender) && !s_storage.isRole(role2, msg.sender)) {
             revert BridgeBase__CallerHasNotRole(role1, role2);
         }
         _;
@@ -125,9 +125,9 @@ contract BridgeBase is Utils {
     //
     //****************************************************************** */
     constructor(address storageAddress) {
-        s_storage = storageAddress;
+        s_storage = Storage(storageAddress);
 
-        if (!Storage(s_storage).isRole("admin", msg.sender)) {
+        if (!s_storage.isRole("admin", msg.sender)) {
             revert BridgeBase__CallerHasNotRole("admin", "");
         }
     }
@@ -175,10 +175,10 @@ contract BridgeBase is Utils {
 
         s_nextUserNonce[from]++;
 
-        Storage store = Storage(s_storage);
-        address tokenFrom = store.getTokenAddressByChainId(tokenName, chainIdFrom);
+        // Storage store = Storage(s_storage);
+        address tokenFrom = s_storage.getTokenAddressByChainId(tokenName, chainIdFrom);
 
-        if (!store.isAuthorizedTokenByChainId(tokenName, chainIdFrom)) {
+        if (!s_storage.isAuthorizedTokenByChainId(tokenName, chainIdFrom)) {
             revert BridgeBase__DepositFailed("unauthorized token");
         }
 
@@ -215,7 +215,7 @@ contract BridgeBase is Utils {
     //**************************** DESTINATION SIDE *********************************/
     // MOCK FEES COMPUTATION
     function simulateOperation() public view returns (uint256) {
-        return Storage(s_storage).getUint(Storage(s_storage).getKey("opFees", block.chainid));
+        return s_storage.getUint(s_storage.getKey("opFees", block.chainid));
     }
     // MOCK FEES COMPUTATION
 
@@ -284,15 +284,14 @@ contract BridgeBase is Utils {
             revert BridgeBase__FinalizationFailed("transfer already processed");
         }
 
-        (address tokenFrom, address tokenTo) =
-            Storage(s_storage).getTokenAddressesByChainIds(tokenName, chainIdFrom, chainIdTo);
+        (address tokenFrom, address tokenTo) = s_storage.getTokenAddressesByChainIds(tokenName, chainIdFrom, chainIdTo);
 
         // too avoid stack too deep
         // {
         s_destinationNonces[from][chainIdTo][nonce] = true;
         //}
 
-        if (!Storage(s_storage).isAuthorizedTokenByChainId(tokenName, chainIdTo)) {
+        if (!s_storage.isAuthorizedTokenByChainId(tokenName, chainIdTo)) {
             revert BridgeBase__DepositFailed("unauthorized token");
         }
 
@@ -361,8 +360,8 @@ contract BridgeBase is Utils {
      * @return RelayerBase The instance of the RelayerBase contract.
      */
     function _relayer() private view returns (RelayerBase) {
-        Storage store = Storage(s_storage);
-        address relayer = store.getOperator("relayer");
+        // Storage store = Storage(s_storage);
+        address relayer = s_storage.getOperator("relayer");
         return RelayerBase(relayer);
     }
 
@@ -372,8 +371,8 @@ contract BridgeBase is Utils {
      * @return Vault The instance of the Vault contract.
      */
     function _vault() private view returns (Vault) {
-        Storage store = Storage(s_storage);
-        address vault = store.getOperator("vault");
+        // Storage store = Storage(s_storage);
+        address vault = s_storage.getOperator("vault");
         return Vault(vault);
     }
 
@@ -383,8 +382,8 @@ contract BridgeBase is Utils {
      * @return (Vault, address) The instance of the Vault contract and its address.
      */
     function _getVaultData() private view returns (Vault, address) {
-        Storage store = Storage(s_storage);
-        address vault = store.getOperator("vault");
+        // Storage store = Storage(s_storage);
+        address vault = s_storage.getOperator("vault");
         return (Vault(vault), vault);
     }
 
@@ -394,8 +393,8 @@ contract BridgeBase is Utils {
      * @return TokenFactory The instance of the TokenFactory contract.
      */
     function _factory() private view returns (TokenFactory) {
-        Storage store = Storage(s_storage);
-        address factory = store.getOperator("factory");
+        // Storage store = Storage(s_storage);
+        address factory = s_storage.getOperator("factory");
         return TokenFactory(factory);
     }
 

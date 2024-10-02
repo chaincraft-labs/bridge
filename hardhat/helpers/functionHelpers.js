@@ -1,14 +1,24 @@
 const { toStyle, display } = require("./loggingHelper");
-const { networkParams, FEES_AMOUNT } = require("./configHelper");
-const { writeDeployedAddress } = require("../helpers/fileHelpers");
-const { simulationParams } = require("../constants/simulationParams");
+const {
+  networkParams,
+  FEES_AMOUNT,
+  getSimulationParams,
+} = require("./configHelper");
+const { writeDeployedAddress } = require("./fileHelpers");
 ///////////////////////////////////////////////////////////////////////////////
 //
 //                CHECKS FOR DEPLOYMENT SCRIPTS
 //
 ///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description Check the deploymentConfig.js file for errors
+ * @dev Used in deployment scripts
+ */
 const deploymentCheck = {
-  // Check we don't have localhost AND hardhat in network used (same id)
+  /**
+   * @description Check if "localhost" and "hardhat" are not used at the same time
+   * @param {Array} usedNetworks
+   */
   noLocalChainDuplicate: (usedNetworks) => {
     if (
       usedNetworks.includes("localhost") &&
@@ -21,8 +31,10 @@ const deploymentCheck = {
       )}!\n`;
     }
   },
-  // to be removed as L2s share the same coin
-  // Check we don't have duplicate chains used (same chainID or native token)
+  /**
+   * @description Check if there are no duplicate chains in usedNetworks
+   * @param {Array} usedNetworks
+   */
   noDuplicateChains: (usedNetworks) => {
     const seenChains = {};
 
@@ -49,7 +61,12 @@ const deploymentCheck = {
     });
   },
 
-  // Check if we deploy to a network from the deploymentConfig (deployment security)
+  /**
+   * @description Check if the current network is included in usedNetworks
+   *
+   * @param {Array} usedNetworks
+   * @param {string} currentNetwork
+   */
   deploymentOnUsedNetworks: (usedNetworks, currentNetwork) => {
     if (!usedNetworks.includes(currentNetwork)) {
       throw `${toStyle.error(
@@ -59,8 +76,11 @@ const deploymentCheck = {
       )}!`;
     }
   },
-
-  // Check if the networks in deploymentConfig are amongst networkParams (to have their data)
+  /**
+   * @description Check if usedNetworks are included in networkParams
+   *
+   * @param {Array} usedNetworks
+   */
   usedNetworksSetInConfig: (usedNetworks) => {
     const networkKeys = Object.keys(networkParams);
     usedNetworks.forEach((usedNetwork) => {
@@ -71,7 +91,12 @@ const deploymentCheck = {
       }
     });
   },
-
+  /**
+   * @description Check the deploymentConfig.js file for errors
+   *
+   * @param {Array} usedNetworks
+   * @param {string} currentNetwork
+   */
   validateNetworks: function (usedNetworks, currentNetwork) {
     deploymentCheck.noLocalChainDuplicate(usedNetworks);
     deploymentCheck.deploymentOnUsedNetworks(usedNetworks, currentNetwork);
@@ -153,9 +178,8 @@ const convertToOperationParams = (paramsOption = "defaultOrigin,sepolia") => {
 
     return [chainIdFrom, chainIdTo, tokenName, amount];
   }
-
   const [simName, simOriginChain] = paramsOption.split(",");
-  const simParams = simulationParams[simName][simOriginChain];
+  const simParams = getSimulationParams(simName, simOriginChain);
 
   if (!simParams || Object.keys(simParams).length === 0) {
     throw "Simulation Params not found!";
@@ -164,7 +188,7 @@ const convertToOperationParams = (paramsOption = "defaultOrigin,sepolia") => {
     simParams.chainIdFrom,
     simParams.chainIdTo,
     simParams.tokenName,
-    simParams.amount,
+    BigInt(simParams.amount),
   ];
   return params;
 };
@@ -199,7 +223,7 @@ const getFeesAmount = (feesOption) => {
   if (!simParams || Object.keys(simParams).length === 0) {
     throw "Simulation Params not found!";
   }
-  return simParams.feesAmount;
+  return BigInt(simParams.feesAmount);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -294,10 +318,94 @@ const convertParamsStringToArray = (argsString) => {
   return args;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+//
+//                URL / PORT HELPERS
+//
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description Check if network name is an exception for convention (geth)
+ *
+ * @param { string } networkName
+ * @returns { boolean } true if networkName is an exception
+ */
+function isConventionException(networkName) {
+  const exceptionNetworks = ["geth"];
+  return exceptionNetworks.includes(networkName);
+}
+
+/**
+ * @description Check network name convention for local custom networks
+ *
+ * @dev Only for Fork and Local networks
+ * @dev networkName = [networkName]Fork | [networkName]Local | geth
+ * @param { string } networkName
+ * @throws if networkName is not a local custom network
+ */
+function assertIsLocalNetwork(networkName) {
+  const isException = isConventionException(networkName);
+  const hasSuffix = networkName.match(/(Fork|Local)$/);
+  if (!isException && !hasSuffix) {
+    throw new Error(
+      `Network name ${networkName} is not a valid local custom network!`
+    );
+  }
+}
+
+/**
+ * @description Format network suffix
+ *
+ * @dev convert Fork | Local to _Fork | _Local, only if suffix is present
+ * @param { string } networkName
+ * @returns { string } formatted network name
+ */
+function formatNetworkSuffix(networkName) {
+  assertIsLocalNetwork(networkName);
+
+  if (!isConventionException(networkName)) {
+    return networkName.replace(/(Fork|Local)/g, "_$1");
+  }
+  return networkName;
+}
+
+/**
+ * @description Converts fork | local network name to port .env variable
+ *
+ * @dev Naming convention:
+ *  forkNetworkName = [networkName]Fork
+ *  localNetworkName = [networkName]Local
+ * @param { string } forkNetworkName
+ * @returns the port
+ */
+function networkNameToPortName(networkName) {
+  return `PORT_${formatNetworkSuffix(networkName).toUpperCase()}`;
+}
+
+/**
+ * @description Get the rpc url for a forked or local network
+ *
+ * @dev Naming convention:
+ *  forkNetworkName = [networkName]Fork
+ *  localNetworkName = [networkName]Local | geth
+ * @param { string } forkNetworkName
+ * @returns the rpc url
+ */
+function buildLocalRpcUrl(networkName) {
+  // insert '_' before exact words: Fork or Local and convert to uppercase
+  const envName = networkNameToPortName(networkName);
+  const port = process.env[envName];
+  if (!port) {
+    throw new Error(`No port specified for ${networkName}`);
+  }
+  return `http://127.0.0.1:${port}`;
+}
+
 module.exports = {
   deploymentCheck,
   deployAndSaveAddress,
   convertParamsStringToArray,
   convertToOperationParams,
   getFeesAmount,
+  networkNameToPortName,
+  buildLocalRpcUrl,
 };

@@ -3,15 +3,15 @@ const {
   readLastDeployedAddress,
   logCurrentFileName,
 } = require("../helpers/fileHelpers");
-const { getMaxAddress, computeTokenSymbol } = require("../utils/util");
 const {
-  tokenParams,
+  getMaxAddress,
+  computeTokenSymbol,
   getChainIdByNetworkName,
-} = require("../helpers/configHelper");
+} = require("../utils/util");
+const { tokenParams, usedNetworks } = require("../helpers/configHelper");
 const { getContext } = require("../helpers/contextHelper");
 const { deploymentCheck } = require("../helpers/functionHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
-const { usedNetworks } = require("../constants/deploymentConfig");
 
 /**
  * @description This script set addresses of a new token in Storage of each chain used
@@ -71,6 +71,8 @@ async function main() {
   for (const index in networksToSet) {
     const networkToSet = networksToSet[index];
     const chainIdToSet = getChainIdByNetworkName(networkToSet);
+    const deployedTokens = networkParams[networkToSet].deployedTokens;
+
     tokensDataToSet.names.push(tokenName);
     tokensDataToSet.chainIds.push(chainIdToSet);
 
@@ -79,6 +81,15 @@ async function main() {
       // Native token on chainIdToSet
       if (tokenParams[tokenName].isNative) {
         tokensDataToSet.addresses.push(getMaxAddress());
+        continue;
+      }
+      // Real token whose address is already set take this one
+      let tokenToSetObject = deployedTokens.find(
+        (element) => element.name === tokenName
+      );
+      if (tokenToSetObject && tokenToSetObject.address) {
+        tokensDataToSet.addresses.push(tokenToSetObject.address);
+
         continue;
       }
       // Mocked token on chainIdToSet

@@ -4,7 +4,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "deploy": "hardhat run scripts/deploy.js",
+    "deploy": "node ./scripts/09_deployAndConfig.sh",
     "bsc": "NETWORK=bsc NETWORK_URL=https://rpc.ankr.com/bsc FROM_BLOCK=22828104 CHAIN_ID=100 npx hardhat node --port 8541",
     "eth": "NETWORK=eth NETWORK_URL=https://rpc.ankr.com/eth CHAIN_ID=101 npx hardhat node --port 8542",
     "avax": "NETWORK=avax NETWORK_URL=https://api.avax.network/ext/bc/C/rpc CHAIN_ID=102 npx hardhat node --port 8543",
@@ -13,12 +13,14 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^3.0.0",
     "hardhat": "^2.22.3",
+    "sinon": "^19.0.2",
     "solidity-coverage": "^0.8.13"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
-    "hardhat-deploy": "^0.12.4"
+    "hardhat-deploy": "^0.12.4",
+    "proper-lockfile": "^4.1.2"
   }
 }

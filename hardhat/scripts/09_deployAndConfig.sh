@@ -5,24 +5,29 @@
 # The script is intended to be run from the root of the project
 # It uses the network names specified in the deploymentConfig.js file
 
-# Parse the usedNetworks from the deploymentConfig.js file
-# Filter out comments, spaces, and quotes
-# Exclude the const usedNetworks = [ part
+# Get the usedNetworks from the deploymentConfig.json file
+json_file="./constants/deploymentConfig.json"
+activeConfig=$(jq -r '.activeConfig' "$json_file")
 
-# compatible on macOs and wsl
-usedNetworks=$(awk '/^const usedNetworks = \[/{print}' constants/deploymentConfig.js | sed 's/.*const usedNetworks = \[\([^]]*\)\].*/\1/' | tr -d '",' | tr ' ' '\n')
+# Check if the activeConfig exists in usedConfigs
+if jq -e ".usedConfigs | has(\"$activeConfig\")" "$json_file" > /dev/null; then
+    # Extract the usedNetworks from the activeConfig
+    usedNetworks=$(jq -r ".usedConfigs.$activeConfig.usedNetworks | join(\" \")" "$json_file")
 
-
-if [ -z "$usedNetworks" ]; then
-    echo "No networks found in usedNetwork."
+    if [ -z "$usedNetworks" ]; then
+        echo "No networks found in usedNetwork."
+        exit 1
+    fi
+    echo "Used networks for active config ($activeConfig): $usedNetworks"
+else
+    echo "The label: '$activeConfig' does not exist in usedConfigs."
     exit 1
 fi
-echo "Used networks:"
-echo "$usedNetworks"
 
-networkCount=$(echo "$usedNetworks" | wc -l)
+networkCount=$(echo "$usedNetworks" | wc -w)
 totalCommands=$((networkCount * 2))
 commandCount=0
+
 
 # Loop over the networks to deploy the contracts
 for networkToDeploy in $usedNetworks; do

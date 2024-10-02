@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const lockfile = require("proper-lockfile");
 
 const CONSTANTS_DIR = "constants";
 const DEPLOYED_ADDRESSES_FILE = "deployedAddresses.json";
@@ -9,6 +10,178 @@ const DEPLOYED_ADDRESSES_FILE_PATH = path.join(
 );
 const LAST_NONCE_FILE = "nonceRecord.json";
 const LAST_NONCE_FILE_PATH = path.join(CONSTANTS_DIR, LAST_NONCE_FILE);
+const CONFIG_PARAMS_FILE = "deploymentConfig.json";
+const CONFIG_PARAMS_FILE_PATH = path.join(CONSTANTS_DIR, CONFIG_PARAMS_FILE);
+const SIMULATION_CONFIG_FILE = "simulationConfig.json";
+const SIMULATION_CONFIG_FILE_PATH = path.join(
+  CONSTANTS_DIR,
+  SIMULATION_CONFIG_FILE
+);
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//                UTILS
+//
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description Ensure that a path exists, creating it if it does not.
+ *
+ * @param {string} path The path to ensure exists.
+ */
+function ensurePathExists(path) {
+  if (!fs.existsSync(path)) {
+    fs.mkdirSync(path);
+  }
+}
+
+/**
+ * @description Ensure that a file exists, creating it with initial content if it does not.
+ *
+ * @param {string} filePath The path to the file to ensure exists.
+ * @param {Object} initialContent The initial content to write to the file if it does not exist.
+ */
+function ensureFileExists(filePath, initialContent = {}) {
+  if (!fs.existsSync(filePath)) {
+    writeFile(filePath, initialContent);
+  }
+}
+
+/**
+ * @description Ensure that a key exists in an object, creating it with a default value if it does not.
+ *
+ * @param {Object} object The object to ensure the key exists in.
+ * @param {string} key The key to ensure exists in the object.
+ * @param {any} defaultValue The default value to assign to the key if it does not exist.
+ */
+function ensureExists(object, key, defaultValue = {}) {
+  if (!object[key]) {
+    object[key] = defaultValue;
+  }
+}
+
+/**
+ * @description Write data to a file.
+ *
+ * @param {string} filePath
+ * @param {Object} data
+ * @throws {Error} If an error occurs while writing the file.
+ */
+const writeFile = (filePath, data) => {
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error("Error writing file:", error);
+    throw error;
+  }
+};
+
+/**
+ * @description Read data from a file.
+ *
+ * @param {string} filePath
+ * @returns {Object} The data read from the file.
+ * @throws {Error} If an error occurs while reading the file.
+ */
+const readFile = (filePath) => {
+  try {
+    const fileContent = fs.readFileSync(filePath, "utf8");
+
+    return JSON.parse(fileContent);
+  } catch (error) {
+    console.error("Error reading file:", error);
+    throw error;
+  }
+};
+
+/**
+ * @description Read data from a file while locking it to prevent concurrent writes.
+ *
+ * @param {string} filePath
+ * @returns {Object} The data read from the file and a release function to unlock the file.
+ * @throws {Error} If an error occurs while reading the file.
+ * @throws {Error} If an error occurs while locking the file.
+ */
+const readLockedFile = (filePath) => {
+  let release;
+  try {
+    release = lockfile.lockSync(filePath, { stale: 5000 });
+    const data = readFile(filePath); // Utilisation de readFile
+    return { data, release };
+  } catch (error) {
+    console.error("Error reading locked file:", error);
+    throw error;
+  }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//                RESET JSON FILES (DEPLOYED ADDRESSES & NONCE RECORD)
+//
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description Reset the deployed addresses and nonce record JSON files.
+ *
+ * @dev This function will overwrite the existing files with empty objects.
+ * @dev It is used to clear the data from the files when needed.
+ */
+const resetJsonFiles = function () {
+  ensureFileExists(DEPLOYED_ADDRESSES_FILE_PATH);
+  writeFile(DEPLOYED_ADDRESSES_FILE_PATH, {});
+
+  ensureFileExists(LAST_NONCE_FILE_PATH, { originNonces: {} });
+  writeFile(LAST_NONCE_FILE_PATH, { originNonces: {} });
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//                CONFIG FILES HELPERS
+//
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description Get config params from config files
+ *
+ * @dev Composed of networkParams, usedConfigs, activeConfig
+ * @returns {Object} The config params from the config file
+ */
+const getConfigParams = function () {
+  const configParams = readFile(CONFIG_PARAMS_FILE_PATH);
+  return configParams;
+};
+
+/**
+ * @description Update config params in config files
+ *
+ * @param {Object} configParams The new config params to write to the file.
+ */
+function updateConfigParams(configParams) {
+  writeFile(CONFIG_PARAMS_FILE_PATH, configParams);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//                SCENARIO HELPERS
+//
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * @description Get the simulation/prepared params from the simulationParams file
+ *
+ * @dev format: { simulationName: { networkName: { params } } }
+ * @returns {Object} The simulation params from the simulationParams file
+ */
+const getSimulationConfig = function () {
+  const simulationParams = readFile(SIMULATION_CONFIG_FILE_PATH);
+
+  return simulationParams;
+};
+
+/**
+ * @description Update the simulation/prepared params in the simulationParams file
+ *
+ * @param {Object} simulationParams The new simulation params to write to the file.
+ */
+function updateSimulationConfig(simulationParams) {
+  writeFile(SIMULATION_CONFIG_FILE_PATH, simulationParams);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -37,42 +210,23 @@ const writeDeployedAddress = function (
   tokenSymbol = null
 ) {
   // file and path checks
-  if (!fs.existsSync(CONSTANTS_DIR)) {
-    fs.mkdirSync(CONSTANTS_DIR);
-  }
-
-  if (!fs.existsSync(DEPLOYED_ADDRESSES_FILE_PATH)) {
-    fs.writeFileSync(DEPLOYED_ADDRESSES_FILE_PATH, "{}");
-  }
+  ensurePathExists(CONSTANTS_DIR);
+  ensureFileExists(DEPLOYED_ADDRESSES_FILE_PATH);
 
   // Get json data from file
-  const deployedAddresses = JSON.parse(
-    fs.readFileSync(DEPLOYED_ADDRESSES_FILE_PATH)
-  );
+  const deployedAddresses = readFile(DEPLOYED_ADDRESSES_FILE_PATH);
 
-  // Checks if elements exist in the json data and creates them if they don't. Then push the new address
-  if (!deployedAddresses[network]) {
-    deployedAddresses[network] = {};
-  }
+  ensureExists(deployedAddresses, network);
+  ensureExists(deployedAddresses[network], contractName, tokenSymbol ? {} : []);
 
-  if (!deployedAddresses[network][contractName]) {
-    deployedAddresses[network][contractName] = tokenSymbol ? {} : [];
-  }
-
-  if (tokenSymbol && !deployedAddresses[network][contractName][tokenSymbol]) {
-    deployedAddresses[network][contractName][tokenSymbol] = [];
-  }
-
-  if (!tokenSymbol) {
-    deployedAddresses[network][contractName].push(address);
-  } else {
+  if (tokenSymbol) {
+    ensureExists(deployedAddresses[network][contractName], tokenSymbol, []);
     deployedAddresses[network][contractName][tokenSymbol].push(address);
+  } else {
+    deployedAddresses[network][contractName].push(address);
   }
 
-  fs.writeFileSync(
-    DEPLOYED_ADDRESSES_FILE_PATH,
-    JSON.stringify(deployedAddresses, null, 2)
-  );
+  writeFile(DEPLOYED_ADDRESSES_FILE_PATH, deployedAddresses);
 };
 
 /**
@@ -95,23 +249,18 @@ const readLastDeployedAddress = function (
   contractName,
   tokenSymbol = null
 ) {
-  const deployedAddresses = JSON.parse(
-    fs.readFileSync(DEPLOYED_ADDRESSES_FILE_PATH)
-  );
+  const deployedAddresses = readFile(DEPLOYED_ADDRESSES_FILE_PATH);
 
   if (!deployedAddresses) {
     return null;
   }
   if (deployedAddresses[network] && deployedAddresses[network][contractName]) {
+    const addresses = deployedAddresses[network][contractName];
     if (!tokenSymbol) {
-      return deployedAddresses[network][contractName][
-        deployedAddresses[network][contractName].length - 1
-      ];
+      return addresses[addresses.length - 1];
     } else {
-      if (deployedAddresses[network][contractName][tokenSymbol]) {
-        return deployedAddresses[network][contractName][tokenSymbol][
-          deployedAddresses[network][contractName][tokenSymbol].length - 1
-        ];
+      if (addresses[tokenSymbol]) {
+        return addresses[tokenSymbol][addresses[tokenSymbol].length - 1];
       }
     }
   }
@@ -125,69 +274,102 @@ const readLastDeployedAddress = function (
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * @description Update nonce used on network to used on destination
+ * @description Write the last used nonce for a specific user a specific network to a JSON file.
  *
- * @dev Format: "lastOriginNonce": { "sepolia": 0, "allfeat": 0 }
- * @dev Used by deposit scripts
+ * @dev This function creates the necessary directory and file if they do not exist.
+ * @dev The nonce is added to the existing list for the specified network.
+ * @dev This function uses file locking to prevent concurrent writes to the nonce file.
+ * @dev It ensures that only one process can write to the file at a time, preventing data corruption.
  *
- * @param { string } network The network to read.
- * @param { number } nonce The current nonce used.
+ * @param {string} network - The network for which the nonce is being written.
+ * @param {number} nonce - The nonce value to add to the list.
+ * @param {string} userAddress - The address of the user for which the nonce is being written.
  */
-const writeLastUsedNonce = function (network, nonce) {
-  // file and path checks
-  if (!fs.existsSync(CONSTANTS_DIR)) {
-    fs.mkdirSync(CONSTANTS_DIR);
+const writeLastUsedNonce = function (
+  network,
+  bridgeAddress,
+  userAddress,
+  nonce
+) {
+  ensurePathExists(CONSTANTS_DIR);
+  ensureFileExists(LAST_NONCE_FILE_PATH, { originNonces: {} });
+
+  let release;
+  try {
+    // Lock then read file and get json data
+    const { data: lastNonce, release: rel } =
+      readLockedFile(LAST_NONCE_FILE_PATH);
+    release = rel;
+
+    ensureExists(lastNonce.originNonces, network);
+    const networkNonces = lastNonce.originNonces[network];
+    ensureExists(networkNonces, bridgeAddress, {});
+    ensureExists(networkNonces[bridgeAddress], userAddress, []);
+
+    // Add the nonce to the list then write it back to the file
+    networkNonces[bridgeAddress][userAddress].push(nonce);
+    writeFile(LAST_NONCE_FILE_PATH, lastNonce);
+  } catch (error) {
+    console.error("Error writing nonce while acquiring lock :", error);
+  } finally {
+    if (release) {
+      // Unlock the file
+      release();
+    }
   }
-
-  if (!fs.existsSync(LAST_NONCE_FILE_PATH)) {
-    fs.writeFileSync(LAST_NONCE_FILE_PATH, "{}");
-  }
-
-  // Get json data from file
-  const lastNonce = JSON.parse(fs.readFileSync(LAST_NONCE_FILE_PATH));
-
-  // Checks if elements exist in the json data and creates them if they don't. Then push the new address
-  if (!lastNonce["lastOriginNonce"]) {
-    lastNonce["lastOriginNonce"] = {};
-  }
-
-  lastNonce["lastOriginNonce"][network] = nonce;
-
-  fs.writeFileSync(LAST_NONCE_FILE_PATH, JSON.stringify(lastNonce, null, 2));
 };
 
 /**
- * @description Read nonce used on origin network to used on destination
+ * @description Read the first valid nonce for a specific user a specific network and remove it from the list.
  *
- * @dev Format: "lastOriginNonce": { "sepolia": 0, "allfeat": 0 }
- * @dev Used by depositFees scripts
+ * @dev This function locks the file to ensure thread safety while reading the nonce.
+ * @dev It prevents race conditions by ensuring that only one process can read the file at a time.
+ * @dev If the file is empty or not valid JSON, appropriate error messages are logged.
  *
- * @param { string } network The network to read.
- * @returns The last nonce used on origin.
+ * @param {string} network - The network for which the nonce is being read.
+ * @param {string} userAddress - The address of the user for which the nonce is being read.
+ * @returns {number|null} The first available nonce or null if none exists or if an error occurs.
  */
-const readLastUsedNonce = function (network) {
-  const lastNonce = JSON.parse(fs.readFileSync(LAST_NONCE_FILE_PATH));
+const readFirstValidNonce = function (network, bridgeAddress, userAddress) {
+  let release;
+  try {
+    // Lock then read file and get json data
+    const { data: lastNonce, release: rel } =
+      readLockedFile(LAST_NONCE_FILE_PATH);
+    release = rel;
 
-  if (!lastNonce) {
-    return null;
+    if (!lastNonce) return null;
+    const nonces =
+      lastNonce.originNonces[network]?.[bridgeAddress]?.[userAddress];
+    if (!nonces || nonces.length === 0) {
+      console.error("Error: No nonce found for network or user.");
+      return null;
+    }
+    // Read and remove the first available nonce
+    const nonceToProcess = nonces.shift();
+    // Update the file with the remaining nonce list
+    writeFile(LAST_NONCE_FILE_PATH, lastNonce);
+    return nonceToProcess;
+  } catch (error) {
+    console.error("Error reading nonce while acquiring lock :", error);
+  } finally {
+    if (release) {
+      release();
+    }
   }
-
-  if (
-    lastNonce["lastOriginNonce"] &&
-    lastNonce["lastOriginNonce"][network] != null
-  ) {
-    return lastNonce["lastOriginNonce"][network];
-  }
-  return null;
 };
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//               OTHER FILE HELPERS
+//
+///////////////////////////////////////////////////////////////////////////////
 
 /**
  * @description Get networks used for previous deployments
  */
 const readNetworks = function () {
-  const deployedAddresses = JSON.parse(
-    fs.readFileSync(DEPLOYED_ADDRESSES_FILE_PATH)
-  );
+  const deployedAddresses = readFile(DEPLOYED_ADDRESSES_FILE_PATH);
   return Object.keys(deployedAddresses);
 };
 
@@ -208,7 +390,12 @@ module.exports = {
   writeDeployedAddress,
   readLastDeployedAddress,
   writeLastUsedNonce,
-  readLastUsedNonce,
+  readFirstValidNonce,
   readNetworks,
   logCurrentFileName,
+  resetJsonFiles,
+  getConfigParams,
+  updateConfigParams,
+  getSimulationConfig,
+  updateSimulationConfig,
 };

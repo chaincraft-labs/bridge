@@ -2,16 +2,15 @@ const hre = require("hardhat");
 const {
   readLastDeployedAddress,
   logCurrentFileName,
-  readLastUsedNonce,
+  readFirstValidNonce,
 } = require("../helpers/fileHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
 const { getContext } = require("../helpers/contextHelper");
-const { getNetworkNameByChainId } = require("../helpers/configHelper");
 const {
   convertToOperationParams,
   getFeesAmount,
 } = require("../helpers/functionHelpers");
-const { getSigner } = require("../utils/util");
+const { getSigner, getNetworkNameByChainId } = require("../utils/util");
 
 /**
  * @description User fees deposit script
@@ -73,12 +72,21 @@ async function main() {
   const paramsOption = process.env.PARAMS_OPTION;
   let operationParams = convertToOperationParams(paramsOption);
 
-  // read nonce from file depending on the network 'chainId from'
-  let nonce = await readLastUsedNonce(
-    getNetworkNameByChainId(operationParams[0])
+  const chainIdFrom = operationParams[0];
+  const originBridgeAddress = await readLastDeployedAddress(
+    getNetworkNameByChainId(chainIdFrom),
+    "BridgeBase"
   );
-  console.log(operationParams[0]);
-  console.log(getNetworkNameByChainId(operationParams[0]));
+  // read nonce from file depending on 'chainId from', last deployed bridge address on it and user address
+  let nonce = await readFirstValidNonce(
+    getNetworkNameByChainId(operationParams[0]),
+    originBridgeAddress,
+    userWallet.address
+  );
+  if (!nonce) {
+    throw "No valid nonce found!";
+  }
+
   display.depositSignerInfo(userWallet.address, nonce);
 
   operationParams = [

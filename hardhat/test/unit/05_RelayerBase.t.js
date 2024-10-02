@@ -23,8 +23,8 @@ const { getMaxAddress, getZeroAddress } = require("../../utils/util");
 // @todo network config to adapt test to different networks
 
 /*
- * - current(origin): hardhat->allfeat / token:"ethereum"
- * - current(destination): allfeat->hardhat / token:"ethereum" (fees: ethereum),
+ * - current(origin): hardhat->harmonie / token:"ethereum"
+ * - current(destination): harmonie->hardhat / token:"ethereum" (fees: ethereum),
  * need previous deposit
  */
 
@@ -37,19 +37,19 @@ const paramsTypes = [
   "uint",
   "uint",
 ];
-const aftChainId = 441;
-const hhChainId = 31337;
+// const hmyChainId = 441;
+// const hhChainId = 31337;
 const fees = ethers.parseEther("0.01");
 
 const originSideCases = [
-  [hhChainId, aftChainId, constants.hhNativeTokenName], // HH->allfeat native ethereum
-  [hhChainId, aftChainId, mocked.bridgedTokenName], //. HH->allfeat bridged token
-  [hhChainId, aftChainId, mocked.mockedTokenName], //.. HH->allfeat mocked token
+  [constants.hhChainId, constants.hmyChainId, constants.hhNativeTokenName], // HH->harmonie native ethereum
+  [constants.hhChainId, constants.hmyChainId, mocked.bridgedTokenName], //. HH->harmonie bridged token
+  [constants.hhChainId, constants.hmyChainId, mocked.mockedTokenName], //.. HH->harmonie mocked token
 ];
 const destinationSideCases = [
-  [aftChainId, hhChainId, constants.hhNativeTokenName], // allfeat->HH native ethereum
-  [aftChainId, hhChainId, mocked.bridgedTokenName], //. allfeat->HH bridged token
-  [aftChainId, hhChainId, mocked.mockedTokenName], //.. allfeat->HH mocked token
+  [constants.hmyChainId, constants.hhChainId, constants.hhNativeTokenName], // harmonie->HH native ethereum
+  [constants.hmyChainId, constants.hhChainId, mocked.bridgedTokenName], //. harmonie->HH bridged token
+  [constants.hmyChainId, constants.hhChainId, mocked.mockedTokenName], //.. harmonie->HH mocked token
 ];
 const nativeCoinIndex = 0; // index of native coin case in previous arrays
 

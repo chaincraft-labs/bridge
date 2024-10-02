@@ -1,5 +1,3 @@
-constants/*.json
-
 # Env variables
 .env
 
@@ -8,12 +6,18 @@ node_modules
 typechain
 typechain-types
 
-# Stats
+# Stats & Json files
 coverage
 coverage.json
+
 **/gas_report*
 **/gas_output*
 **/gasReport*
+
+constants/*.json
+# except for the following files
+!constants/deploymentConfig.json
+!constants/simulationConfig.json
 
 # Hardhat files
 cache

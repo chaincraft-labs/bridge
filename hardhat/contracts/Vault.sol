@@ -38,7 +38,7 @@ contract Vault {
 
     address constant MAX_ADDRESS = address(type(uint160).max); //....... 0xffffFFFfFFffffffffffffffffffffFfFFFfffFFFfF
 
-    address public s_storage;
+    Storage private immutable s_storage;
 
     mapping(address => uint256) public s_vaultBalances;
     // User balance of deposited tokens BEFORE operation is finalized
@@ -59,7 +59,7 @@ contract Vault {
     //****************************************************************** */
 
     modifier onlyRole(string memory role) {
-        if (!Storage(s_storage).isRole(role, msg.sender)) {
+        if (!s_storage.isRole(role, msg.sender)) {
             revert Vault__CallerHasNotRole(role);
         }
         _;
@@ -77,9 +77,9 @@ contract Vault {
     //
     //****************************************************************** */
     constructor(address storageAddress) {
-        s_storage = storageAddress;
+        s_storage = Storage(storageAddress);
 
-        if (!Storage(s_storage).isRole("admin", msg.sender)) {
+        if (!s_storage.isRole("admin", msg.sender)) {
             revert Vault__CallerHasNotRole("admin");
         }
     }
@@ -149,7 +149,7 @@ contract Vault {
         }
         s_userDeposits[from][token] -= amount;
 
-        TokenFactory factory = TokenFactory(Storage(s_storage).getOperator("factory"));
+        TokenFactory factory = TokenFactory(s_storage.getOperator("factory"));
 
         if (!factory.isBridgedToken(token)) {
             s_vaultBalances[token] += amount;

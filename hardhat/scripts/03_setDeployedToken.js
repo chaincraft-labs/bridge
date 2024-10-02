@@ -3,19 +3,19 @@ const {
   readLastDeployedAddress,
 } = require("../helpers/fileHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
-const {
-  deploymentCheck,
-  deployAndSaveAddress,
-} = require("../helpers/functionHelpers");
+const { deploymentCheck } = require("../helpers/functionHelpers");
 const { getContext } = require("../helpers/contextHelper");
-const { tokenParams, usedNetworks } = require("../helpers/configHelper");
+const {
+  tokenParams,
+  networkParams,
+  usedNetworks,
+} = require("../helpers/configHelper");
 
 /**
- * @description This script will deploy a new mocked Token and set its address in storage
+ * @description This script will set this address of a real deployed token in storage
  *
  * @dev The token MUST BE configured in 'tokenParams' before
- * @dev The token name MUST include 'mocked'!
- * @dev ARGS: MOCKED_TOKEN_OPTION="tokenName,tokenSymbol"
+ * @dev ARGS: TOKEN_OPTION="tokenName,tokenSymbol,tokenAddress"
  */
 async function main() {
   ///////////////////////////////////////////////////////////////////////////////
@@ -26,19 +26,23 @@ async function main() {
   display.h1(`Script: ${logCurrentFileName()}...`);
 
   const context = await getContext();
-  const owner = context.accounts[0];
 
   const options = process.env.MOCKED_TOKEN_OPTION;
   const tokenInfo = options.split(",");
-  if (tokenInfo.length != 2) {
-    throw "Missing data in MOCKED_TOKEN_OPTION to deploy.";
+  if (tokenInfo.length !== 3) {
+    throw "Missing data in TOKEN_OPTION to set its address.";
   }
   if (!tokenParams[tokenInfo[0]]) {
     throw "Token not configured in configHelper!";
   }
-  if (!tokenInfo[0].includes("mocked")) {
-    throw "Mocked Token name must include 'mocked'!";
+  const deployedTokens = networkParams[networkToSet].deployedTokens;
+  let tokenToSetObject = deployedTokens.find(
+    (element) => element.name === tokenToSet
+  );
+  if (!tokenToSetObject.address || tokenInfo[2] !== tokenToSetObject.address) {
+    throw "Wrong token address to set, address given don't match the one in deployedAddresses.json!";
   }
+
   deploymentCheck.validateNetworks(usedNetworks, context.network);
 
   // Get storage to call
@@ -53,7 +57,9 @@ async function main() {
   //
   ///////////////////////////////////////////////////////////////////////////////
   display.h2(
-    `Deploying mocked token on network: ${toStyle.blueBold(context.network)}`
+    `Setting deployed token address on network: ${toStyle.blueBold(
+      context.network
+    )}`
   );
 
   try {
@@ -65,26 +71,19 @@ async function main() {
       toStyle.discrete("tokenName added to tokenNameList: " + tokenNameList)
     );
 
-    // Deploy the mocked token
-    // console.log(toStyle.discrete("deploying token.."));
-    const token = await deployAndSaveAddress(context.network, "MockedToken", [
-      owner, //....... holder of the supply
-      tokenInfo[0], // token name
-      tokenInfo[1], // token symbol
-    ]);
     // Store its address in storage for this chainId
     // console.log(toStyle.discrete("adding token address in Storage.."));
     tx = await storage.addNewTokenAddressByChainId(
       tokenInfo[0],
       context.chainId,
-      token.target
+      tokenInfo[2]
     );
     await tx.wait();
 
     display.tokenSet(tokenInfo[0], token.target, context.chainId);
   } catch (err) {
     console.log(
-      `${toStyle.error("Error: ")} Deploying mocked token...\n${err.message}`
+      `${toStyle.error("Error: ")} Setting token address...\n${err.message}`
     );
   }
 }

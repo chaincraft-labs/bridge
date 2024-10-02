@@ -18,11 +18,11 @@ const mocked = {
 
 const constants = {
   hhChainId: 31337,
-  aftChainId: 441,
+  hmyChainId: 441,
   sepoliaChainId: 11155111,
   ethNativeTokenName: "ethereum",
   hhNativeTokenName: "ethereum",
-  aftNativeTokenName: "allfeat",
+  hmyNativeTokenName: "harmonie",
   nativeTokenAddress: getMaxAddress(),
 };
 

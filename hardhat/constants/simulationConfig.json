@@ -1,0 +1,18 @@
+{
+  "defaultOrigin": {
+    "sepolia": {
+      "chainIdFrom": 11155111,
+      "chainIdTo": 441,
+      "tokenName": "ethereum",
+      "amount": "10000000000000000",
+      "feesAmount": "1000000000000000"
+    },
+    "harmonie": {
+      "chainIdFrom": 441,
+      "chainIdTo": 11155111,
+      "tokenName": "allfeat",
+      "amount": "10000000000000000",
+      "feesAmount": "1000000000000000"
+    }
+  }
+}

@@ -37,7 +37,7 @@ The purpose of this repository is to implement a bridge that allows for the tran
 ~~Token contracts on each chain.~~  
 ~~Server side: receive transfer event & manage calls for mint/burn, lock/unclock actions~~  
 ~~3. Improve the bridge~~  
-4. Cleanup  
+~~4. Cleanup ~~  
 5. Implement fees management  
 6. Implement cancel features  
 7. Refacto to make it decentralized  

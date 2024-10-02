@@ -64,7 +64,7 @@ async function main() {
   // get signer nonce and write it in constants/nonceRecord.js to be used for fees deposit
   let nonce = await bridge.getNewUserNonce(userWallet.address);
   nonce = Number(nonce);
-  writeLastUsedNonce(context.network, nonce); /// context.
+  writeLastUsedNonce(context.network, bridgeAddress, userWallet.address, nonce); /// context.
 
   display.depositSignerInfo(userWallet.address, nonce);
 

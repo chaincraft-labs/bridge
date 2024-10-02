@@ -1,0 +1,227 @@
+{
+  "activeConfig": "testnet",
+  "usedConfigs": {
+    "localNode": {
+      "usedNetworks": ["geth", "harmonieLocal"],
+      "usedTokens": ["ethereum", "harmonie", "mockedDai", "mockedUsdc"]
+    },
+    "local": {
+      "usedNetworks": ["localhost"],
+      "usedTokens": ["ethereum", "harmonie", "mockedDai", "mockedUsdc"]
+    },
+    "testnet": {
+      "usedNetworks": ["harmonie", "sepolia"],
+      "usedTokens": ["ethereum", "harmonie", "mockedDai", "mockedUsdc"]
+    }
+  },
+  "networkParams": {
+    "localhost": {
+      "chainId": 31337,
+      "nativeToken": {
+        "name": "ethereum",
+        "symbol": "ETH"
+      },
+      "deployedTokens": [
+        {
+          "name": "mockedDai",
+          "symbol": "DAI"
+        },
+        {
+          "name": "mockedUsdc",
+          "symbol": "USDC"
+        }
+      ]
+    },
+    "hardhat": {
+      "chainId": 31337,
+      "nativeToken": {
+        "name": "ethereum",
+        "symbol": "ETH"
+      },
+      "deployedTokens": [
+        {
+          "name": "mockedDai",
+          "symbol": "DAI"
+        },
+        {
+          "name": "mockedUsdc",
+          "symbol": "USDC"
+        }
+      ]
+    },
+    "anvilLocal": {
+      "chainId": 31337,
+      "nativeToken": {
+        "name": "ethereum",
+        "symbol": "ETH"
+      },
+      "deployedTokens": [
+        {
+          "name": "mockedDai",
+          "symbol": "DAI"
+        },
+        {
+          "name": "mockedUsdc",
+          "symbol": "USDC"
+        }
+      ]
+    },
+    "geth": {
+      "chainId": 1337,
+      "nativeToken": {
+        "name": "ethereum",
+        "symbol": "ETH"
+      },
+      "deployedTokens": [
+        {
+          "name": "mockedDai",
+          "symbol": "DAI"
+        },
+        {
+          "name": "mockedUsdc",
+          "symbol": "USDC"
+        }
+      ]
+    },
+    "sepolia": {
+      "chainId": 11155111,
+      "nativeToken": {
+        "name": "ethereum",
+        "symbol": "ETH"
+      },
+      "deployedTokens": [
+        {
+          "name": "mockedDai",
+          "symbol": "DAI"
+        },
+        {
+          "name": "mockedUsdc",
+          "symbol": "USDC"
+        },
+        {
+          "name": "fakeToken",
+          "symbol": "FTK",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        }
+      ]
+    },
+    "ethereum": {
+      "chainId": 1,
+      "nativeToken": {
+        "name": "ethereum",
+        "symbol": "ETH"
+      },
+      "deployedTokens": [
+        {
+          "name": "mockedDai",
+          "symbol": "DAI"
+        },
+        {
+          "name": "mockedUsdc",
+          "symbol": "USDC"
+        },
+        {
+          "name": "Wrapped Ether",
+          "symbol": "WETH",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        }
+      ]
+    },
+    "harmonieLocal": {
+      "chainId": 440,
+      "nativeToken": {
+        "name": "harmonie",
+        "symbol": "HMY"
+      },
+      "deployedTokens": []
+    },
+    "harmonie": {
+      "chainId": 441,
+      "nativeToken": {
+        "name": "harmonie",
+        "symbol": "HMY"
+      },
+      "deployedTokens": []
+    },
+    "arbitrumSepolia": {
+      "chainId": 421614,
+      "nativeToken": {
+        "name": "ethereum",
+        "symbol": "ETH"
+      },
+      "deployedTokens": []
+    },
+    "arbitrum": {
+      "chainId": 42161,
+      "nativeToken": {
+        "name": "ethereum",
+        "symbol": "ETH"
+      },
+      "deployedTokens": []
+    },
+    "bscTestnet": {
+      "chainId": 97,
+      "nativeToken": {
+        "name": "binance",
+        "symbol": "BNB"
+      },
+      "deployedTokens": []
+    },
+    "bsc": {
+      "chainId": 56,
+      "nativeToken": {
+        "name": "binance",
+        "symbol": "BNB"
+      },
+      "deployedTokens": []
+    },
+    "fantomTestnet": {
+      "chainId": 4002,
+      "nativeToken": {
+        "name": "fantom",
+        "symbol": "FTM"
+      },
+      "deployedTokens": []
+    },
+    "fantom": {
+      "chainId": 250,
+      "nativeToken": {
+        "name": "fantom",
+        "symbol": "FTM"
+      },
+      "deployedTokens": []
+    },
+    "optimismSepolia": {
+      "chainId": 11155420,
+      "nativeToken": {
+        "name": "ethereum",
+        "symbol": "ETH"
+      },
+      "deployedTokens": []
+    },
+    "optimism": {
+      "chainId": 10,
+      "nativeToken": {
+        "name": "ethereum",
+        "symbol": "ETH"
+      },
+      "deployedTokens": []
+    },
+    "polygonAmoy": {
+      "chainId": 80002,
+      "nativeToken": {
+        "name": "matic",
+        "symbol": "MATIC"
+      },
+      "deployedTokens": []
+    },
+    "polygon": {
+      "chainId": 137,
+      "nativeToken": {
+        "name": "matic",
+        "symbol": "MATIC"
+      },
+      "deployedTokens": []
+    }
+  }
+}

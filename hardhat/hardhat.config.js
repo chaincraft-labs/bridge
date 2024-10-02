@@ -4,6 +4,7 @@ require("solidity-coverage");
 require("dotenv").config();
 
 require("./tasks/start-node");
+require("./tasks/config-tasks");
 require("./tasks/call-write");
 require("./tasks/call-read");
 require("./tasks/func-printSigners");
@@ -14,9 +15,10 @@ require("./tasks/func-getMsgHash");
 require("./tasks/func-getMsgSignature");
 
 const { ethers } = require("ethers");
-const { forkPorts } = require("./constants/deploymentConfig");
+const { buildLocalRpcUrl } = require("./helpers/functionHelpers");
 
-const USER_COUNT = 20;
+// number of users to make accounts for (excluding deployer)
+const USER_COUNT = 19;
 
 const providerApiKey = process.env.ALCHEMY_API_KEY || "";
 const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "";
@@ -25,7 +27,7 @@ const etherscanApiKey = process.env.ETHERSCAN_API_KEY || "";
 // Real accounts:
 const deployerPvtKey = process.env.DEPLOYER_PRIVATE_KEY || "";
 const usersPvtKeys = [];
-for (let i = 0; i < USER_COUNT - 1; i++) {
+for (let i = 1; i <= USER_COUNT; i++) {
   const userPvtKey = process.env[`USER${i}_PRIVATE_KEY`];
   if (userPvtKey) {
     usersPvtKeys.push(userPvtKey);
@@ -39,7 +41,7 @@ const hhWallet = ethers.HDNodeWallet.fromMnemonic(
   hhMnemonic,
   defaultDerivationPath //`m/44'/60'/0'/0`
 );
-for (let i = 0; i < USER_COUNT; i++) {
+for (let i = 0; i <= USER_COUNT; i++) {
   const childWallet = hhWallet.deriveChild(i);
   hardhatPvtKeys.push(childWallet.privateKey);
 }
@@ -65,11 +67,11 @@ module.exports = {
       // },
     },
     anvilLocal: {
-      url: `http://127.0.0.1:8545`,
+      url: buildLocalRpcUrl("anvilLocal"),
       accounts: hardhatPvtKeys,
     },
     geth: {
-      url: `http://127.0.0.1:8545`,
+      url: buildLocalRpcUrl("geth"),
       accounts: hardhatPvtKeys,
     },
     sepolia: {
@@ -77,7 +79,7 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     sepoliaFork: {
-      url: `http://127.0.0.1:${forkPorts["sepolia"]}`,
+      url: buildLocalRpcUrl("sepoliaFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     mainnet: {
@@ -85,18 +87,14 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     mainnetFork: {
-      url: `http://127.0.0.1:${forkPorts["mainnet"]}`,
+      url: buildLocalRpcUrl("mainnetFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
-    allfeatLocal: {
-      url: `http://127.0.0.1:9944`,
+    harmonieLocal: {
+      url: buildLocalRpcUrl("harmonieLocal"),
       accounts: hardhatPvtKeys,
     },
     harmonie: {
-      url: `https://harmonie-endpoint-02.allfeat.io`,
-      accounts: [deployerPvtKey, ...usersPvtKeys],
-    },
-    allfeat: {
       url: `https://harmonie-endpoint-02.allfeat.io`,
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
@@ -121,7 +119,7 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     fantomTestnetFork: {
-      url: `http://127.0.0.1:${forkPorts["fantomTestnet"]}`,
+      url: buildLocalRpcUrl("fantomTestnetFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     fantom: {
@@ -129,7 +127,7 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     fantomFork: {
-      url: `http://127.0.0.1:${forkPorts["fantom"]}`,
+      url: buildLocalRpcUrl("fantomFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     optimismSepolia: {
@@ -145,7 +143,7 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     polygonAmoyFork: {
-      url: `http://127.0.0.1:${forkPorts["polygonAmoy"]}`,
+      url: buildLocalRpcUrl("polygonAmoyFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     polygon: {
@@ -153,9 +151,14 @@ module.exports = {
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
     polygonFork: {
-      url: `http://127.0.0.1:${forkPorts["polygon"]}`,
+      url: buildLocalRpcUrl("polygonFork"),
       accounts: [deployerPvtKey, ...usersPvtKeys],
     },
+  },
+  gasReporter: {
+    enabled: process.env.REPORT_GAS ? true : false,
+    outputFile: "gas-report.txt",
+    noColors: true,
   },
   verify: {
     etherscan: {

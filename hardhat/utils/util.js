@@ -1,3 +1,22 @@
+const { networkParams } = require("../helpers/configHelper");
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//                NETWORK HELPERS
+//
+///////////////////////////////////////////////////////////////////////////////
+
+const getChainIdByNetworkName = (name) => {
+  return networkParams[name].chainId;
+};
+
+const getNetworkNameByChainId = (chainId) => {
+  const networkEntry = Object.entries(networkParams).find(
+    ([network, params]) => params.chainId === chainId
+  );
+  return networkEntry ? networkEntry[0] : null;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 //               SIGNER UTILS
@@ -135,6 +154,8 @@ const hexToNum = (hexString) => {
 };
 
 module.exports = {
+  getChainIdByNetworkName,
+  getNetworkNameByChainId,
   getSigner,
   getRandomAddress,
   toChecksumAddress,

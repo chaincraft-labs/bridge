@@ -161,6 +161,8 @@ module.exports = {
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS ? true : false,
+    outputFile: "gas-report.txt",
+    noColors: true,
   },
   verify: {
     etherscan: {

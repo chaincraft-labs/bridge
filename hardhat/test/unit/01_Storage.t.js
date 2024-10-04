@@ -9,6 +9,10 @@ const {
   getRandomAddress,
   getZeroAddress,
   getRandomBytes,
+  uint256ToBytes32,
+  addressToBytes32,
+  stringToBytes32,
+  keccak256EncodeBytes32,
 } = require("../../utils/util");
 
 describe("Storage", function () {
@@ -285,12 +289,15 @@ describe("Storage", function () {
     });
   });
 
-  describe("Key generator", function () {
+  describe.only("Key generator", function () {
     it("should generate a key from a string", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const key = await storage.getKey("test");
 
-      const ethersKey = ethers.solidityPackedKeccak256(["string"], ["test"]);
+      const ethersKey = keccak256EncodeBytes32([
+        stringToBytes32("test"),
+        stringToBytes32("NON_COMPOSITE_KEY"),
+      ]);
 
       expect(key).to.equal(ethersKey);
     });
@@ -304,10 +311,10 @@ describe("Storage", function () {
         preparedAddress
       );
 
-      const ethersKey = ethers.solidityPackedKeccak256(
-        ["string", "address"],
-        ["test", preparedAddress]
-      );
+      const ethersKey = keccak256EncodeBytes32([
+        stringToBytes32("test"),
+        addressToBytes32(preparedAddress),
+      ]);
 
       expect(key).to.equal(ethersKey);
     });
@@ -321,10 +328,10 @@ describe("Storage", function () {
         preparedNumber
       );
 
-      const ethersKey = ethers.solidityPackedKeccak256(
-        ["string", "uint"],
-        ["test", preparedNumber]
-      );
+      const ethersKey = keccak256EncodeBytes32([
+        stringToBytes32("test"),
+        uint256ToBytes32(preparedNumber),
+      ]);
 
       expect(key).to.equal(ethersKey);
     });

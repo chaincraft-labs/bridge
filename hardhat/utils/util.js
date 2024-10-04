@@ -138,7 +138,7 @@ const getRandomBytes = (length = 32) => {
 /**
  * @description Convert a number to hex
  * @param {string} hexString
- * @returns
+ * @returns a hex string
  */
 const numToHex = (num) => {
   return "0x" + num.toString(16);
@@ -147,11 +147,64 @@ const numToHex = (num) => {
 /**
  * @description Convert a hex string to number
  * @param {string} hexString
- * @returns
+ * @returns a number
  */
 const hexToNum = (hexString) => {
   return parseInt(hexString, 16);
 };
+
+/**
+ * @description Convert a uint256 string in bytes32
+ * @param {string} uint256
+ * @returns a bytes32 string
+ */
+const uint256ToBytes32 = (uint256) => {
+  if (!Number.isInteger(uint256) || uint256 < 0) {
+    throw new Error("Invalid uint256");
+  }
+
+  return ethers.zeroPadValue(ethers.toBeHex(uint256), 32);
+};
+
+/**
+ * @description Convert an address in bytes32
+ * @param {string} address
+ * @returns a bytes32 address
+ */
+const addressToBytes32 = (address) => {
+  if (!ethers.isAddress(address)) {
+    throw new Error("Invalid address");
+  }
+  return ethers.zeroPadValue(address, 32);
+};
+
+/**
+ * @description Convert a string to bytes32
+ * @param {string} str
+ * @returns a bytes32 string
+ */
+const stringToBytes32 = (str) => {
+  const bytes = ethers.toUtf8Bytes(str);
+
+  if (bytes.length > 32) {
+    throw new Error("String is too long to be converted to bytes32");
+  }
+  return ethers.encodeBytes32String(str);
+};
+
+/**
+ * @description Encode bytes32 inputs using keccak256
+ *
+ * @dev inputs should be an array of bytes32 strings
+ * @param {string[]} inputs
+ * @returns a keccak256 hash
+ */
+function keccak256EncodeBytes32(inputs) {
+  return ethers.solidityPackedKeccak256(
+    inputs.map(() => "bytes32"),
+    inputs
+  );
+}
 
 module.exports = {
   getChainIdByNetworkName,
@@ -166,4 +219,8 @@ module.exports = {
   hexToNum,
   getRandomBytes,
   shortenAddress,
+  uint256ToBytes32,
+  addressToBytes32,
+  stringToBytes32,
+  keccak256EncodeBytes32,
 };

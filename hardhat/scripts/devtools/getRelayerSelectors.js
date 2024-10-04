@@ -19,6 +19,15 @@ async function main() {
     const functionSelector = ethers.id(signature).slice(0, 10);
     console.log(`Function: ${signature}, Selector: ${functionSelector}`);
   });
+
+  const refFuncSignature = "f(uint256,uint32[],bytes10,bytes)";
+  const refSelector = "0x8be65246";
+  const refFuncSelector = ethers.id(refFuncSignature).slice(0, 10);
+  const isMatching = refSelector === refFuncSelector;
+
+  console.log(
+    `Function: ${refFuncSignature}, Selector: ${refFuncSelector}, Matching computation: ${isMatching}`
+  );
 }
 
 main()

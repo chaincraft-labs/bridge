@@ -374,7 +374,7 @@ function formatNetworkSuffix(networkName) {
  * @dev Naming convention:
  *  forkNetworkName = [networkName]Fork
  *  localNetworkName = [networkName]Local
- * @param { string } forkNetworkName
+ * @param { string } networkName
  * @returns the port
  */
 function networkNameToPortName(networkName) {
@@ -387,7 +387,7 @@ function networkNameToPortName(networkName) {
  * @dev Naming convention:
  *  forkNetworkName = [networkName]Fork
  *  localNetworkName = [networkName]Local | geth
- * @param { string } forkNetworkName
+ * @param { string } networkName
  * @returns the rpc url
  */
 function buildLocalRpcUrl(networkName) {

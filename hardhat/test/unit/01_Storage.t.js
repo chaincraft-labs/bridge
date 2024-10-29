@@ -289,7 +289,7 @@ describe("Storage", function () {
     });
   });
 
-  describe.only("Key generator", function () {
+  describe("Key generator", function () {
     it("should generate a key from a string", async function () {
       const { storage } = await loadFixture(fixtures.deployStorage);
       const key = await storage.getKey("test");

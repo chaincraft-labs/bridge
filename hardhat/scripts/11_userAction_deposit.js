@@ -6,9 +6,14 @@ const {
 } = require("../helpers/fileHelpers");
 const { toStyle, display } = require("../helpers/loggingHelper");
 const { getContext } = require("../helpers/contextHelper");
-const { networkParams } = require("../helpers/configHelper");
+const { networkParams, tokenParams } = require("../helpers/configHelper");
 const { convertToOperationParams } = require("../helpers/functionHelpers");
+const {
+  getChainIdByNetworkName,
+  computeTokenSymbol,
+} = require("../utils/util");
 const { getSigner } = require("../utils/util");
+// const IERC20 = require("../artifacts/@openzeppelin/contracts/token/ERC20/IERC20.sol/IERC20.json");
 
 /**
  * @description User deposit script
@@ -47,20 +52,31 @@ async function main() {
   //                PREPARE PARAMETERS
   //
   ///////////////////////////////////////////////////////////////////////////////
-  // => contract to call
-  let bridgeAddress = await readLastDeployedAddress(
+  // => contracts to use
+  const vaultAddress = await readLastDeployedAddress(context.network, "Vault");
+  const storageAddress = await readLastDeployedAddress(
+    context.network,
+    "Storage"
+  );
+  const storage = await hre.ethers.getContractAt("Storage", storageAddress);
+  const bridgeAddress = await readLastDeployedAddress(
     context.network,
     "BridgeBase"
   );
-  let bridge = await hre.ethers.getContractAt("BridgeBase", bridgeAddress);
+  const bridge = await hre.ethers.getContractAt("BridgeBase", bridgeAddress);
 
-  display.depositContractToCall(bridgeAddress, context.network);
+  display.depositContractToCall(
+    bridgeAddress,
+    storageAddress,
+    vaultAddress,
+    context.network
+  );
 
   console.log(`${toStyle.discrete("Preparing params..")}`);
   // => operation params
   // signer
   const signerOption = process.env.SIGNER_OPTION;
-  let userWallet = await getSigner(hre, signerOption);
+  const userWallet = await getSigner(hre, signerOption);
   // get signer nonce and write it in constants/nonceRecord.js to be used for fees deposit
   let nonce = await bridge.getNewUserNonce(userWallet.address);
   nonce = Number(nonce);
@@ -113,9 +129,38 @@ async function main() {
 
   ///////////////////////////////////////////////////////////////////////////////
   //
-  //                SEND TRANSACTION
+  //                SEND TRANSACTIONS
   //
   ///////////////////////////////////////////////////////////////////////////////
+
+  //******************    ERC20 token: APPROVE   ********************//
+  if (!isTokenNative) {
+    const networkId = getChainIdByNetworkName(context.network);
+
+    const tokenAddress = await storage.getTokenAddressByChainId(
+      tokenName,
+      networkId
+    );
+    if (!tokenAddress) {
+      throw new Error(
+        `No address found for token: ${tokenName} in Storage for chainId: ${networkId}`
+      );
+    }
+
+    // Approve the vault to spend the tokens
+    const Token = await hre.artifacts.readArtifact("ERC20");
+    const token = await hre.ethers.getContractAt(Token.abi, tokenAddress);
+    console.log(`${toStyle.discrete("Giving allowance to vault for token..")}`);
+
+    const tx = await token
+      .connect(userWallet)
+      .approve(vaultAddress, operationParams[5]);
+    await tx.wait();
+    display.approvedToken(tokenAddress, vaultAddress, operationParams[5]);
+  }
+
+  //******************    DEPOSIT   ********************//
+
   console.log(`${toStyle.discrete("Sending tx..")}`);
 
   const tx = await bridge

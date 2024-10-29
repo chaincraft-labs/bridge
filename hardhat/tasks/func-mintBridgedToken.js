@@ -18,7 +18,7 @@ task("func-mintBridgedToken", "mint amount of bridged token to user")
     // get contract instance
     const storage = await hre.ethers.getContractAt("Storage", storageAddress);
     const vault = await hre.ethers.getContractAt("Vault", vaultAddress);
-    const tokenInstance = await await hre.ethers.getContractAt(
+    const tokenInstance = await hre.ethers.getContractAt(
       "BridgedToken",
       taskArgs.token
     );

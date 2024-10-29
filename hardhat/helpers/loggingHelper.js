@@ -198,13 +198,22 @@ const display = {
     );
   },
   // script - deposit
-  depositContractToCall: (bridgeAddress, network) => {
+  depositContractToCall: (
+    bridgeAddress,
+    storageAddress,
+    vaultAddress,
+    network
+  ) => {
     console.log(
       `Will send tx to create an operation and deposit funds\nto ${toStyle.bold(
         "Bridge address:"
       )} ${toStyle.blueItalic(bridgeAddress)} on ${toStyle.bold(
         "network:"
-      )} ${toStyle.blueItalic(network)}`
+      )} ${toStyle.blueItalic(network)}, and use:\n${toStyle.bold(
+        "Storage address:"
+      )} ${toStyle.blueItalic(storageAddress)}\n${toStyle.bold(
+        "Vault address:"
+      )} ${toStyle.blueItalic(vaultAddress)}`
     );
   },
   depositSignerInfo: (userAddress, nonce) => {
@@ -242,6 +251,13 @@ const display = {
       )} => ${toStyle.bold("Value to send with tx: ")} ${toStyle.blueItalic(
         value
       )}`
+    );
+  },
+  approvedToken: (tokenSymbol, spender, amount) => {
+    console.log(
+      `${toStyle.bold("Approved")} ${amount} of ${toStyle.blueItalic(
+        tokenSymbol
+      )} token for ${toStyle.blueItalic(spender)}`
     );
   },
   // script - depositFees

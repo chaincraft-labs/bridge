@@ -11,7 +11,7 @@
     },
     "testnet": {
       "usedNetworks": ["harmonie", "sepolia"],
-      "usedTokens": ["ethereum", "harmonie", "mockedDai", "mockedUsdc"]
+      "usedTokens": ["ethereum", "harmonie", "mockedDai"]
     }
   },
   "networkParams": {

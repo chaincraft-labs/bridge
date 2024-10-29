@@ -5,7 +5,9 @@ This file serves as a comprehensive guide for developers and users of the reposi
 - [Config](#config)
   - [Files and variables](#files-and-variables)
   - [CLI : tasks available to modify the configuration:](#cli--tasks-available-to-modify-the-configuration)
-- [Tests](#tests)
+- [Mocked tokens](#mocked-tokens)
+- [Tests](#tests-and-coverage)
+- [Gas report](#gas-report)
 - [Nodes](#nodes)
   - [Hardhat](#hardhat)
   - [Forks](#forks)
@@ -158,6 +160,12 @@ Few files are used to configure the project. Some data are to be set in the file
   ```
 
   The tokenAddress is optional and should be used only for tokens already deployed on the network.
+
+# MOCKED TOKENS
+
+The mocked tokens are used for testing purposes to simulate existing tokens. They are deployed on the network defined in the `networkParams` object of the `deploymentConfig` file and their bridged versions are deployed on the other networks (following the `usedNetworks` array of the `activeConfig`).
+
+The total supply of the mocked tokens (1_000_000 \* 10 \*\* 18) is minted to the deployer account. See script and task sections to mint or transfer mocked tokens.
 
 # TESTS AND COVERAGE
 

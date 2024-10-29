@@ -12,6 +12,7 @@ error Storage__TokenAlreadyInList(string tokenName);
 error Storage__ChainIdAlreadyInList(uint256 chainId);
 error Storage__TokenAddressAlreadySet(string tokenName, uint256 chainId);
 error Storage__TokenAddressNotSet(string tokenName, uint256 chainId);
+error Storage__StringLongerThan32Bytes();
 
 /**
  * @title Storage
@@ -29,6 +30,7 @@ contract Storage {
     //****************************************************************** */
 
     address constant MAX_ADDRESS = address(0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF);
+    bytes32 constant NON_COMPOSITE_KEY = bytes32("NON_COMPOSITE_KEY");
 
     mapping(bytes32 => uint256) internal s_uintStorage;
     mapping(bytes32 => bytes32) internal s_bytes32Storage;
@@ -114,7 +116,7 @@ contract Storage {
      */
     function getKey(string memory key) public pure returns (bytes32) {
         // return keccak256(abi.encodePacked(key));
-        return _getKey(bytes32(bytes(key)), bytes32("NON_COMPOSITE_KEY"));
+        return _getKey(_stringToBytes32(key), NON_COMPOSITE_KEY);
     }
 
     /**
@@ -130,7 +132,7 @@ contract Storage {
      */
     function getKey(string memory key, address addr) public pure returns (bytes32) {
         // return keccak256(abi.encodePacked(key, addr));
-        return _getKey(bytes32(bytes(key)), bytes32(uint256(uint160(addr))));
+        return _getKey(_stringToBytes32(key), bytes32(uint256(uint160(addr))));
     }
 
     /**
@@ -146,7 +148,7 @@ contract Storage {
      */
     function getKey(string memory key, uint256 number) public pure returns (bytes32) {
         // return keccak256(abi.encodePacked(key, number));
-        return _getKey(bytes32(bytes(key)), bytes32(number));
+        return _getKey(_stringToBytes32(key), bytes32(number));
     }
 
     // @todo clean key generators when refactoring done
@@ -168,6 +170,13 @@ contract Storage {
             mstore(0x20, label2)
             key := keccak256(0x00, 0x40)
         }
+    }
+
+    function _stringToBytes32(string memory str) private pure returns (bytes32) {
+        if (bytes(str).length > 32) {
+            revert Storage__StringLongerThan32Bytes();
+        }
+        return bytes32(bytes(str));
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //

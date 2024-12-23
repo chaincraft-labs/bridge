@@ -192,6 +192,11 @@ REPORT_GAS=true npx hardhat test
 npx hardhat node
 ```
 
+If you want to specify a port to use for localhost in case of conflict for example due to port 8545 already used by geth:
+
+- in the hardhat config file, set the port to use in the network definition for localhost
+- run the node with the port option: `npx hardhat node --hostname 127.0.0.1 --port <port-to-use>`
+
 ### FORKS:
 
 - Be sure to have the port to use defined in `constants/deploymentConfig.js::forkPorts`
